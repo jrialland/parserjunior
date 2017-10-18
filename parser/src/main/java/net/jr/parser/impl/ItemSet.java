@@ -8,10 +8,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+/**
+ * Item sets are collections of rules that have pointers to the current position of the rule.
+ */
 public class ItemSet {
 
-    private int id;
+    private int id = -1;
 
     private Set<Item> kernel;
 
@@ -19,11 +23,14 @@ public class ItemSet {
 
     private Map<Symbol, ItemSet> transitions;
 
-    public ItemSet(int id, Set<Item> kernel, Set<Item> members) {
-        this.id = id;
+    public ItemSet(Set<Item> kernel, Set<Item> members) {
         this.kernel = kernel;
         this.members = members;
         this.transitions = new HashMap<>();
+    }
+
+    public Set<Item> getKernel() {
+        return kernel;
     }
 
     public void addTransition(Symbol symbol, ItemSet targetItemsSet) {
@@ -33,8 +40,16 @@ public class ItemSet {
         }
     }
 
-    public ItemSet getItemSetForTransition(Symbol s) {
-        return transitions.get(s);
+    public ItemSet getTransitionFor(Symbol symbol) {
+        return transitions.get(symbol);
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     /**
@@ -98,18 +113,17 @@ public class ItemSet {
         return set;
     }
 
-    public String getName() {
-        return "I"+id;
-    }
-
-    public int getId() {
-        return id;
+    public Stream<Item> allItems() {
+        return Stream.concat(kernel.stream(), members.stream());
     }
 
     @Override
     public String toString() {
         StringWriter sw = new StringWriter();
-        sw.append(getName() + " : {\n");
+        if(getId() != -1) {
+            sw.append("I"+ getId() + " : ");
+        }
+        sw.append("{\n");
         for (Item item : kernel) {
             sw.append("   " + item.toString() + "\n");
         }
@@ -119,7 +133,7 @@ public class ItemSet {
         sw.append("}");
 
         sw.append(", transitions = ");
-        sw.append(transitions.entrySet().stream().map(e->e.getKey().toString()+"->"+e.getValue().getName()).collect(Collectors.toList()).toString());
+        sw.append(transitions.entrySet().stream().map(e->e.getKey().toString()+"->I"+e.getValue().getId()).collect(Collectors.toList()).toString());
 
         return sw.toString();
     }

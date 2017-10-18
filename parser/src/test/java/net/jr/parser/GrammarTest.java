@@ -1,9 +1,11 @@
 package net.jr.parser;
 
 import net.jr.common.Symbol;
+import net.jr.lexer.CommonTokenTypes;
 import net.jr.lexer.impl.SingleChar;
 import net.jr.parser.impl.LR0Table;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -141,10 +143,12 @@ import org.junit.Test;
  */
 public class GrammarTest {
 
-    //Forward E = new Forward("E");
-    //Symbol e1 = E.then(literal("*")).then(B); // (1) E → E * B
-    //Symbol e2 = E.then(literal("+")).then(B); // (2) E → E + B
-    //E.assign(e1, e2, B); // (3) E → B
+    @BeforeClass
+    public static void setupClass() {
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
+    }
+
+    Symbol E = new Forward("E");
 
     /**
      * <pre>
@@ -161,7 +165,7 @@ public class GrammarTest {
 
         Grammar g = new Grammar();
 
-        Symbol E = new Forward("E");
+
         Symbol B = new Forward("B");
 
         // (1) E → E * B
@@ -188,6 +192,15 @@ public class GrammarTest {
     }
 
     @Test
+    public void test2() {
+        Grammar g = makeGrammar();
+        Symbol S = new Forward("S");
+        g.addRule(S, E, CommonTokenTypes.eof());
+        LR0Table lr0Table = new LR0Table.Builder().build(g, S);
+        System.out.println(lr0Table);
+    }
+
+    @Test
     public void test1() {
 
         Grammar g = new Grammar();
@@ -210,8 +223,37 @@ public class GrammarTest {
         //6. V → * E
         g.addRule(V, new SingleChar('*'), E);
 
-        new LR0Table.Builder().build(g, S);
+        LR0Table lr0Table = new LR0Table.Builder().build(g, S);
+
+        System.out.println(lr0Table);
 
     }
 
+    @Test
+    public void test3() {
+
+        Grammar g = new Grammar();
+
+        Symbol S = new Forward("S");
+        Symbol N = new Forward("N");
+        Symbol E = new Forward("E");
+        Symbol V = new Forward("V");
+
+        //1. S → N
+        g.addRule(S, N);
+        //2. N → V = E
+        g.addRule(N, V, new SingleChar('='), E);
+        //3. N → E
+        g.addRule(N, E);
+        //4. E → V
+        g.addRule(E, V);
+        //5. V → x
+        g.addRule(V, new SingleChar('x'));
+        //6. V → * E
+        g.addRule(V, new SingleChar('*'), E);
+
+
+
+
+    }
 }

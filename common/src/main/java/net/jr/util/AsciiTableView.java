@@ -24,20 +24,6 @@ public class AsciiTableView {
         this.maxCellWidth = Math.max(minCellWidth, maxCellWidth);
     }
 
-    public static void main(String[] args) throws IOException {
-
-        TableModel<String> tm = new TableModel<>();
-        for(int i=0; i<18; i++) {
-            tm.setData(i, i, "Hello");
-        }
-        StringWriter sw = new StringWriter();
-
-        new AsciiTableView().show(tm, sw);
-
-        System.out.println(sw.toString());
-
-    }
-
     private Map<Integer, Integer> getColWidths(TableModel<?> tableModel) {
         final Map<Integer, Integer> colWidths = new TreeMap<Integer, Integer>();
         int maxX = tableModel.getMaxX();
@@ -78,7 +64,7 @@ public class AsciiTableView {
             if (s.length() < colWidth) {
                 while (s.length() != colWidth) s += " ";
             } else {
-                s = s.substring(0, Math.min(s.length(),colWidth));
+                s = s.substring(0, Math.min(s.length(), colWidth));
             }
             writer.append(s);
             if (i != maxX) {
@@ -89,11 +75,11 @@ public class AsciiTableView {
         writer.append("\n");
     }
 
-    public String tableToString(TableModel<?> tableModel) {
+    public static String tableToString(TableModel<?> tableModel) {
         StringWriter sw = new StringWriter();
         try {
-            show(tableModel, sw);
-        } catch(IOException e) {
+            new AsciiTableView().show(tableModel, sw);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return sw.toString();
@@ -102,7 +88,6 @@ public class AsciiTableView {
     public <D> void show(TableModel<D> tableModel, Writer writer) throws IOException {
         int maxX = tableModel.getMaxX();
         int maxY = tableModel.getMaxY();
-
         Function<Integer, Integer> getColumnWidth;
         if (minCellWidth == maxCellWidth) {
             getColumnWidth = (i) -> minCellWidth;
@@ -110,18 +95,14 @@ public class AsciiTableView {
             final Map<Integer, Integer> colWidths = getColWidths(tableModel);
             getColumnWidth = (i) -> colWidths.get(i);
         }
-
         makeSepLine(writer, maxX, getColumnWidth, new char[]{'┏', '━', '┯', '┓'});
-
         for (int j = 0; j <= maxY; j++) {
             makeDataLine(writer, j, tableModel, getColumnWidth, new char[]{'┃', '│', '┃'});
             if (j != maxY) {
                 makeSepLine(writer, maxX, getColumnWidth, new char[]{'┠', '─', '┼', '┨'});
             }
         }
-//        makeSepLine(writer, maxX, getColumnWidth, new char[]{'└', '─', '┴', '┘'});
         makeSepLine(writer, maxX, getColumnWidth, new char[]{'┗', '━', '┷', '┛'});
-
         writer.flush();
     }
 }

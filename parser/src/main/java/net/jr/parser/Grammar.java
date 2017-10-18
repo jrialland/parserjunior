@@ -10,15 +10,24 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
+ * https://web.cs.dal.ca/~sjackson/lalr1.html
  * http://jsmachines.sourceforge.net/machines/lalr1.html
  * https://www.codeproject.com/articles/252399/lalr-parse-table-generation-in-csharp
  */
 public class Grammar {
 
+    private static final Symbol[] EmptySymbolArray = new Symbol[]{};
+
+    private String name;
+
     private Set<Rule> rules = new HashSet<>();
 
     public Grammar() {
+        this(null);
+    }
 
+    public Grammar(String name) {
+        this.name = name;
     }
 
     public static class Rule {
@@ -38,6 +47,20 @@ public class Grammar {
 
         public Derivation getDerivation() {
             return derivation;
+        }
+
+        public Rule(Symbol target, Collection<? extends Symbol> clause) {
+            this(null, target, clause);
+        }
+
+        public Rule(String name, Symbol target, Symbol ... clause) {
+            this.name = name;
+            this.target = target;
+            this.clause = clause;
+        }
+
+        public Rule(String name, Symbol target, Collection<? extends Symbol> clause) {
+            this(name, target, clause.toArray(EmptySymbolArray));
         }
 
         @Override
@@ -67,15 +90,17 @@ public class Grammar {
 
     }
 
+    public RuleSpecifier addRule(Symbol target, Collection<? extends Symbol> clause) {
+        return addRule(target, clause.toArray(EmptySymbolArray));
+    }
+
     public RuleSpecifier addRule(Symbol target, Symbol... clause) {
 
         if (target.isTerminal()) {
             throw new IllegalArgumentException("target symbol cannot be a terminal !");
         }
 
-        final Rule rule = new Rule();
-        rule.target = target;
-        rule.clause = clause;
+        final Rule rule = new Rule(null, target, clause);
         rules.add(rule);
         return new RuleSpecifier() {
             @Override
@@ -124,5 +149,24 @@ public class Grammar {
         return rules.stream().map(r -> r.getTarget()).collect(Collectors.toSet());
     }
 
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        StringWriter sw = new StringWriter();
+        if(name != null) {
+            sw.append(name);
+            sw.append(" : ");
+        }
+        sw.append("{\n");
+        for(Rule r : getRules()) {
+            sw.append("    " + r.toString());
+            sw.append("\n");
+        }
+        sw.append("}\n");
+        return sw.toString();
+    }
 }
 

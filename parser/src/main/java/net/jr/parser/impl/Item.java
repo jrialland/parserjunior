@@ -48,6 +48,11 @@ public class Item {
         return rule.getClause()[pointer];
     }
 
+    public Item shift() {
+        assert pointer < rule.getClause().length;
+        return new Item(rule, pointer+1);
+    }
+
     /**
      *
      * @return true when the pointer is at the end of the item's clause

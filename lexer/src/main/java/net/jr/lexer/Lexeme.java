@@ -8,7 +8,7 @@ public interface Lexeme extends Symbol {
 
         @Override
         public String toString() {
-            return "Eof";
+            return "ᵉᵒᶠ";
         }
     };
 
