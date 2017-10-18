@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>parserjunior-parser</artifactId>
-    <name>ParserJunior Parser</name>
+    <name>ParserJunior - Parser</name>
     <packaging>jar</packaging>
 
 

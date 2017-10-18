@@ -11,7 +11,7 @@
 
 
     <artifactId>parserjunior-grammar-c11</artifactId>
-    <name>ParserJunior C11 Grammar</name>
+    <name>ParserJunior - C11 Grammar</name>
     <packaging>jar</packaging>
 
 

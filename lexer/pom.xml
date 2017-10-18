@@ -11,7 +11,7 @@
 
 
     <artifactId>parserjunior-lexer</artifactId>
-    <name>ParserJunior Lexer</name>
+    <name>ParserJunior - Lexer</name>
     <packaging>jar</packaging>
 
     <dependencies>

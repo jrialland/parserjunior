@@ -4,7 +4,6 @@ import net.jr.common.Symbol;
 
 import java.io.StringWriter;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,7 +34,7 @@ public class ItemSet {
 
     public void addTransition(Symbol symbol, ItemSet targetItemsSet) {
         ItemSet oldItemSet = transitions.put(symbol, targetItemsSet);
-        if(oldItemSet != null) {
+        if (oldItemSet != null) {
             assert oldItemSet.equals(targetItemsSet);
         }
     }
@@ -53,8 +52,8 @@ public class ItemSet {
     }
 
     /**
-     *
      * The kernel is the only thing that should be used for equals and hashcode
+     *
      * @return
      */
     @Override
@@ -78,39 +77,16 @@ public class ItemSet {
     }
 
     public Iterable<Symbol> getPossibleNextSymbols() {
-        Set<Symbol> set = new HashSet<>();
-        Symbol s;
-        for (Item i : kernel) {
-            s = i.getExpectedSymbol();
-            if (s != null) {
-                set.add(s);
-            }
-        }
-        for (Item i : members) {
-            s = i.getExpectedSymbol();
-            if (s != null) {
-                set.add(s);
-            }
-        }
-        return set;
+        return allItems()
+                .map(Item::getExpectedSymbol)
+                .filter(s -> s != null).collect(Collectors.toSet());
     }
 
-    public Set<Item> getItemsThatExpect(Symbol symbol) {
-        Set<Item> set = new HashSet<>();
-        Symbol s;
-        for (Item item : kernel) {
-            s = item.getExpectedSymbol();
-            if (s != null && symbol.equals(s)) {
-                set.add(item);
-            }
-        }
-        for (Item item : members) {
-            s = item.getExpectedSymbol();
-            if (s != null && symbol.equals(s)) {
-                set.add(item);
-            }
-        }
-        return set;
+    public Set<Item> getItemsThatExpect(final Symbol symbol) {
+        return allItems().filter(i -> {
+            Symbol s = i.getExpectedSymbol();
+            return s != null && s.equals(symbol);
+        }).collect(Collectors.toSet());
     }
 
     public Stream<Item> allItems() {
@@ -120,8 +96,8 @@ public class ItemSet {
     @Override
     public String toString() {
         StringWriter sw = new StringWriter();
-        if(getId() != -1) {
-            sw.append("I"+ getId() + " : ");
+        if (getId() != -1) {
+            sw.append("I" + getId() + " : ");
         }
         sw.append("{\n");
         for (Item item : kernel) {
@@ -133,7 +109,7 @@ public class ItemSet {
         sw.append("}");
 
         sw.append(", transitions = ");
-        sw.append(transitions.entrySet().stream().map(e->e.getKey().toString()+"->I"+e.getValue().getId()).collect(Collectors.toList()).toString());
+        sw.append(transitions.entrySet().stream().map(e -> e.getKey().toString() + "->I" + e.getValue().getId()).collect(Collectors.toList()).toString());
 
         return sw.toString();
     }

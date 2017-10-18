@@ -11,7 +11,7 @@
 
 
     <artifactId>parserjunior-grammar-lua5</artifactId>
-    <name>ParserJunior Lua 5 Grammar</name>
+    <name>ParserJunior - Lua 5 Grammar</name>
     <packaging>jar</packaging>
 
     <dependencies>

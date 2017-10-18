@@ -16,6 +16,18 @@ import java.util.stream.Collectors;
  */
 public class Grammar {
 
+    public static final Symbol Empty = new Symbol() {
+        @Override
+        public boolean isTerminal() {
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return "ε";
+        }
+    };
+
     private static final Symbol[] EmptySymbolArray = new Symbol[]{};
 
     private String name;
@@ -96,8 +108,13 @@ public class Grammar {
 
     public RuleSpecifier addRule(Symbol target, Symbol... clause) {
 
+        //replace empty clause with the 'Empty' pseudo-terminal
+        if(clause.length == 0) {
+            clause = new Symbol[]{Empty};
+        }
+
         if (target.isTerminal()) {
-            throw new IllegalArgumentException("target symbol cannot be a terminal !");
+            throw new IllegalArgumentException("The target symbol cannot be a terminal !");
         }
 
         final Rule rule = new Rule(null, target, clause);
