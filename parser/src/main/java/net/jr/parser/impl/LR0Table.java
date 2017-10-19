@@ -1,7 +1,7 @@
 package net.jr.parser.impl;
 
 import net.jr.common.Symbol;
-import net.jr.lexer.Lexeme;
+import net.jr.lexer.CommonTokenTypes;
 import net.jr.parser.Grammar;
 import net.jr.util.AsciiTableView;
 import net.jr.util.TableModel;
@@ -69,98 +69,124 @@ public class LR0Table {
             Grammar.Rule startingRule = grammar.getRules().stream().filter(r -> r.getTarget().equals(target)).findFirst().get();
             ItemSet i0 = getFirstItemSet(grammar, startingRule);
             Set<ItemSet> allItemSets = getAllItemSets(grammar, i0);
-
-            if (getLog().isDebugEnabled()) {
-                getLog().debug(String.format("There are %d itemSets", allItemSets.size()));
-                for (ItemSet itemSet : allItemSets) {
-                    getLog().debug(itemSet.toString());
-                }
-            }
-
             Map<Integer, Map<Symbol, Action>> table = getActionTable(grammar, allItemSets);
             List<Symbol> terminals = new ArrayList<>(grammar.getTerminals());
             List<Symbol> nonTerminals = new ArrayList<>(grammar.getNonTerminals());
             LR0Table lr0Table = new LR0Table(terminals, nonTerminals, table);
 
 
-            //extended grammar
             Grammar extendedGrammar = makeExtendedGrammar(allItemSets);
+            System.out.println(extendedGrammar);
 
-            Set<Set<Symbol>> firstSets = grammar.getNonTerminals()
-                    .stream()
-                    .map(s -> getFirst(grammar, extendedGrammar, s))
-                    .collect(Collectors.toSet());
-
-            if(getLog().isDebugEnabled()) {
-                for(Set<Symbol> first : firstSets) {
-                    getLog().debug("FIRST("+ /*s*/ +  ") = " + first);
-
-                }
-            }
-
-            for(Symbol s : grammar.getNonTerminals()) {
-                Set<Symbol> first = getFirst(grammar, extendedGrammar, s);
+            Map<Symbol, Set<Symbol>> eFollowSets = getFollowSets(extendedGrammar, extendedGrammar.getTargetRule());
+            for (Map.Entry<Symbol, Set<Symbol>> entry : eFollowSets.entrySet()) {
+                System.out.println(entry.getKey() + " => " + entry.getValue());
             }
 
             return lr0Table;
         }
 
-        private Set<Symbol> getFirst(Grammar grammar, Grammar extendedGrammar, Symbol s) {
+        private Map<Symbol, Set<Symbol>> getFollowSets(Grammar grammar, Symbol target) {
+            Map<Symbol, FollowSet> map = new HashMap<>();
 
-            //original grammar
-            Set<Symbol> first = getFirst(grammar, s);
+            //The follow set of a terminal is the empty set
+            for (Symbol terminal : grammar.getTerminals()) {
+                map.put(terminal, FollowSet.emptySet(terminal));
+            }
 
-            //extended grammar
-            extendedGrammar.getSymbols().stream().map(x->(ExtendedSymbol)x).filter(x->x.getSymbol().equals(s)).forEach(x -> {
-                Set<Symbol> extFirst = getFirst(extendedGrammar, x);
-                for(Symbol es : extFirst) {
-                    if(es instanceof ExtendedSymbol) {
-                        first.add(((ExtendedSymbol) es).getSymbol());
-                    } else {
-                        first.add(es);
+            //Initialize an empty set for each nonterminal
+            for (Symbol s : grammar.getNonTerminals()) {
+                map.put(s, new FollowSet(s));
+            }
+
+            //Place an End of Input token ($) into the starting rule's follow set.
+            map.get(target).setResolution(new HashSet<>(Arrays.asList(CommonTokenTypes.eof())));
+
+            for (Symbol s : grammar.getNonTerminals()) {
+                defineFollowSet(map, grammar, s);
+            }
+
+            LazySet.resolveAll(map.values());
+
+            return map.values()
+                    .stream()
+                    .filter(f -> !f.getSubject().isTerminal())
+                    .collect(Collectors.toMap(FollowSet::getSubject, FollowSet::getResolution));
+        }
+
+        private void defineFollowSet(Map<Symbol, FollowSet> followSets, Grammar grammar, Symbol D) {
+
+            FollowSet followSet = followSets.get(D);
+
+            // Construct for the rule have the form R → a* D b.
+            for (Grammar.Rule rule : grammar.getRules()) {
+
+                Symbol R = rule.getTarget();
+                List<Symbol> clause = Arrays.asList(rule.getClause());
+
+                //for each occurence of D in the clause
+                for (int i = 0, max = clause.size() - 1; i < max; i++) { //minus 1 because if D is the last we are not interested (i.e b must exist)
+                    //if (clause.get(i).equals(D)) {
+                    if (clause.get(i).equals(D)) {
+                        Symbol b = clause.get(i + 1);
+                        //Everything in First(b) (except for ε) is added to Follow(D)
+                        Set<Symbol> first = new HashSet<>(getFirst(grammar, b));
+                        boolean containedEmpty = first.remove(Grammar.Empty);
+
+                        FirstSet firstSet = new FirstSet(b);
+                        firstSet.setResolution(first);
+                        followSet.add(firstSet);
+
+                        //If First(b) contains ε then everything in Follow(R) is put in Follow(D)
+                        if (containedEmpty) {
+                            followSet.add(followSets.get(R));
+                        }
                     }
                 }
-            });
 
-            return first;
+                //Finally, if we have a rule R → a* D, then everything in Follow(R) is placed in Follow(D).
+                if (!clause.isEmpty() && D.equals(clause.get(clause.size() - 1))) {
+                    followSet.add(followSets.get(R));
+                }
+            }
         }
 
         private Set<Symbol> getFirst(Grammar grammar, Symbol s) {
             Set<Symbol> set = new HashSet<>();
 
-            // FIRST(terminal) = {terminal}
-            if(s.isTerminal()) {
-                set.add((Lexeme)s);
+            // First(terminal) = [terminal]
+            if (s.isTerminal()) {
+                set.add(s);
                 return set;
             }
 
-            for(Grammar.Rule r : grammar.getRules()) {
-                if(r.getTarget().equals(s)) {
+            for (Grammar.Rule r : grammar.getRules()) {
+                if (r.getTarget().equals(s)) {
 
                     //if the first symbol is a terminal, the set is this terminal
                     Symbol firstTerminal;
-                    if(r.getClause().length>0 && (firstTerminal = r.getClause()[0]).isTerminal()) {
+                    if (r.getClause().length > 0 && (firstTerminal = r.getClause()[0]).isTerminal()) {
                         set.add(firstTerminal);
                         continue;
                     }
 
                     //if not, we scan the symbol,
                     boolean brk = false;
-                    for(Symbol s2 : r.getClause()) {
+                    for (Symbol s2 : r.getClause()) {
 
                         Set<Symbol> a = getFirst(grammar, s2);
                         boolean containedEmpty = a.remove(Grammar.Empty);
                         set.addAll(a);
 
                         //if First(x) did not contain ε, we do not need to contine scanning
-                        if(!containedEmpty) {
+                        if (!containedEmpty) {
                             brk = true;
                             break;
                         }
                     }
 
-                    //every FIRST(x) contained ε, so we have to add it to the set
-                    if(!brk) {
+                    //every First(x) contained ε, so we have to add it to the set
+                    if (!brk) {
                         set.add(Grammar.Empty);
                     }
                 }
@@ -170,19 +196,24 @@ public class LR0Table {
         }
 
         private Grammar makeExtendedGrammar(Set<ItemSet> allItemSets) {
+
+            Map<List<?>, ExtendedSymbol> extSyms = new HashMap<>();
+
             Grammar eGrammar = new Grammar();
             for (ItemSet itemSet : allItemSets) {
                 int initialState = itemSet.getId();
                 List<Grammar.Rule> rules = itemSet.allItems().filter(item -> item.getPointer() == 0).map(item -> item.getRule()).collect(Collectors.toList());
                 for (Grammar.Rule rule : rules) {
-                    int start = 0, end = -1;
+
                     ItemSet currentItem = itemSet;
                     List<ExtendedSymbol> eClause = new ArrayList<>();
                     for (Symbol s : rule.getClause()) {
-                        start = currentItem.getId();
+                        final int start = currentItem.getId();
                         currentItem = currentItem.getTransitionFor(s);
-                        end = currentItem.getId();
-                        eClause.add(new ExtendedSymbol(start, s, end));
+                        final int end = currentItem.getId();
+                        List<?> key = Arrays.asList(start, s, end);
+                        ExtendedSymbol extSym = extSyms.computeIfAbsent(key, k -> new ExtendedSymbol(start, s, end));
+                        eClause.add(extSym);
                     }
                     final int finalState;
                     ItemSet transition = itemSet.getTransitionFor(rule.getTarget());
@@ -192,7 +223,8 @@ public class LR0Table {
                         finalState = transition.getId();
                     }
 
-                    ExtendedSymbol eTarget = new ExtendedSymbol(initialState, rule.getTarget(), finalState);
+                    List<?> key = Arrays.asList(initialState, rule.getTarget(), finalState);
+                    ExtendedSymbol eTarget = extSyms.computeIfAbsent(key, k -> new ExtendedSymbol(initialState, rule.getTarget(), finalState));
                     eGrammar.addRule(eTarget, eClause);
                 }
             }

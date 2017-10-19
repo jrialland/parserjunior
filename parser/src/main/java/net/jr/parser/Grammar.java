@@ -170,6 +170,23 @@ public class Grammar {
         return name;
     }
 
+    /**
+     * The rule that appears on left side but never on right side, if any
+     * @return
+     */
+    public Symbol getTargetRule() {
+        Set<Symbol> allRight = new HashSet<>();
+        for(Rule r : rules) {
+            allRight.addAll(Arrays.asList(r.getClause()));
+        }
+        for(Rule r : rules) {
+           if(!allRight.contains(r.getTarget())) {
+               return r.getTarget();
+            }
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         StringWriter sw = new StringWriter();

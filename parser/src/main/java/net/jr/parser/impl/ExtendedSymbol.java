@@ -19,7 +19,7 @@ public class ExtendedSymbol implements Symbol {
 
     @Override
     public int hashCode() {
-        return (from + symbol.hashCode() + to) ^ 215447;
+        return 613 + from + symbol.hashCode() + to;
     }
 
     @Override
