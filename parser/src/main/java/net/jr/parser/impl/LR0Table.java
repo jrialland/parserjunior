@@ -15,13 +15,13 @@ public class LR0Table {
 
     private static final Logger LOG = LoggerFactory.getLogger(LR0Table.class);
 
-    private List<Lexeme> terminals;
+    private List<Symbol> terminals;
 
     private List<Symbol> nonTerminals;
 
     private Map<Integer, Map<Symbol, Action>> tableData;
 
-    private LR0Table(List<Lexeme> terminals, List<Symbol> nonTerminals, Map<Integer, Map<Symbol, Action>> tableData) {
+    private LR0Table(List<Symbol> terminals, List<Symbol> nonTerminals, Map<Integer, Map<Symbol, Action>> tableData) {
         this.terminals = terminals;
         this.nonTerminals = nonTerminals;
         this.tableData = tableData;
@@ -78,16 +78,95 @@ public class LR0Table {
             }
 
             Map<Integer, Map<Symbol, Action>> table = getActionTable(grammar, allItemSets);
-            List<Lexeme> terminals = new ArrayList<>(grammar.getTerminals());
+            List<Symbol> terminals = new ArrayList<>(grammar.getTerminals());
             List<Symbol> nonTerminals = new ArrayList<>(grammar.getNonTerminals());
             LR0Table lr0Table = new LR0Table(terminals, nonTerminals, table);
 
 
             //extended grammar
             Grammar extendedGrammar = makeExtendedGrammar(allItemSets);
-            System.out.println(extendedGrammar);
+
+            Set<Set<Symbol>> firstSets = grammar.getNonTerminals()
+                    .stream()
+                    .map(s -> getFirst(grammar, extendedGrammar, s))
+                    .collect(Collectors.toSet());
+
+            if(getLog().isDebugEnabled()) {
+                for(Set<Symbol> first : firstSets) {
+                    getLog().debug("FIRST("+ /*s*/ +  ") = " + first);
+
+                }
+            }
+
+            for(Symbol s : grammar.getNonTerminals()) {
+                Set<Symbol> first = getFirst(grammar, extendedGrammar, s);
+            }
 
             return lr0Table;
+        }
+
+        private Set<Symbol> getFirst(Grammar grammar, Grammar extendedGrammar, Symbol s) {
+
+            //original grammar
+            Set<Symbol> first = getFirst(grammar, s);
+
+            //extended grammar
+            extendedGrammar.getSymbols().stream().map(x->(ExtendedSymbol)x).filter(x->x.getSymbol().equals(s)).forEach(x -> {
+                Set<Symbol> extFirst = getFirst(extendedGrammar, x);
+                for(Symbol es : extFirst) {
+                    if(es instanceof ExtendedSymbol) {
+                        first.add(((ExtendedSymbol) es).getSymbol());
+                    } else {
+                        first.add(es);
+                    }
+                }
+            });
+
+            return first;
+        }
+
+        private Set<Symbol> getFirst(Grammar grammar, Symbol s) {
+            Set<Symbol> set = new HashSet<>();
+
+            // FIRST(terminal) = {terminal}
+            if(s.isTerminal()) {
+                set.add((Lexeme)s);
+                return set;
+            }
+
+            for(Grammar.Rule r : grammar.getRules()) {
+                if(r.getTarget().equals(s)) {
+
+                    //if the first symbol is a terminal, the set is this terminal
+                    Symbol firstTerminal;
+                    if(r.getClause().length>0 && (firstTerminal = r.getClause()[0]).isTerminal()) {
+                        set.add(firstTerminal);
+                        continue;
+                    }
+
+                    //if not, we scan the symbol,
+                    boolean brk = false;
+                    for(Symbol s2 : r.getClause()) {
+
+                        Set<Symbol> a = getFirst(grammar, s2);
+                        boolean containedEmpty = a.remove(Grammar.Empty);
+                        set.addAll(a);
+
+                        //if First(x) did not contain ε, we do not need to contine scanning
+                        if(!containedEmpty) {
+                            brk = true;
+                            break;
+                        }
+                    }
+
+                    //every FIRST(x) contained ε, so we have to add it to the set
+                    if(!brk) {
+                        set.add(Grammar.Empty);
+                    }
+                }
+            }
+
+            return set;
         }
 
         private Grammar makeExtendedGrammar(Set<ItemSet> allItemSets) {

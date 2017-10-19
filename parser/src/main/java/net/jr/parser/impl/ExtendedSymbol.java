@@ -36,6 +36,18 @@ public class ExtendedSymbol implements Symbol {
         return o.from == from && o.symbol.equals(symbol) && o.to == to;
     }
 
+    public int getFrom() {
+        return from;
+    }
+
+    public int getTo() {
+        return to;
+    }
+
+    public Symbol getSymbol() {
+        return symbol;
+    }
+
     @Override
     public boolean isTerminal() {
         return symbol.isTerminal();

@@ -134,12 +134,12 @@ public class Grammar {
         };
     }
 
-    public Set<Lexeme> getTerminals() {
-        HashSet<Lexeme> terminals = new HashSet<>();
+    public Set<Symbol> getTerminals() {
+        Set<Symbol> terminals = new HashSet<>();
         for (Rule r : rules) {
             for (Symbol s : r.getClause()) {
                 if (s.isTerminal()) {
-                    terminals.add((Lexeme) s);
+                    terminals.add(s);
                 }
             }
         }
