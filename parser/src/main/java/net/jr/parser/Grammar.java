@@ -2,7 +2,9 @@ package net.jr.parser;
 
 
 import net.jr.common.Symbol;
+import net.jr.parser.impl.ActionTable;
 import net.jr.parser.impl.BaseRule;
+import net.jr.parser.impl.LRParser;
 
 import java.io.StringWriter;
 import java.util.*;
@@ -32,6 +34,8 @@ public class Grammar {
 
     private Set<Rule> rules = new HashSet<>();
 
+    private Parser parser;
+
     public Grammar() {
         this(null);
     }
@@ -53,15 +57,14 @@ public class Grammar {
         Rule get();
     }
 
-    public RuleSpecifier addRule(Symbol target, Collection<? extends Symbol> clause) {
-        return addRule(target, clause.toArray(new Symbol[]{}));
-    }
-
     public void addRule(Rule rule) {
         rules.add(rule);
     }
 
     public RuleSpecifier addRule(Symbol target, Symbol... clause) {
+
+        //drop eventual parser
+        parser =  null;
 
         //replace empty clause with the 'Empty' pseudo-terminal
         if(clause.length == 0) {
@@ -135,16 +138,7 @@ public class Grammar {
      * @return
      */
     public Symbol getTargetSymbol() {
-        Set<Symbol> allRight = new HashSet<>();
-        for(Rule r : rules) {
-            allRight.addAll(Arrays.asList(r.getClause()));
-        }
-        for(Rule r : rules) {
-           if(!allRight.contains(r.getTarget())) {
-               return r.getTarget();
-            }
-        }
-        return null;
+       return getRuleById(0).getTarget();
     }
 
     @Override
@@ -166,6 +160,13 @@ public class Grammar {
     public Rule getRuleById(int id) {
         Optional<Rule> opt = rules.stream().filter(r -> r.getId() == id).findAny();
         return opt.isPresent() ? opt.get() : null;
+    }
+
+    public Parser createParser() {
+        if(parser ==  null) {
+            parser = new LRParser(this, ActionTable.lalr1(this, getRuleById(0)));
+        }
+        return parser;
     }
 }
 

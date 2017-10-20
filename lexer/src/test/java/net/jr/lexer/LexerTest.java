@@ -62,8 +62,7 @@ public class LexerTest {
         lexer.tokenize("this is a       complete phrase with words in lowercase characters that are sometimes separated by           large \t\tspaces");
     }
 
-    @Test
-    public void testMixed() throws IOException {
+    protected Lexer getMixed() {
         Set<Lexeme> tokenTypes = new HashSet<>();
         tokenTypes.add(new Literal("if"));
         tokenTypes.add(new Literal("then"));
@@ -73,16 +72,21 @@ public class LexerTest {
         tokenTypes.add(new SingleChar(')'));
         tokenTypes.add(new SingleChar('{'));
         tokenTypes.add(new SingleChar('}'));
-        tokenTypes.add(CommonTokenTypes.cIdentifier());
+        tokenTypes.add(Lexemes.cIdentifier());
         Lexer lexer = new Lexer(tokenTypes);
-        lexer.tokenize(new StringReader("if(a==b)then{c==thenabc}"));
+        return lexer;
+    }
+
+    @Test
+    public void testMixed() throws IOException {
+        getMixed().tokenize(new StringReader("if(a==b)then{c==thenabc}"));
     }
 
     @Test
     public void testFiltersWhitespaces() {
-        Lexer lexer = new Lexer(CommonTokenTypes.number(), CommonTokenTypes.whitespace());
-        lexer.filterOut(CommonTokenTypes.whitespace());
-        lexer.filterOut(CommonTokenTypes.eof());
+        Lexer lexer = new Lexer(Lexemes.number(), Lexemes.whitespace());
+        lexer.filterOut(Lexemes.whitespace());
+        lexer.filterOut(Lexemes.eof());
 
 
         List<Integer> integerList = new ArrayList<>();
@@ -103,7 +107,7 @@ public class LexerTest {
 
     @Test
     public void testBestMatch() {
-        Lexer lexer = new Lexer(new Literal("id"), CommonTokenTypes.cIdentifier());
+        Lexer lexer = new Lexer(new Literal("id"), Lexemes.cIdentifier());
         List<Token> tokenList = new ArrayList<>();
         lexer.setTokenListener(t -> tokenList.add(t));
         lexer.tokenize("identify");
@@ -113,7 +117,7 @@ public class LexerTest {
 
     @Test
     public void testNoMatch() {
-        Lexer lexer = new Lexer(CommonTokenTypes.lowercaseWord(), CommonTokenTypes.whitespace());
+        Lexer lexer = new Lexer(Lexemes.lowercaseWord(), Lexemes.whitespace());
         try {
             lexer.tokenize("mostly lowercase words EXCEPT this one");
             Assert.fail();
@@ -124,7 +128,7 @@ public class LexerTest {
 
     @Test
     public void testNoMatchAtEnd() {
-        Lexer lexer = new Lexer(CommonTokenTypes.lowercaseWord(), CommonTokenTypes.whitespace());
+        Lexer lexer = new Lexer(Lexemes.lowercaseWord(), Lexemes.whitespace());
         try {
             lexer.tokenize("mostly lowercase words except this ONE!");
             Assert.fail();
@@ -135,15 +139,29 @@ public class LexerTest {
 
     @Test
     public void testCString() {
-        Lexer lexer = new Lexer(CommonTokenTypes.cString(), CommonTokenTypes.whitespace());
+        Lexer lexer = new Lexer(Lexemes.cString(), Lexemes.whitespace());
         lexer.tokenize("\"Hello world\"\"Hello\\t\\tworld\" \"Hello\\nworld\"    \"Hello world\"");
     }
 
     @Test
     public void testToString() {
-        CommonTokenTypes.eof().toString();
-        CommonTokenTypes.cIdentifier().toString();
-        CommonTokenTypes.whitespace().toString();
+        Lexemes.eof().toString();
+        Lexemes.cIdentifier().toString();
+        Lexemes.whitespace().toString();
         new Literal("else").toString();
+    }
+
+    @Test
+    public void testIterator() {
+        int i=0;
+        Token token = null;
+        Iterator<Token> iterator = getMixed().iterator(new StringReader("if(a==b)then{c==thenabc}"));
+        while(iterator.hasNext()) {
+            token = iterator.next();
+            i++;
+            //System.out.println(nextToken);
+        }
+        Assert.assertEquals(13, i);
+        Assert.assertEquals(Lexemes.eof(), token.getTokenType());
     }
 }

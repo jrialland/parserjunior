@@ -20,5 +20,4 @@ public class Word extends LexemeImpl {
     public Automaton getAutomaton() {
         return automaton;
     }
-
 }

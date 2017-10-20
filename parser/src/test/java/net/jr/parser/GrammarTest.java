@@ -1,12 +1,14 @@
 package net.jr.parser;
 
 import net.jr.common.Symbol;
-import net.jr.lexer.CommonTokenTypes;
+import net.jr.lexer.Lexemes;
 import net.jr.lexer.impl.SingleChar;
 import net.jr.parser.impl.ActionTable;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.StringReader;
 
 /**
  * Analysing the following set of rules in order to test that we produce the right action table
@@ -195,7 +197,7 @@ public class GrammarTest {
     public void test2() {
         Grammar g = makeGrammar();
         Symbol S = new Forward("S");
-        Rule rule = g.addRule(S, E, CommonTokenTypes.eof()).get();
+        Rule rule = g.addRule(S, E, Lexemes.eof()).get();
         System.out.println(
         g.getNonTerminals());
 
@@ -230,6 +232,18 @@ public class GrammarTest {
         ActionTable actionTable = ActionTable.lalr1(g, g.getRuleById(0));
 
         System.out.println(actionTable);
+
+    }
+
+    @Test
+    public void testParse() {
+
+        Grammar g = makeGrammar();
+
+        Parser parser = g.createParser();
+
+        parser.parse(new StringReader("1+1"));
+
 
     }
 }

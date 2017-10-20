@@ -1,7 +1,8 @@
 package net.jr.parser.impl;
 
 import net.jr.common.Symbol;
-import net.jr.lexer.CommonTokenTypes;
+import net.jr.lexer.Lexemes;
+import net.jr.lexer.Lexeme;
 import net.jr.parser.Grammar;
 import net.jr.parser.Rule;
 import net.jr.util.AsciiTableView;
@@ -11,7 +12,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * action table is indexed by a state of the parser and a terminal (including a special terminal ᵉᵒᶠ ({@link CommonTokenTypes#eof()}) that indicates the end of the input stream) and contains three types of actions:
+ * action table is indexed by a state of the parser and a terminal (including a special terminal ᵉᵒᶠ ({@link Lexemes#eof()}) that indicates the end of the input stream) and contains three types of actions:
  * <ul>
  * <li>shift, which is written as 'sn' and indicates that the next state is n</li>
  * <li>reduce, which is written as 'rm' and indicates that a reduction with grammar rule m should be performed</li>
@@ -28,8 +29,8 @@ public class ActionTable {
 
     private ActionTable(Set<Symbol> terminals, Set<Symbol> nonTerminals) {
         this.terminals = new ArrayList<>(terminals);
-        if (!terminals.contains(CommonTokenTypes.eof())) {
-            this.terminals.add(CommonTokenTypes.eof());
+        if (!terminals.contains(Lexemes.eof())) {
+            this.terminals.add(Lexemes.eof());
         }
         Collections.sort(this.terminals, Comparator.comparing(Symbol::toString));
 
@@ -39,6 +40,30 @@ public class ActionTable {
 
     private void setAction(int state, Symbol symbol, Action action) {
         data.computeIfAbsent(state, k -> new HashMap<>()).put(symbol, action);
+    }
+
+    Action getAction(int state, Lexeme symbol) {
+        return _getAction(state, symbol);
+    }
+
+    int getNextState(int currentState, Symbol symbol) {
+        Action gotoAction = _getAction(currentState, symbol);
+        return gotoAction.getActionParameter();
+    }
+
+    private Action _getAction(int state, Symbol symbol) {
+        Map<Symbol, Action> row = data.get(state);
+        if (row == null) {
+            throw new IllegalStateException(String.format("No such state (%d)", state));
+        }
+        return row.get(symbol);
+    }
+
+
+
+    Set<Lexeme> getExpectedLexemes(int state) {
+        Map<Symbol, Action> row = data.get(state);
+        return row.values().stream().map(s -> (Lexeme) s).collect(Collectors.toSet());
     }
 
     private int getColumnFor(Symbol symbol) {
@@ -188,7 +213,7 @@ public class ActionTable {
          * </p>
          */
         private void initializeTable(ActionTable table, Rule startingRule, Set<ItemSet> itemSets) {
-            final Symbol eof = CommonTokenTypes.eof();
+            final Symbol eof = Lexemes.eof();
             final Action accept = new Action(ActionType.Accept, 0);
             Item allParsed = new Item(startingRule, startingRule.getClause().length);
             itemSets.stream()
@@ -233,7 +258,7 @@ public class ActionTable {
             }
 
             //Place an End of Input token ($) into the starting rule's follow set.
-            map.get(target).setResolution(new HashSet<>(Arrays.asList(CommonTokenTypes.eof())));
+            map.get(target).setResolution(new HashSet<>(Arrays.asList(Lexemes.eof())));
 
             for (Symbol s : grammar.getNonTerminals()) {
                 defineFollowSet(map, grammar, s);

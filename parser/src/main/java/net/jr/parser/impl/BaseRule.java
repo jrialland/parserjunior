@@ -69,6 +69,9 @@ public class BaseRule implements Rule {
     @Override
     public String toString() {
         StringWriter sw = new StringWriter();
+        sw.append("(");
+        sw.append(Integer.toString(getId()));
+        sw.append(") ");
         sw.append(target.toString());
         sw.append(" → ");
         if (clause.length == 0) {

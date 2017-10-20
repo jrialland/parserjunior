@@ -4,13 +4,13 @@ public class Token {
 
     private Lexeme tokenType;
 
-    private int position;
+    private int offset;
 
     private String matchedText;
 
-    public Token(Lexeme tokenType, int position, String matchedText) {
+    public Token(Lexeme tokenType, int offset, String matchedText) {
         this.tokenType = tokenType;
-        this.position = position;
+        this.offset = offset;
         this.matchedText = matchedText;
     }
 
@@ -22,4 +22,12 @@ public class Token {
         return tokenType;
     }
 
+    public int getOffset() {
+        return offset;
+    }
+
+    @Override
+    public String toString() {
+        return tokenType.toString()+"@"+offset;
+    }
 }

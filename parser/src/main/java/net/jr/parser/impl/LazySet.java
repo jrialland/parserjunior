@@ -46,9 +46,6 @@ public abstract class LazySet {
     }
 
     public void add(LazySet lazySet) {
-        if (resolution != null) {
-            throw new IllegalStateException("Definition cannot be changed once solved");
-        }
         composition.add(lazySet);
     }
 

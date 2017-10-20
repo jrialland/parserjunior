@@ -3,7 +3,8 @@ package net.jr.lexer;
 import net.jr.lexer.impl.QuotedString;
 import net.jr.lexer.impl.Word;
 
-public class CommonTokenTypes {
+public class Lexemes {
+
     public static final String LowercaseLetters = "abcdefghiklmnopqrstuvwxyz";
 
     public static final String UppercaseLetters = LowercaseLetters.toUpperCase();
@@ -28,6 +29,14 @@ public class CommonTokenTypes {
 
     private static final Lexeme cString = new QuotedString('\"', '\"', '\\', new char[]{'\r', '\n'});
 
+    private static final Lexeme Eof = new Lexeme() {
+
+        @Override
+        public String toString() {
+            return "ᵉᵒᶠ";
+        }
+    };
+
     public static final Lexeme cIdentifier() {
         return cIdentifier;
     }
@@ -49,7 +58,7 @@ public class CommonTokenTypes {
     }
 
     public static final Lexeme eof() {
-        return Lexeme.Eof;
+        return Eof;
     }
 
 }
