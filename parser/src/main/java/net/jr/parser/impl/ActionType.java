@@ -1,6 +1,9 @@
 package net.jr.parser.impl;
 
-public enum  ActionType {
+/**
+ * Type of decision that a parser may take. Used by {@link Action}
+ */
+public enum ActionType {
     Accept,
     Fail,
     Goto,

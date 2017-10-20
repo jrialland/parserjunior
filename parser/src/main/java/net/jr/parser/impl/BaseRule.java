@@ -9,15 +9,21 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+/**
+ * Base implementation of a grammar {@link Rule}.
+ */
 public class BaseRule implements Rule {
 
-    private static final Symbol[] EmptySymbolArray = new Symbol[]{};
-
     private int id;
+
     private Derivation derivation = Derivation.None;
+
     private Consumer<Rule> action;
+
     private String name;
+
     private Symbol target;
+
     private Symbol[] clause;
 
     public BaseRule(int id, String name, Symbol target, Symbol... clause) {

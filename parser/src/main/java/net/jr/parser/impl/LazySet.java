@@ -1,13 +1,28 @@
 package net.jr.parser.impl;
 
 import net.jr.common.Symbol;
+import net.jr.parser.Grammar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.StringWriter;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Helper class for lazy computation of inclusions involving the computation of FIRST and FOLLOW sets.
+ * It allow to define a 'Set' of {@link Symbol}s to be defined as being the union of other sets.
+ * <p>
+ * Some set are also given a 'real' value by calling the {@link LazySet#setResolution(Set)} method.
+ * <p>
+ * When all the sets ared defined, one may call {@link LazySet#resolveAll(Collection)} in order to try to give a 'real' value (aka a 'resolution')
+ * to every sets.
+ *
+ * @see ActionTable.LALR1Builder#getFollowSets(Grammar, Symbol)
+ */
 public abstract class LazySet {
 
     private static final Logger Logger = LoggerFactory.getLogger(LazySet.class);
@@ -45,24 +60,38 @@ public abstract class LazySet {
         return resolution;
     }
 
+    /**
+     * Is this set a 'synonym' of l ?.
+     * a synonym is a {@link LazySet} that describes the same group, maybe under a different name
+     *
+     * @param allEqs
+     * @param l
+     * @return
+     */
     private boolean isSynonymOf(Collection<? extends LazySet> allEqs, LazySet l) {
-        if(composition.size() == 1 && composition.iterator().next().equals(l)) {
+        if (composition.size() == 1 && composition.iterator().next().equals(l)) {
             return true;
         }
-        if(l.composition.size() == 1 && l.composition.iterator().next().equals(this)) {
+        if (l.composition.size() == 1 && l.composition.iterator().next().equals(this)) {
             return true;
         }
         return false;
     }
 
+    /**
+     * Tries to replace the definition of the set by its real value
+     *
+     * @param allEqs the other definitions
+     * @return true is the set is resolved
+     */
     private boolean simplify(Collection<? extends LazySet> allEqs) {
 
         //if already resolved, just return true
-        if(resolution != null) {
+        if (resolution != null) {
             return true;
         } else {
 
-            if(composition.size() > 1) {
+            if (composition.size() > 1) {
                 Iterator<LazySet> it = composition.iterator();
                 while (it.hasNext()) {
                     LazySet n = it.next();
@@ -73,8 +102,8 @@ public abstract class LazySet {
             }
 
             Set<Symbol> attempt = new HashSet<>();
-            for(LazySet l : composition) {
-                if(l.resolution == null) {
+            for (LazySet l : composition) {
+                if (l.resolution == null) {
                     return false;
                 }
                 attempt.addAll(l.resolution);
@@ -84,7 +113,12 @@ public abstract class LazySet {
         }
     }
 
-
+    /**
+     * Tries to resolve all the passed-in definitions
+     *
+     * @param lazySets definitions
+     * @throws RuntimeException when it fails at finding a resolution for every sets
+     */
     public static void resolveAll(Collection<? extends LazySet> lazySets) {
         int size = lazySets.size();
         int solvedInPrecRound, solvedInThisRound = 0;
@@ -92,15 +126,15 @@ public abstract class LazySet {
             solvedInPrecRound = solvedInThisRound;
             solvedInThisRound = 0;
             for (LazySet l : lazySets) {
-                solvedInThisRound += l.simplify(lazySets)?1:0;
+                solvedInThisRound += l.simplify(lazySets) ? 1 : 0;
             }
-        } while(solvedInThisRound < size || solvedInPrecRound == solvedInThisRound);
+        } while (solvedInThisRound < size || solvedInPrecRound == solvedInThisRound);
 
-        if(solvedInThisRound < size) {
+        if (solvedInThisRound < size) {
             String message = String.format("Resolution failure ! (only %d/%d solved)", solvedInThisRound, size);
             StringWriter sw = new StringWriter();
             sw.append(message + "\n");
-            for(LazySet l : lazySets) {
+            for (LazySet l : lazySets) {
                 sw.append("    " + l.toString() + " = " + l.compositionToString());
                 sw.append("\n");
             }
@@ -110,6 +144,11 @@ public abstract class LazySet {
 
     }
 
+    /**
+     * Dumps the definition of this {@link LazySet}
+     *
+     * @return
+     */
     public String compositionToString() {
 
         if (resolution != null) {

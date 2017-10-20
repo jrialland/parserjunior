@@ -232,32 +232,4 @@ public class GrammarTest {
         System.out.println(actionTable);
 
     }
-
-    @Test
-    public void test3() {
-
-        Grammar g = new Grammar();
-
-        Symbol S = new Forward("S");
-        Symbol N = new Forward("N");
-        Symbol E = new Forward("E");
-        Symbol V = new Forward("V");
-
-        //1. S → N
-        g.addRule(S, N);
-        //2. N → V = E
-        g.addRule(N, V, new SingleChar('='), E);
-        //3. N → E
-        g.addRule(N, E);
-        //4. E → V
-        g.addRule(E, V);
-        //5. V → x
-        g.addRule(V, new SingleChar('x'));
-        //6. V → * E
-        g.addRule(V, new SingleChar('*'), E);
-
-
-
-
-    }
 }

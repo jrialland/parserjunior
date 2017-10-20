@@ -1,10 +1,15 @@
 package net.jr.parser.impl;
 
+/**
+ * Description of an action for the {@link ActionTable}
+ *
+ */
 public class Action {
 
     private ActionType actionType;
 
     private int actionParameter;
+
     private ActionType Ac;
 
     public Action(ActionType actionType, int actionParameter) {

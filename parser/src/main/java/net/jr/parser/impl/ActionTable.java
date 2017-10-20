@@ -10,6 +10,14 @@ import net.jr.util.TableModel;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * action table is indexed by a state of the parser and a terminal (including a special terminal ᵉᵒᶠ ({@link CommonTokenTypes#eof()}) that indicates the end of the input stream) and contains three types of actions:
+ * <ul>
+ * <li>shift, which is written as 'sn' and indicates that the next state is n</li>
+ * <li>reduce, which is written as 'rm' and indicates that a reduction with grammar rule m should be performed</li>
+ * <li>accept, which is written as 'acc' and indicates that the parser accepts the string in the input stream.</li>
+ * </ul>
+ */
 public class ActionTable {
 
     private Map<Integer, Map<Symbol, Action>> data = new TreeMap<>();
@@ -20,7 +28,7 @@ public class ActionTable {
 
     private ActionTable(Set<Symbol> terminals, Set<Symbol> nonTerminals) {
         this.terminals = new ArrayList<>(terminals);
-        if(!terminals.contains(CommonTokenTypes.eof())) {
+        if (!terminals.contains(CommonTokenTypes.eof())) {
             this.terminals.add(CommonTokenTypes.eof());
         }
         Collections.sort(this.terminals, Comparator.comparing(Symbol::toString));
@@ -34,7 +42,7 @@ public class ActionTable {
     }
 
     private int getColumnFor(Symbol symbol) {
-        if(symbol.isTerminal()) {
+        if (symbol.isTerminal()) {
             return terminals.indexOf(symbol);
         } else {
             return terminals.size() + nonTerminals.indexOf(symbol);
@@ -51,9 +59,9 @@ public class ActionTable {
             case Goto:
                 return Integer.toString(action.getActionParameter());
             case Shift:
-                return "s"+sParam;
+                return "s" + sParam;
             case Reduce:
-                return "r"+sParam;
+                return "r" + sParam;
             default:
                 throw new UnsupportedOperationException();
         }
@@ -62,9 +70,9 @@ public class ActionTable {
     @Override
     public String toString() {
         TableModel<String> tm = new TableModel<>();
-        for(Map.Entry<Integer, Map<Symbol, Action>> rowEntry : data.entrySet()) {
+        for (Map.Entry<Integer, Map<Symbol, Action>> rowEntry : data.entrySet()) {
             int state = rowEntry.getKey();
-            for(Map.Entry<Symbol, Action> e : rowEntry.getValue().entrySet()) {
+            for (Map.Entry<Symbol, Action> e : rowEntry.getValue().entrySet()) {
                 Symbol s = e.getKey();
                 Action action = e.getValue();
                 tm.setData(getColumnFor(s), state, actionToString(action));
@@ -75,21 +83,21 @@ public class ActionTable {
         tm.moveDataBy(1, 1);
 
         //row labels
-        for(Map.Entry<Integer, Map<Symbol, Action>> rowEntry : data.entrySet()) {
+        for (Map.Entry<Integer, Map<Symbol, Action>> rowEntry : data.entrySet()) {
             int state = rowEntry.getKey();
             tm.setData(0, 1 + state, Integer.toString(state));
         }
 
         //column labels
-        int col=1;
-        for(Symbol term : terminals) {
+        int col = 1;
+        for (Symbol term : terminals) {
             tm.setData(col++, 0, term.toString());
         }
-        for(Symbol term : nonTerminals) {
+        for (Symbol term : nonTerminals) {
             tm.setData(col++, 0, term.toString());
         }
 
-        return new AsciiTableView(4,100).tableToString(tm);
+        return new AsciiTableView(4, 100).tableToString(tm);
     }
 
     public static ActionTable lalr1(Grammar grammar, Rule startRule) {
@@ -110,7 +118,6 @@ public class ActionTable {
             // Syntax Analysis Goal: Extended Grammar
 
 
-
             //Syntax Analysis Goal: Action and Goto Table
             ActionTable actionTable = new ActionTable(grammar.getTerminals(), grammar.getNonTerminals());
             initializeTable(actionTable, startRule, allItemSets);
@@ -128,35 +135,35 @@ public class ActionTable {
             //build a list of rules and and follow sets
 
             Map<Rule, Set<Symbol>> step1 = new HashMap<>();
-            for(Rule eRule : extendedGrammar.getRules()) {
+            for (Rule eRule : extendedGrammar.getRules()) {
                 Set<Symbol> followSet = followSets.get(eRule.getTarget())
                         .stream()
-                        .map(s -> (s instanceof ExtendedSymbol)?((ExtendedSymbol)s).getSymbol():s)
+                        .map(s -> (s instanceof ExtendedSymbol) ? ((ExtendedSymbol) s).getSymbol() : s)
                         .collect(Collectors.toSet());
                 step1.put(eRule, followSet);
             }
 
-            for(Rule rule : grammar.getRules()) {
-                for(int i=0; i<itemSets.size(); i++) {
+            for (Rule rule : grammar.getRules()) {
+                for (int i = 0; i < itemSets.size(); i++) {
                     final int state = i;
                     Set<Symbol> mergedFollowSet = step1.keySet().stream()
-                            .map(r->(ExtendedRule)r)
-                            .filter(r -> r.isExtensionOf(rule) && r.getFinalState()==state)
+                            .map(r -> (ExtendedRule) r)
+                            .filter(r -> r.isExtensionOf(rule) && r.getFinalState() == state)
                             .map(r -> step1.get(r))
                             .flatMap(Set::stream)
                             .collect(Collectors.toSet());
 
-                    if(!mergedFollowSet.isEmpty()) {
+                    if (!mergedFollowSet.isEmpty()) {
 
                         //ignore the reduction involving state 0 & the starting rule
-                        if(state == 0 && rule.equals(startRule)) {
+                        if (state == 0 && rule.equals(startRule)) {
                             continue;
                         }
 
-                        for(Symbol rSymbol : mergedFollowSet) {
+                        for (Symbol rSymbol : mergedFollowSet) {
 
                             final Action action;
-                            if(rule.getId() == 0) {
+                            if (rule.getId() == 0) {
                                 action = new Action(ActionType.Accept, 0);
                             } else {
                                 action = new Action(ActionType.Reduce, rule.getId());
@@ -194,6 +201,7 @@ public class ActionTable {
          * <p>
          * Directly copy the Translation Table's nonterminal columns as GOTOs.
          * </p>
+         *
          * @param table
          * @param translationTable
          */

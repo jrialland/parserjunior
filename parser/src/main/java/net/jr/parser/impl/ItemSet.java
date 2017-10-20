@@ -10,7 +10,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Item sets are collections of rules that have pointers to the current position of the rule.
+ * Collection of {@link Item}. the 'kernel' and the 'members' form a closure.
+ * <p>
+ * (Implementation note) : The identity of an ItemSet is based on the kernel, and not the id or members
  */
 public class ItemSet {
 

@@ -3,6 +3,14 @@ package net.jr.parser.impl;
 import net.jr.common.Symbol;
 import net.jr.util.StringUtil;
 
+import java.util.Set;
+
+/**
+ * An {@link ExtendedSymbol} is the type of symbol that are used in 'Extended' grammars. It keeps track of the way
+ * a particular production is obtained according to a 'base' grammar.
+ *
+ * @see ActionTable.LALR1Builder#makeExtendedGrammar(Set)
+ */
 public class ExtendedSymbol implements Symbol {
 
     private int from;
@@ -55,6 +63,6 @@ public class ExtendedSymbol implements Symbol {
 
     @Override
     public String toString() {
-        return StringUtil.toSubscript(from) + symbol.toString() + StringUtil.toSubscript(to);
+        return StringUtil.toSubscript(getFrom()) + getSymbol().toString() + StringUtil.toSubscript(getTo());
     }
 }

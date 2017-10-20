@@ -6,6 +6,9 @@ import net.jr.parser.Rule;
 
 import java.io.StringWriter;
 
+/**
+ * An 'Item' is a grammar rule with a 'pointer' to a particular position is its clause.
+ */
 public class Item {
 
     private Rule rule;
