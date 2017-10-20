@@ -94,7 +94,6 @@ public abstract class LazySet {
             for (LazySet l : lazySets) {
                 solvedInThisRound += l.simplify(lazySets)?1:0;
             }
-            getLog().debug(String.format("Resolving : %d/%d", solvedInThisRound, size));
         } while(solvedInThisRound < size || solvedInPrecRound == solvedInThisRound);
 
         if(solvedInThisRound < size) {

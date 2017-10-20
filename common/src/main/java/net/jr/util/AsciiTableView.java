@@ -75,10 +75,10 @@ public class AsciiTableView {
         writer.append("\n");
     }
 
-    public static String tableToString(TableModel<?> tableModel) {
+    public String tableToString(TableModel<?> tableModel) {
         StringWriter sw = new StringWriter();
         try {
-            new AsciiTableView().show(tableModel, sw);
+            show(tableModel, sw);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

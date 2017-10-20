@@ -3,7 +3,7 @@ package net.jr.parser;
 import net.jr.common.Symbol;
 import net.jr.lexer.CommonTokenTypes;
 import net.jr.lexer.impl.SingleChar;
-import net.jr.parser.impl.LR0Table;
+import net.jr.parser.impl.ActionTable;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -195,9 +195,13 @@ public class GrammarTest {
     public void test2() {
         Grammar g = makeGrammar();
         Symbol S = new Forward("S");
-        g.addRule(S, E, CommonTokenTypes.eof());
-        LR0Table lr0Table = new LR0Table.Builder().build(g, S);
-        System.out.println(lr0Table);
+        Rule rule = g.addRule(S, E, CommonTokenTypes.eof()).get();
+        System.out.println(
+        g.getNonTerminals());
+
+
+        ActionTable actionTable = ActionTable.lalr1(g,rule);
+        System.out.println(actionTable);
     }
 
     @Test
@@ -223,9 +227,9 @@ public class GrammarTest {
         //6. V → * E
         g.addRule(V, new SingleChar('*'), E);
 
-        LR0Table lr0Table = new LR0Table.Builder().build(g, S);
+        ActionTable actionTable = ActionTable.lalr1(g, g.getRuleById(0));
 
-        System.out.println(lr0Table);
+        System.out.println(actionTable);
 
     }
 

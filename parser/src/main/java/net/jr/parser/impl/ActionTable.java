@@ -3,87 +3,212 @@ package net.jr.parser.impl;
 import net.jr.common.Symbol;
 import net.jr.lexer.CommonTokenTypes;
 import net.jr.parser.Grammar;
+import net.jr.parser.Rule;
 import net.jr.util.AsciiTableView;
 import net.jr.util.TableModel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class LR0Table {
+public class ActionTable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(LR0Table.class);
+    private Map<Integer, Map<Symbol, Action>> data = new TreeMap<>();
 
     private List<Symbol> terminals;
 
     private List<Symbol> nonTerminals;
 
-    private Map<Integer, Map<Symbol, Action>> tableData;
+    private ActionTable(Set<Symbol> terminals, Set<Symbol> nonTerminals) {
+        this.terminals = new ArrayList<>(terminals);
+        if(!terminals.contains(CommonTokenTypes.eof())) {
+            this.terminals.add(CommonTokenTypes.eof());
+        }
+        Collections.sort(this.terminals, Comparator.comparing(Symbol::toString));
 
-    private LR0Table(List<Symbol> terminals, List<Symbol> nonTerminals, Map<Integer, Map<Symbol, Action>> tableData) {
-        this.terminals = terminals;
-        this.nonTerminals = nonTerminals;
-        this.tableData = tableData;
+        this.nonTerminals = new ArrayList<>(nonTerminals);
+        Collections.sort(this.nonTerminals, Comparator.comparing(Symbol::toString));
     }
 
-    private void feedFirstLine(TableModel<String> tableModel) {
-        int i = 0;
-        for (; i < terminals.size(); i++) {
-            tableModel.setData(i + 1, 0, terminals.get(i).toString());
+    private void setAction(int state, Symbol symbol, Action action) {
+        data.computeIfAbsent(state, k -> new HashMap<>()).put(symbol, action);
+    }
+
+    private int getColumnFor(Symbol symbol) {
+        if(symbol.isTerminal()) {
+            return terminals.indexOf(symbol);
+        } else {
+            return terminals.size() + nonTerminals.indexOf(symbol);
         }
-        int s = i, max = i + nonTerminals.size();
-        for (; i < max; i++) {
-            tableModel.setData(i + 1, 0, nonTerminals.get(i - s).toString());
+    }
+
+    private static String actionToString(Action action) {
+        final String sParam = Integer.toString(action.getActionParameter());
+        switch (action.getActionType()) {
+            case Accept:
+                return "acc";
+            case Fail:
+                return "";
+            case Goto:
+                return Integer.toString(action.getActionParameter());
+            case Shift:
+                return "s"+sParam;
+            case Reduce:
+                return "r"+sParam;
+            default:
+                throw new UnsupportedOperationException();
         }
     }
 
     @Override
     public String toString() {
-        TableModel<String> tableModel = new TableModel<>();
-        feedFirstLine(tableModel);
-        List<Symbol> allSymbols = new ArrayList<>(terminals);
-        allSymbols.addAll(nonTerminals);
-
-        for (int i = 0; i < tableData.size(); i++) {
-            Map<Symbol, Action> actions = tableData.get(i);
-            tableModel.setData(0, i + 1, Integer.toString(i));
-            int x = 1;
-            for (Symbol symbol : allSymbols) {
-                Action action = actions.get(symbol);
-                String sAction = action == null ? "" : Integer.toString(action.getActionParameter());
-                tableModel.setData(x++, i + 1, sAction);
+        TableModel<String> tm = new TableModel<>();
+        for(Map.Entry<Integer, Map<Symbol, Action>> rowEntry : data.entrySet()) {
+            int state = rowEntry.getKey();
+            for(Map.Entry<Symbol, Action> e : rowEntry.getValue().entrySet()) {
+                Symbol s = e.getKey();
+                Action action = e.getValue();
+                tm.setData(getColumnFor(s), state, actionToString(action));
             }
         }
 
-        return AsciiTableView.tableToString(tableModel);
+        //make room for the labels
+        tm.moveDataBy(1, 1);
+
+        //row labels
+        for(Map.Entry<Integer, Map<Symbol, Action>> rowEntry : data.entrySet()) {
+            int state = rowEntry.getKey();
+            tm.setData(0, 1 + state, Integer.toString(state));
+        }
+
+        //column labels
+        int col=1;
+        for(Symbol term : terminals) {
+            tm.setData(col++, 0, term.toString());
+        }
+        for(Symbol term : nonTerminals) {
+            tm.setData(col++, 0, term.toString());
+        }
+
+        return new AsciiTableView(4,100).tableToString(tm);
     }
 
-    private static final Logger getLog() {
-        return LOG;
+    public static ActionTable lalr1(Grammar grammar, Rule startRule) {
+        return new LALR1Builder().build(grammar, startRule);
     }
 
-    public static class Builder {
+    private static class LALR1Builder {
 
-        public LR0Table build(Grammar grammar, Symbol target) {
-            Grammar.Rule startingRule = grammar.getRules().stream().filter(r -> r.getTarget().equals(target)).findFirst().get();
-            ItemSet i0 = getFirstItemSet(grammar, startingRule);
+        public ActionTable build(Grammar grammar, Rule startRule) {
+
+            //Syntax Analysis Goal: Item Sets
+            ItemSet i0 = getFirstItemSet(grammar, startRule);
             Set<ItemSet> allItemSets = getAllItemSets(grammar, i0);
-            Map<Integer, Map<Symbol, Action>> table = getActionTable(grammar, allItemSets);
-            List<Symbol> terminals = new ArrayList<>(grammar.getTerminals());
-            List<Symbol> nonTerminals = new ArrayList<>(grammar.getNonTerminals());
-            LR0Table lr0Table = new LR0Table(terminals, nonTerminals, table);
+
+            //Syntax Analysis Goal: Translation Table
+            Map<Integer, Map<Symbol, Integer>> translationTable = getTranslationTable(grammar, allItemSets);
+
+            // Syntax Analysis Goal: Extended Grammar
 
 
-            Grammar extendedGrammar = makeExtendedGrammar(allItemSets);
-            System.out.println(extendedGrammar);
 
-            Map<Symbol, Set<Symbol>> eFollowSets = getFollowSets(extendedGrammar, extendedGrammar.getTargetRule());
-            for (Map.Entry<Symbol, Set<Symbol>> entry : eFollowSets.entrySet()) {
-                System.out.println(entry.getKey() + " => " + entry.getValue());
+            //Syntax Analysis Goal: Action and Goto Table
+            ActionTable actionTable = new ActionTable(grammar.getTerminals(), grammar.getNonTerminals());
+            initializeTable(actionTable, startRule, allItemSets);
+            initializeShiftsAndGotos(actionTable, translationTable);
+            initializeReductions(actionTable, grammar, startRule, allItemSets);
+            return actionTable;
+        }
+
+        private void initializeReductions(ActionTable table, Grammar grammar, Rule startRule, Set<ItemSet> itemSets) {
+
+
+            Grammar extendedGrammar = makeExtendedGrammar(itemSets);
+            // Syntax Analysis Goal: FOLLOW Sets
+            Map<Symbol, Set<Symbol>> followSets = getFollowSets(extendedGrammar, extendedGrammar.getTargetSymbol());
+            //build a list of rules and and follow sets
+
+            Map<Rule, Set<Symbol>> step1 = new HashMap<>();
+            for(Rule eRule : extendedGrammar.getRules()) {
+                Set<Symbol> followSet = followSets.get(eRule.getTarget())
+                        .stream()
+                        .map(s -> (s instanceof ExtendedSymbol)?((ExtendedSymbol)s).getSymbol():s)
+                        .collect(Collectors.toSet());
+                step1.put(eRule, followSet);
             }
 
-            return lr0Table;
+            for(Rule rule : grammar.getRules()) {
+                for(int i=0; i<itemSets.size(); i++) {
+                    final int state = i;
+                    Set<Symbol> mergedFollowSet = step1.keySet().stream()
+                            .map(r->(ExtendedRule)r)
+                            .filter(r -> r.isExtensionOf(rule) && r.getFinalState()==state)
+                            .map(r -> step1.get(r))
+                            .flatMap(Set::stream)
+                            .collect(Collectors.toSet());
+
+                    if(!mergedFollowSet.isEmpty()) {
+
+                        //ignore the reduction involving state 0 & the starting rule
+                        if(state == 0 && rule.equals(startRule)) {
+                            continue;
+                        }
+
+                        for(Symbol rSymbol : mergedFollowSet) {
+
+                            final Action action;
+                            if(rule.getId() == 0) {
+                                action = new Action(ActionType.Accept, 0);
+                            } else {
+                                action = new Action(ActionType.Reduce, rule.getId());
+                            }
+
+                            table.setAction(state, rSymbol, action);
+
+                        }
+                    }
+                }
+            }
+
+        }
+
+
+        /**
+         * Step 1 - Initialize
+         * <p>
+         * Add a column for the end of input, labelled $.
+         * Place an "accept" in the $ column whenever the item set
+         * contains an item where the pointer is at the end of the starting rule (in our example "S → N •").
+         * </p>
+         */
+        private void initializeTable(ActionTable table, Rule startingRule, Set<ItemSet> itemSets) {
+            final Symbol eof = CommonTokenTypes.eof();
+            final Action accept = new Action(ActionType.Accept, 0);
+            Item allParsed = new Item(startingRule, startingRule.getClause().length);
+            itemSets.stream()
+                    .filter(itemSet -> itemSet.allItems().filter(item -> item.equals(allParsed)).findAny().isPresent())
+                    .forEach(itemSet -> table.setAction(itemSet.getId(), eof, accept));
+        }
+
+        /**
+         * Step 2 - Gotos + Step 3 - Shifts
+         * <p>
+         * Directly copy the Translation Table's nonterminal columns as GOTOs.
+         * </p>
+         * @param table
+         * @param translationTable
+         */
+        private void initializeShiftsAndGotos(ActionTable table, Map<Integer, Map<Symbol, Integer>> translationTable) {
+            for (Map.Entry<Integer, Map<Symbol, Integer>> tEntry : translationTable.entrySet()) {
+                int state = tEntry.getKey();
+                for (Map.Entry<Symbol, Integer> entry : tEntry.getValue().entrySet()) {
+                    Symbol s = entry.getKey();
+                    if (s.isTerminal()) {
+                        table.setAction(state, s, new Action(ActionType.Shift, entry.getValue()));
+                    } else {
+                        table.setAction(state, s, new Action(ActionType.Goto, entry.getValue()));
+                    }
+                }
+            }
         }
 
         private Map<Symbol, Set<Symbol>> getFollowSets(Grammar grammar, Symbol target) {
@@ -119,7 +244,7 @@ public class LR0Table {
             FollowSet followSet = followSets.get(D);
 
             // Construct for the rule have the form R → a* D b.
-            for (Grammar.Rule rule : grammar.getRules()) {
+            for (Rule rule : grammar.getRules()) {
 
                 Symbol R = rule.getTarget();
                 List<Symbol> clause = Arrays.asList(rule.getClause());
@@ -160,7 +285,7 @@ public class LR0Table {
                 return set;
             }
 
-            for (Grammar.Rule r : grammar.getRules()) {
+            for (Rule r : grammar.getRules()) {
                 if (r.getTarget().equals(s)) {
 
                     //if the first symbol is a terminal, the set is this terminal
@@ -198,12 +323,12 @@ public class LR0Table {
         private Grammar makeExtendedGrammar(Set<ItemSet> allItemSets) {
 
             Map<List<?>, ExtendedSymbol> extSyms = new HashMap<>();
-
             Grammar eGrammar = new Grammar();
+            int idCounter = 0;
             for (ItemSet itemSet : allItemSets) {
                 int initialState = itemSet.getId();
-                List<Grammar.Rule> rules = itemSet.allItems().filter(item -> item.getPointer() == 0).map(item -> item.getRule()).collect(Collectors.toList());
-                for (Grammar.Rule rule : rules) {
+                List<Rule> rules = itemSet.allItems().filter(item -> item.getPointer() == 0).map(item -> item.getRule()).collect(Collectors.toList());
+                for (Rule rule : rules) {
 
                     ItemSet currentItem = itemSet;
                     List<ExtendedSymbol> eClause = new ArrayList<>();
@@ -225,23 +350,23 @@ public class LR0Table {
 
                     List<?> key = Arrays.asList(initialState, rule.getTarget(), finalState);
                     ExtendedSymbol eTarget = extSyms.computeIfAbsent(key, k -> new ExtendedSymbol(initialState, rule.getTarget(), finalState));
-                    eGrammar.addRule(eTarget, eClause);
+                    eGrammar.addRule(new ExtendedRule(idCounter++, rule, eTarget, eClause.toArray(new ExtendedSymbol[]{})));
                 }
             }
             return eGrammar;
         }
 
 
-        private Map<Integer, Map<Symbol, Action>> getActionTable(Grammar grammar, Set<ItemSet> allItemSets) {
-            Map<Integer, Map<Symbol, Action>> table = new TreeMap<>();
+        private Map<Integer, Map<Symbol, Integer>> getTranslationTable(Grammar grammar, Set<ItemSet> allItemSets) {
+            Map<Integer, Map<Symbol, Integer>> table = new TreeMap<>();
             for (ItemSet itemSet : allItemSets) {
                 int currentState = itemSet.getId();
-                Map<Symbol, Action> row = new HashMap<>();
+                Map<Symbol, Integer> row = new HashMap<>();
                 table.put(currentState, row);
                 for (Symbol symbol : grammar.getSymbols()) {
                     ItemSet targetItemSet = itemSet.getTransitionFor(symbol);
                     if (targetItemSet != null) {
-                        row.put(symbol, new Action(ActionType.Shift, targetItemSet.getId()));
+                        row.put(symbol, targetItemSet.getId());
                     }
                 }
             }
@@ -296,7 +421,7 @@ public class LR0Table {
         /**
          * The first item set, I0 begins with the starting rule.
          */
-        private ItemSet getFirstItemSet(Grammar grammar, Grammar.Rule startingRule) {
+        private ItemSet getFirstItemSet(Grammar grammar, Rule startingRule) {
             Item firstItem = new Item(startingRule, 0);
             Set<Item> kernel = new HashSet<>();
             kernel.add(firstItem);

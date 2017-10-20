@@ -126,4 +126,12 @@ public class TableModel<DataType> {
         removeStyleHint(columnIndex, 0 ,columnIndex, Integer.MAX_VALUE, rule);
     }
 
+    private Coord moveBy(Coord c, int dx, int dy) {
+        return new Coord(c.x + dx, c.y + dy);
+    }
+
+    public void moveDataBy(int dx, int dy) {
+        tableData = tableData.entrySet().stream()
+                .collect(Collectors.toMap(e -> moveBy(e.getKey(), dx, dy), e -> e.getValue()));
+    }
 }

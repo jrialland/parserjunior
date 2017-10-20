@@ -2,7 +2,7 @@ package net.jr.parser;
 
 
 import net.jr.common.Symbol;
-import net.jr.lexer.Lexeme;
+import net.jr.parser.impl.BaseRule;
 
 import java.io.StringWriter;
 import java.util.*;
@@ -28,8 +28,6 @@ public class Grammar {
         }
     };
 
-    private static final Symbol[] EmptySymbolArray = new Symbol[]{};
-
     private String name;
 
     private Set<Rule> rules = new HashSet<>();
@@ -42,54 +40,6 @@ public class Grammar {
         this.name = name;
     }
 
-    public static class Rule {
-        private Derivation derivation = Derivation.None;
-        private Consumer<Rule> action;
-        private String name;
-        private Symbol target;
-        private Symbol[] clause;
-
-        public Symbol[] getClause() {
-            return clause;
-        }
-
-        public Symbol getTarget() {
-            return target;
-        }
-
-        public Derivation getDerivation() {
-            return derivation;
-        }
-
-        public Rule(Symbol target, Collection<? extends Symbol> clause) {
-            this(null, target, clause);
-        }
-
-        public Rule(String name, Symbol target, Symbol ... clause) {
-            this.name = name;
-            this.target = target;
-            this.clause = clause;
-        }
-
-        public Rule(String name, Symbol target, Collection<? extends Symbol> clause) {
-            this(name, target, clause.toArray(EmptySymbolArray));
-        }
-
-        @Override
-        public String toString() {
-            StringWriter sw = new StringWriter();
-            sw.append(target.toString());
-            sw.append(" → ");
-            if (clause.length == 0) {
-                sw.append("ε");
-            } else {
-                sw.append(String.join(" ", Arrays.asList(clause).stream().map(s -> s.toString()).collect(Collectors.toList())));
-            }
-            sw.append(".");
-            return sw.toString();
-        }
-    }
-
     public Set<Rule> getRules() {
         return rules;
     }
@@ -100,10 +50,15 @@ public class Grammar {
 
         RuleSpecifier withName(String name);
 
+        Rule get();
     }
 
     public RuleSpecifier addRule(Symbol target, Collection<? extends Symbol> clause) {
-        return addRule(target, clause.toArray(EmptySymbolArray));
+        return addRule(target, clause.toArray(new Symbol[]{}));
+    }
+
+    public void addRule(Rule rule) {
+        rules.add(rule);
     }
 
     public RuleSpecifier addRule(Symbol target, Symbol... clause) {
@@ -117,19 +72,24 @@ public class Grammar {
             throw new IllegalArgumentException("The target symbol cannot be a terminal !");
         }
 
-        final Rule rule = new Rule(null, target, clause);
-        rules.add(rule);
+        final BaseRule rule = new BaseRule(rules.size(), null, target, clause);
+        addRule(rule);
         return new RuleSpecifier() {
             @Override
             public RuleSpecifier withAction(Consumer<Rule> consumer) {
-                rule.action = consumer;
+                rule.setAction(consumer);
                 return this;
             }
 
             @Override
             public RuleSpecifier withName(String name) {
-                rule.name = name;
+                rule.setName(name);
                 return this;
+            }
+
+            @Override
+            public Rule get() {
+                return rule;
             }
         };
     }
@@ -174,7 +134,7 @@ public class Grammar {
      * The rule that appears on left side but never on right side, if any
      * @return
      */
-    public Symbol getTargetRule() {
+    public Symbol getTargetSymbol() {
         Set<Symbol> allRight = new HashSet<>();
         for(Rule r : rules) {
             allRight.addAll(Arrays.asList(r.getClause()));
@@ -201,6 +161,11 @@ public class Grammar {
         }
         sw.append("}\n");
         return sw.toString();
+    }
+
+    public Rule getRuleById(int id) {
+        Optional<Rule> opt = rules.stream().filter(r -> r.getId() == id).findAny();
+        return opt.isPresent() ? opt.get() : null;
     }
 }
 

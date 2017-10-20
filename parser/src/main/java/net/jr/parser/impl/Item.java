@@ -2,16 +2,17 @@ package net.jr.parser.impl;
 
 import net.jr.common.Symbol;
 import net.jr.parser.Grammar;
+import net.jr.parser.Rule;
 
 import java.io.StringWriter;
 
 public class Item {
 
-    private Grammar.Rule rule;
+    private Rule rule;
 
     private int pointer;
 
-    public Item(Grammar.Rule rule, int pointer) {
+    public Item(Rule rule, int pointer) {
         assert rule != null;
         assert pointer >= 0;
         assert pointer <= rule.getClause().length;
@@ -24,7 +25,7 @@ public class Item {
         return rule.hashCode() - 7 * pointer;
     }
 
-    public Grammar.Rule getRule() {
+    public Rule getRule() {
         return rule;
     }
 
