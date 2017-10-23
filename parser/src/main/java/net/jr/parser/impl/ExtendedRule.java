@@ -13,19 +13,19 @@ import java.util.Set;
  *
  * @see ActionTable.LALR1Builder#makeExtendedGrammar(Set) for usage details
  */
-public class ExtendedRule implements Rule {
+public class ExtendedRule extends Rule {
 
     private int id;
 
-    private Rule parentRule;
+    private Rule baseRule;
 
     private ExtendedSymbol target;
 
     private ExtendedSymbol[] clause;
 
-    public ExtendedRule(int id, Rule parentRule, ExtendedSymbol target, ExtendedSymbol[] clause) {
+    public ExtendedRule(int id, Rule baseRule, ExtendedSymbol target, ExtendedSymbol[] clause) {
         this.id = id;
-        this.parentRule = parentRule;
+        this.baseRule = baseRule;
         this.target = target;
         this.clause = clause;
     }
@@ -46,7 +46,7 @@ public class ExtendedRule implements Rule {
     }
 
     public boolean isExtensionOf(Rule rule) {
-        return this.parentRule.equals(rule);
+        return this.baseRule.equals(rule);
     }
 
     public int getFinalState() {
@@ -56,5 +56,9 @@ public class ExtendedRule implements Rule {
     @Override
     public Derivation getDerivation() {
         throw new UnsupportedOperationException();
+    }
+
+    public Rule getBaseRule() {
+        return baseRule;
     }
 }

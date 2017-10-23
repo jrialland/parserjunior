@@ -2,13 +2,35 @@ package net.jr.parser;
 
 import net.jr.common.Symbol;
 
-public interface Rule {
+import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
-    int getId();
+public abstract class Rule {
 
-    Symbol[] getClause();
+    public abstract int getId();
 
-    Symbol getTarget();
+    public abstract Symbol[] getClause();
 
-    Derivation getDerivation();
+    public abstract Symbol getTarget();
+
+    public abstract Derivation getDerivation();
+
+    @Override
+    public String toString() {
+        StringWriter sw = new StringWriter();
+        sw.append("(");
+        sw.append(Integer.toString(getId()));
+        sw.append(") ");
+        sw.append(getTarget().toString());
+        sw.append(" → ");
+        Symbol[] clause = getClause();
+        if (clause.length == 0) {
+            sw.append("ε");
+        } else {
+            sw.append(String.join(" ", Arrays.asList(clause).stream().map(s -> s.toString()).collect(Collectors.toList())));
+        }
+        sw.append(".");
+        return sw.toString();
+    }
 }

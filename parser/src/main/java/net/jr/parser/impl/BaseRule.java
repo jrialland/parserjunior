@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 /**
  * Base implementation of a grammar {@link Rule}.
  */
-public class BaseRule implements Rule {
+public class BaseRule extends Rule {
 
     private int id;
 
@@ -66,20 +66,4 @@ public class BaseRule implements Rule {
         return derivation;
     }
 
-    @Override
-    public String toString() {
-        StringWriter sw = new StringWriter();
-        sw.append("(");
-        sw.append(Integer.toString(getId()));
-        sw.append(") ");
-        sw.append(target.toString());
-        sw.append(" → ");
-        if (clause.length == 0) {
-            sw.append("ε");
-        } else {
-            sw.append(String.join(" ", Arrays.asList(clause).stream().map(s -> s.toString()).collect(Collectors.toList())));
-        }
-        sw.append(".");
-        return sw.toString();
-    }
 }

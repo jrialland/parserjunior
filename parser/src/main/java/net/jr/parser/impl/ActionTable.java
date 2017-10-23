@@ -1,12 +1,14 @@
 package net.jr.parser.impl;
 
 import net.jr.common.Symbol;
-import net.jr.lexer.Lexemes;
 import net.jr.lexer.Lexeme;
+import net.jr.lexer.Lexemes;
 import net.jr.parser.Grammar;
 import net.jr.parser.Rule;
 import net.jr.util.AsciiTableView;
 import net.jr.util.TableModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,6 +22,12 @@ import java.util.stream.Collectors;
  * </ul>
  */
 public class ActionTable {
+
+    private static Logger Logger = LoggerFactory.getLogger(ActionTable.class);
+
+    private static final Logger getLog() {
+        return Logger;
+    }
 
     private Map<Integer, Map<Symbol, Action>> data = new TreeMap<>();
 
@@ -58,7 +66,6 @@ public class ActionTable {
         }
         return row.get(symbol);
     }
-
 
 
     Set<Lexeme> getExpectedLexemes(int state) {
@@ -129,7 +136,7 @@ public class ActionTable {
         return new LALR1Builder().build(grammar, startRule);
     }
 
-    private static class LALR1Builder {
+    static class LALR1Builder {
 
         public ActionTable build(Grammar grammar, Rule startRule) {
 
@@ -145,13 +152,15 @@ public class ActionTable {
 
             //Syntax Analysis Goal: Action and Goto Table
             ActionTable actionTable = new ActionTable(grammar.getTerminals(), grammar.getNonTerminals());
-            initializeTable(actionTable, startRule, allItemSets);
+
             initializeShiftsAndGotos(actionTable, translationTable);
             initializeReductions(actionTable, grammar, startRule, allItemSets);
+            initializeAccept(actionTable, startRule, allItemSets);
+
             return actionTable;
         }
 
-        private void initializeReductions(ActionTable table, Grammar grammar, Rule startRule, Set<ItemSet> itemSets) {
+        void initializeReductions(ActionTable table, Grammar grammar, Rule startRule, Set<ItemSet> itemSets) {
 
 
             Grammar extendedGrammar = makeExtendedGrammar(itemSets);
@@ -159,50 +168,42 @@ public class ActionTable {
             Map<Symbol, Set<Symbol>> followSets = getFollowSets(extendedGrammar, extendedGrammar.getTargetSymbol());
             //build a list of rules and and follow sets
 
-            Map<Rule, Set<Symbol>> step1 = new HashMap<>();
+            List<PreMergeReduction> step1 = new ArrayList<>();
             for (Rule eRule : extendedGrammar.getRules()) {
                 Set<Symbol> followSet = followSets.get(eRule.getTarget())
                         .stream()
                         .map(s -> (s instanceof ExtendedSymbol) ? ((ExtendedSymbol) s).getSymbol() : s)
                         .collect(Collectors.toSet());
-                step1.put(eRule, followSet);
+
+                step1.add(new PreMergeReduction((ExtendedRule) eRule, followSet));
             }
 
-            for (Rule rule : grammar.getRules()) {
-                for (int i = 0; i < itemSets.size(); i++) {
-                    final int state = i;
-                    Set<Symbol> mergedFollowSet = step1.keySet().stream()
-                            .map(r -> (ExtendedRule) r)
-                            .filter(r -> r.isExtensionOf(rule) && r.getFinalState() == state)
-                            .map(r -> step1.get(r))
-                            .flatMap(Set::stream)
-                            .collect(Collectors.toSet());
-
-                    if (!mergedFollowSet.isEmpty()) {
-
-                        //ignore the reduction involving state 0 & the starting rule
-                        if (state == 0 && rule.equals(startRule)) {
-                            continue;
-                        }
-
-                        for (Symbol rSymbol : mergedFollowSet) {
-
-                            final Action action;
-                            if (rule.getId() == 0) {
-                                action = new Action(ActionType.Accept, 0);
-                            } else {
-                                action = new Action(ActionType.Reduce, rule.getId());
-                            }
-
-                            table.setAction(state, rSymbol, action);
-
-                        }
+            //merging some rules
+            Set<MergedReduction> step2 = new HashSet<>();
+            for (PreMergeReduction pm : step1) {
+                List<PreMergeReduction> matching = step1.stream().filter(r -> r.matches(pm)).collect(Collectors.toList());
+                if (matching.size() == 1) {
+                    MergedReduction merged = new MergedReduction(pm.getBaseRule(), pm.getFinalState(), pm.getFollowSet());
+                    step2.add(merged);
+                } else {
+                    Set<Symbol> newFollowSet = new HashSet<>();
+                    for (PreMergeReduction m : matching) {
+                        newFollowSet.addAll(m.getFollowSet());
                     }
+                    MergedReduction merged = new MergedReduction(pm.getBaseRule(), pm.getFinalState(), newFollowSet);
+                    step2.add(merged);
+                }
+            }
+
+            for (MergedReduction merged : step2) {
+                int ruleId = merged.getRule().getId();
+                for (Symbol s : merged.getFollowSet()) {
+                    int state = merged.getFinalState();
+                    table.setAction(state, s, new Action(ActionType.Reduce, ruleId));
                 }
             }
 
         }
-
 
         /**
          * Step 1 - Initialize
@@ -212,7 +213,7 @@ public class ActionTable {
          * contains an item where the pointer is at the end of the starting rule (in our example "S → N •").
          * </p>
          */
-        private void initializeTable(ActionTable table, Rule startingRule, Set<ItemSet> itemSets) {
+        void initializeAccept(ActionTable table, Rule startingRule, Set<ItemSet> itemSets) {
             final Symbol eof = Lexemes.eof();
             final Action accept = new Action(ActionType.Accept, 0);
             Item allParsed = new Item(startingRule, startingRule.getClause().length);
@@ -230,7 +231,7 @@ public class ActionTable {
          * @param table
          * @param translationTable
          */
-        private void initializeShiftsAndGotos(ActionTable table, Map<Integer, Map<Symbol, Integer>> translationTable) {
+        void initializeShiftsAndGotos(ActionTable table, Map<Integer, Map<Symbol, Integer>> translationTable) {
             for (Map.Entry<Integer, Map<Symbol, Integer>> tEntry : translationTable.entrySet()) {
                 int state = tEntry.getKey();
                 for (Map.Entry<Symbol, Integer> entry : tEntry.getValue().entrySet()) {
@@ -244,7 +245,7 @@ public class ActionTable {
             }
         }
 
-        private Map<Symbol, Set<Symbol>> getFollowSets(Grammar grammar, Symbol target) {
+        Map<Symbol, Set<Symbol>> getFollowSets(Grammar grammar, Symbol target) {
             Map<Symbol, FollowSet> map = new HashMap<>();
 
             //The follow set of a terminal is the empty set
@@ -272,7 +273,7 @@ public class ActionTable {
                     .collect(Collectors.toMap(FollowSet::getSubject, FollowSet::getResolution));
         }
 
-        private void defineFollowSet(Map<Symbol, FollowSet> followSets, Grammar grammar, Symbol D) {
+        void defineFollowSet(Map<Symbol, FollowSet> followSets, Grammar grammar, Symbol D) {
 
             FollowSet followSet = followSets.get(D);
 
@@ -309,7 +310,7 @@ public class ActionTable {
             }
         }
 
-        private Set<Symbol> getFirst(Grammar grammar, Symbol s) {
+        Set<Symbol> getFirst(Grammar grammar, Symbol s) {
             Set<Symbol> set = new HashSet<>();
 
             // First(terminal) = [terminal]
@@ -350,10 +351,16 @@ public class ActionTable {
                 }
             }
 
-            return set;
+            return set.stream().map(sym -> {
+                if(sym instanceof ExtendedSymbol) {
+                    return ((ExtendedSymbol) sym).getSymbol();
+                } else {
+                    return sym;
+                }
+            }).collect(Collectors.toSet());
         }
 
-        private Grammar makeExtendedGrammar(Set<ItemSet> allItemSets) {
+        Grammar makeExtendedGrammar(Set<ItemSet> allItemSets) {
 
             Map<List<?>, ExtendedSymbol> extSyms = new HashMap<>();
             Grammar eGrammar = new Grammar();
@@ -390,7 +397,7 @@ public class ActionTable {
         }
 
 
-        private Map<Integer, Map<Symbol, Integer>> getTranslationTable(Grammar grammar, Set<ItemSet> allItemSets) {
+        Map<Integer, Map<Symbol, Integer>> getTranslationTable(Grammar grammar, Set<ItemSet> allItemSets) {
             Map<Integer, Map<Symbol, Integer>> table = new TreeMap<>();
             for (ItemSet itemSet : allItemSets) {
                 int currentState = itemSet.getId();
@@ -414,7 +421,7 @@ public class ActionTable {
          * @param i0
          * @return
          */
-        private Set<ItemSet> getAllItemSets(Grammar grammar, ItemSet i0) {
+        Set<ItemSet> getAllItemSets(Grammar grammar, ItemSet i0) {
             Set<ItemSet> set = new HashSet<>();
             set.add(i0);
 
@@ -454,7 +461,7 @@ public class ActionTable {
         /**
          * The first item set, I0 begins with the starting rule.
          */
-        private ItemSet getFirstItemSet(Grammar grammar, Rule startingRule) {
+        ItemSet getFirstItemSet(Grammar grammar, Rule startingRule) {
             Item firstItem = new Item(startingRule, 0);
             Set<Item> kernel = new HashSet<>();
             kernel.add(firstItem);
@@ -470,7 +477,7 @@ public class ActionTable {
          * @param kernel
          * @return
          */
-        private Set<Item> extendItemSetKernel(Grammar grammar, Set<Item> kernel) {
+        Set<Item> extendItemSetKernel(Grammar grammar, Set<Item> kernel) {
             Set<Item> set = new HashSet<>();
             Stack<Item> stack = new Stack<>();
             stack.addAll(kernel);

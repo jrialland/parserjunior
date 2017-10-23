@@ -238,12 +238,29 @@ public class GrammarTest {
     @Test
     public void testParse() {
 
-        Grammar g = makeGrammar();
+        Grammar g = new Grammar();
+
+        Symbol S = new Forward("S");
+        Symbol N = new Forward("N");
+        Symbol E = new Forward("E");
+        Symbol V = new Forward("V");
+
+        //1. S → N
+        g.addRule(S, N);
+        //2. N → V = E
+        g.addRule(N, V, new SingleChar('='), E);
+        //3. N → E
+        g.addRule(N, E);
+        //4. E → V
+        g.addRule(E, V);
+        //5. V → x
+        g.addRule(V, new SingleChar('x'));
+        //6. V → * E
+        g.addRule(V, new SingleChar('*'), E);
 
         Parser parser = g.createParser();
 
-        parser.parse(new StringReader("1+1"));
-
+        parser.parse(new StringReader("x=*x"));
 
     }
 }

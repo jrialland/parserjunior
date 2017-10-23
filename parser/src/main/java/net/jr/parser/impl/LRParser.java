@@ -101,20 +101,20 @@ public class LRParser implements Parser {
 
         // for each symbol on the left side of the rule, a state is removed from the stack
         Rule rule = grammar.getRuleById(ruleIndex);
-        System.out.println("    removing " + rule.getClause().length + " items from stack");
+        System.out.println("Reduce rule "+rule);
         for(int i=0; i<rule.getClause().length; i++) {
             stack.pop();
         }
 
-        System.out.println("    Stack is now" + stack);
+        System.out.println("    Stack is now " + stack);
 
-        System.out.println("    Reduction symbol is " + rule.getTarget());
+        System.out.println("    PreMergeReduction symbol is " + rule.getTarget());
 
         // depending state that is now on the top of stack, and the target of the rule,
         // a new state is searched in the goto table and becomes the current state
-        int newState = actionTable.getNextState(stack.pop(), rule.getTarget());
-        System.out.println("    Reduce go to state " + newState);
+        int newState = actionTable.getNextState(stack.peek(), rule.getTarget());
         stack.push(newState);
+        System.out.println("    Stack is now " + stack);
     }
 
     public Grammar getGrammar() {
