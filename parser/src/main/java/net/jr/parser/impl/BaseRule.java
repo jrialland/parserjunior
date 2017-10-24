@@ -14,8 +14,6 @@ import java.util.stream.Collectors;
  */
 public class BaseRule extends Rule {
 
-    private int id;
-
     private Derivation derivation = Derivation.None;
 
     private Consumer<Rule> action;
@@ -27,15 +25,10 @@ public class BaseRule extends Rule {
     private Symbol[] clause;
 
     public BaseRule(int id, String name, Symbol target, Symbol... clause) {
-        this.id = id;
+        setId(id);
         this.name = name;
         this.target = target;
         this.clause = clause;
-    }
-
-    @Override
-    public int getId() {
-        return id;
     }
 
     public void setAction(Consumer<Rule> action) {

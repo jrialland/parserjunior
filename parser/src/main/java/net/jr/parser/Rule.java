@@ -8,7 +8,15 @@ import java.util.stream.Collectors;
 
 public abstract class Rule {
 
-    public abstract int getId();
+    private int id;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public abstract Symbol[] getClause();
 

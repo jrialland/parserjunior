@@ -163,7 +163,7 @@ public class ActionTable {
         void initializeReductions(ActionTable table, Grammar grammar, Rule startRule, Set<ItemSet> itemSets) {
 
 
-            Grammar extendedGrammar = makeExtendedGrammar(itemSets);
+            Grammar extendedGrammar = makeExtendedGrammar(grammar, itemSets);
             // Syntax Analysis Goal: FOLLOW Sets
             Map<Symbol, Set<Symbol>> followSets = getFollowSets(extendedGrammar, extendedGrammar.getTargetSymbol());
             //build a list of rules and and follow sets
@@ -253,7 +253,7 @@ public class ActionTable {
                 map.put(terminal, FollowSet.emptySet(terminal));
             }
 
-            //Initialize an empty set for each nonterminal
+            //Initialize an new set for each nonterminal
             for (Symbol s : grammar.getNonTerminals()) {
                 map.put(s, new FollowSet(s));
             }
@@ -261,8 +261,22 @@ public class ActionTable {
             //Place an End of Input token ($) into the starting rule's follow set.
             map.get(target).setResolution(new HashSet<>(Arrays.asList(Lexemes.eof())));
 
+            for(Map.Entry<Symbol, FollowSet> entry : map.entrySet()) {
+                Symbol s = entry.getKey();
+                if(! s.isTerminal()) {
+                    System.out.println("FollowSet(" + s +") = " + entry.getValue().compositionToString());
+                }
+            }
+            System.out.println("-------------------------");
             for (Symbol s : grammar.getNonTerminals()) {
                 defineFollowSet(map, grammar, s);
+            }
+
+            for(Map.Entry<Symbol, FollowSet> entry : map.entrySet()) {
+                Symbol s = entry.getKey();
+                if(! s.isTerminal()) {
+                    System.out.println("FollowSet(" + s +") = " + entry.getValue().compositionToString());
+                }
             }
 
             LazySet.resolveAll(map.values());
@@ -360,7 +374,7 @@ public class ActionTable {
             }).collect(Collectors.toSet());
         }
 
-        Grammar makeExtendedGrammar(Set<ItemSet> allItemSets) {
+        Grammar makeExtendedGrammar(Grammar baseGrammar, Set<ItemSet> allItemSets) {
 
             Map<List<?>, ExtendedSymbol> extSyms = new HashMap<>();
             Grammar eGrammar = new Grammar();
@@ -393,6 +407,10 @@ public class ActionTable {
                     eGrammar.addRule(new ExtendedRule(idCounter++, rule, eTarget, eClause.toArray(new ExtendedSymbol[]{})));
                 }
             }
+
+            Symbol target = baseGrammar.getTargetSymbol();
+            ExtendedRule eTargetRule = eGrammar.getRules().stream().map(r->(ExtendedRule)r).filter(r->((ExtendedSymbol)r.getTarget()).getSymbol().equals(target)).findFirst().get();
+            eGrammar.setTargetRule(eTargetRule);
             return eGrammar;
         }
 

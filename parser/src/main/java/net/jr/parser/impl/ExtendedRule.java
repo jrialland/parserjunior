@@ -15,8 +15,6 @@ import java.util.Set;
  */
 public class ExtendedRule extends Rule {
 
-    private int id;
-
     private Rule baseRule;
 
     private ExtendedSymbol target;
@@ -24,15 +22,10 @@ public class ExtendedRule extends Rule {
     private ExtendedSymbol[] clause;
 
     public ExtendedRule(int id, Rule baseRule, ExtendedSymbol target, ExtendedSymbol[] clause) {
-        this.id = id;
+        setId(id);
         this.baseRule = baseRule;
         this.target = target;
         this.clause = clause;
-    }
-
-    @Override
-    public int getId() {
-        return id;
     }
 
     @Override

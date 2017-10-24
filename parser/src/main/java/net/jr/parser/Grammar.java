@@ -133,6 +133,24 @@ public class Grammar {
         return name;
     }
 
+    public void setTargetRule(Rule rule) {
+        if(rule.equals(getRuleById(0))) {
+            return;
+        }
+        if(!rules.contains(rule)) {
+            throw new IllegalArgumentException("Unknown rule :" + rule);
+        }
+        List<Rule> lRules = new ArrayList<>(rules);
+        lRules.remove(rule);
+        lRules.add(0, rule);
+        int i=0;
+        for(Rule r : lRules) {
+            r.setId(i++);
+        }
+        rules = new HashSet<>(lRules);
+    }
+
+
     /**
      * The rule that appears on left side but never on right side, if any
      * @return

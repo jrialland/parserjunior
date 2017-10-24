@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Map;
 import java.util.Set;
 
 public class ActionTableTest {
@@ -43,25 +44,16 @@ public class ActionTableTest {
     }
 
     @Test
-    public void testFollowSets() {
-
+    public void testFirstSets() {
         ActionTable.LALR1Builder builder = new ActionTable.LALR1Builder();
-
-
         assertOnFirst(builder.getFirst(grammar, V));
         assertOnFirst(builder.getFirst(grammar, E));
         assertOnFirst(builder.getFirst(grammar, N));
         assertOnFirst(builder.getFirst(grammar, S));
-
         Set<ItemSet> itemSets = builder.getAllItemSets(grammar, builder.getFirstItemSet(grammar, grammar.getRuleById(0)));
-        Grammar extended = builder.makeExtendedGrammar(itemSets);
-
+        Grammar extended = builder.makeExtendedGrammar(grammar, itemSets);
         for (Symbol nonTerminal : extended.getNonTerminals()) {
-            if (builder.getFirst(extended, nonTerminal).isEmpty()) {
-                builder.getFirst(extended, nonTerminal);
-            }
             assertOnFirst(builder.getFirst(extended, nonTerminal));
-            System.out.println("extended " + builder.getFirst(extended, nonTerminal));
         }
     }
 
@@ -72,5 +64,29 @@ public class ActionTableTest {
 
     }
 
+    @Test
+    public void testExtendedGrammar() {
+        ActionTable.LALR1Builder builder = new ActionTable.LALR1Builder();
+        Set<ItemSet> itemSets = builder.getAllItemSets(grammar, builder.getFirstItemSet(grammar, grammar.getRuleById(0)));
+        Grammar extended = builder.makeExtendedGrammar(grammar, itemSets);
+        ExtendedSymbol es = (ExtendedSymbol)extended.getTargetSymbol();
+        Assert.assertEquals(S, es.getSymbol());
+    }
 
+    @Test
+    public void testFollowSets() {
+
+        ActionTable.LALR1Builder builder = new ActionTable.LALR1Builder();
+        Set<ItemSet> itemSets = builder.getAllItemSets(grammar, builder.getFirstItemSet(grammar, grammar.getRuleById(0)));
+
+        Grammar extended = builder.makeExtendedGrammar(grammar, itemSets);
+
+        ExtendedSymbol eS = extended.getNonTerminals().stream().map(s->(ExtendedSymbol)s).filter(s->s.getSymbol().equals(S)).findAny().get();
+
+
+        Map<Symbol, Set<Symbol>> followSets = builder.getFollowSets(extended, eS);
+        for (Map.Entry<Symbol, Set<Symbol>> entry : followSets.entrySet()) {
+            System.out.println(entry.getKey()+"    " + entry.getValue());
+        }
+    }
 }
