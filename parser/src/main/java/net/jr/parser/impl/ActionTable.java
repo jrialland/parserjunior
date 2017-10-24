@@ -35,7 +35,7 @@ public class ActionTable {
 
     private List<Symbol> nonTerminals;
 
-    private ActionTable(Set<Symbol> terminals, Set<Symbol> nonTerminals) {
+    private ActionTable(Set<Lexeme> terminals, Set<Symbol> nonTerminals) {
         this.terminals = new ArrayList<>(terminals);
         if (!terminals.contains(Lexemes.eof())) {
             this.terminals.add(Lexemes.eof());
@@ -246,12 +246,12 @@ public class ActionTable {
         }
 
         Map<Symbol, Set<Symbol>> getFollowSets(Grammar grammar, Symbol target) {
-            Map<Symbol, FollowSet> map = new HashMap<>();
+
 
             //The follow set of a terminal is the empty set
-            for (Symbol terminal : grammar.getTerminals()) {
-                map.put(terminal, FollowSet.emptySet(terminal));
-            }
+            Map<Symbol, FollowSet> map = grammar.getSymbols().stream()
+                    .filter(s->s.isTerminal())
+                    .collect(Collectors.toMap(s->s, s->FollowSet.emptySet(s)));
 
             //Initialize an new set for each nonterminal
             for (Symbol s : grammar.getNonTerminals()) {
@@ -261,22 +261,8 @@ public class ActionTable {
             //Place an End of Input token ($) into the starting rule's follow set.
             map.get(target).setResolution(new HashSet<>(Arrays.asList(Lexemes.eof())));
 
-            for(Map.Entry<Symbol, FollowSet> entry : map.entrySet()) {
-                Symbol s = entry.getKey();
-                if(! s.isTerminal()) {
-                    System.out.println("FollowSet(" + s +") = " + entry.getValue().compositionToString());
-                }
-            }
-            System.out.println("-------------------------");
             for (Symbol s : grammar.getNonTerminals()) {
                 defineFollowSet(map, grammar, s);
-            }
-
-            for(Map.Entry<Symbol, FollowSet> entry : map.entrySet()) {
-                Symbol s = entry.getKey();
-                if(! s.isTerminal()) {
-                    System.out.println("FollowSet(" + s +") = " + entry.getValue().compositionToString());
-                }
             }
 
             LazySet.resolveAll(map.values());

@@ -1,9 +1,11 @@
 package net.jr.parser;
 
-import java.io.Reader;
+import net.jr.lexer.Token;
+
+import java.util.Iterator;
 
 public interface Parser {
 
-    void parse(Reader in);
+    void parse(Iterator<Token> tokenIterator);
 
 }

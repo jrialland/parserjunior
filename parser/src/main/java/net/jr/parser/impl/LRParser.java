@@ -1,18 +1,15 @@
 package net.jr.parser.impl;
 
-import net.jr.lexer.Lexeme;
-import net.jr.lexer.Lexer;
+import net.jr.collection.iterators.Iterators;
+import net.jr.collection.iterators.PushbackIterator;
 import net.jr.lexer.Token;
 import net.jr.parser.Grammar;
 import net.jr.parser.Parser;
 import net.jr.parser.Rule;
 import net.jr.parser.errors.ParseException;
 
-import java.io.Reader;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Stack;
-import java.util.stream.Collectors;
 
 /**
  * Implementation of the LR parser algorithm.
@@ -32,32 +29,16 @@ public class LRParser implements Parser {
         this.actionTable = actionTable;
     }
 
-    /**
-     * Gets the list of all terminals
-     *
-     * @return
-     */
-    protected List<Lexeme> getLexemes() {
-        return grammar.getTerminals().stream().map(s -> (Lexeme) s).collect(Collectors.toList());
-    }
+    public void parse(Iterator<Token> it) {
 
-    /**
-     * Get the iterator that will feed the parser with terminals
-     *
-     * @param in
-     * @return
-     */
-    protected Iterator<Token> getLexerIterator(Reader in) {
-        return new Lexer(getLexemes()).iterator(in);
-    }
+        final PushbackIterator<Token> tokenIterator;
+        if(it instanceof PushbackIterator) {
+            tokenIterator = (PushbackIterator<Token>)it;
+        } else {
+            tokenIterator = Iterators.pushbackIterator(it);
+        }
 
-    @Override
-    public void parse(Reader in) {
         Stack<Integer> stack = new Stack<>();
-        Iterator<Token> lexer = getLexerIterator(in);
-
-        System.out.println(grammar);
-        System.out.println(actionTable);
 
         //start with the initial state
         stack.push(0);
@@ -67,16 +48,11 @@ public class LRParser implements Parser {
         while (!completed) {
 
             int currentState = stack.peek();
-            Token token = lexer.next();
-            System.out.println("------------------------");
-            System.out.println(stack);
-            System.out.println("Current state : " + currentState +", token type = " + token.getTokenType());
+            Token token = tokenIterator.next();
             Action decision = actionTable.getAction(currentState, token.getTokenType());
             if (decision == null) {
                 throw new IllegalStateException("Internal parser error !");
             }
-
-            System.out.println("Decision :  " + decision);
 
             switch (decision.getActionType()) {
                 case Accept:
@@ -90,6 +66,7 @@ public class LRParser implements Parser {
                     break;
                 case Reduce:
                     reduce(stack, decision.getActionParameter());
+                    tokenIterator.pushback(token);
                     break;
                 default:
                     throw new IllegalStateException(String.format("Illegal action type '%s' !", decision.getActionType().name()));
@@ -98,23 +75,15 @@ public class LRParser implements Parser {
     }
 
     protected void reduce(Stack<Integer> stack, int ruleIndex) {
-
         // for each symbol on the left side of the rule, a state is removed from the stack
         Rule rule = grammar.getRuleById(ruleIndex);
-        System.out.println("Reduce rule "+rule);
-        for(int i=0; i<rule.getClause().length; i++) {
+        for (int i = 0; i < rule.getClause().length; i++) {
             stack.pop();
         }
-
-        System.out.println("    Stack is now " + stack);
-
-        System.out.println("    PreMergeReduction symbol is " + rule.getTarget());
-
         // depending state that is now on the top of stack, and the target of the rule,
         // a new state is searched in the goto table and becomes the current state
         int newState = actionTable.getNextState(stack.peek(), rule.getTarget());
         stack.push(newState);
-        System.out.println("    Stack is now " + stack);
     }
 
     public Grammar getGrammar() {

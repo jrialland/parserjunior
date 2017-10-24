@@ -2,6 +2,7 @@ package net.jr.parser;
 
 
 import net.jr.common.Symbol;
+import net.jr.lexer.Lexeme;
 import net.jr.parser.impl.ActionTable;
 import net.jr.parser.impl.BaseRule;
 import net.jr.parser.impl.LRParser;
@@ -97,12 +98,12 @@ public class Grammar {
         };
     }
 
-    public Set<Symbol> getTerminals() {
-        Set<Symbol> terminals = new HashSet<>();
+    public Set<Lexeme> getTerminals() {
+        Set<Lexeme> terminals = new HashSet<>();
         for (Rule r : rules) {
             for (Symbol s : r.getClause()) {
                 if (s.isTerminal()) {
-                    terminals.add(s);
+                    terminals.add((Lexeme)s);
                 }
             }
         }
@@ -118,11 +119,17 @@ public class Grammar {
         return tmp;
     }
 
-    public List<Symbol> getSymbols() {
-        List<Symbol> list = new ArrayList<>();
-        list.addAll(getTerminals());
-        list.addAll(getNonTerminals());
-        return list;
+    public Set<Symbol> getSymbols() {
+        Set<Symbol> symbols = new HashSet<>();
+        for (Rule r : rules) {
+            symbols.add(r.getTarget());
+            for (Symbol s : r.getClause()) {
+                if (s.isTerminal()) {
+                    symbols.add(s);
+                }
+            }
+        }
+        return symbols;
     }
 
     public Set<Symbol> getNonTerminals() {
@@ -161,13 +168,17 @@ public class Grammar {
 
     @Override
     public String toString() {
+
+        List<Rule> lRules = new ArrayList(rules);
+        Collections.sort(lRules, Comparator.comparing(Rule::getId));
+
         StringWriter sw = new StringWriter();
         if(name != null) {
             sw.append(name);
             sw.append(" : ");
         }
         sw.append("{\n");
-        for(Rule r : getRules()) {
+        for(Rule r : lRules) {
             sw.append("    " + r.toString());
             sw.append("\n");
         }
