@@ -1,5 +1,7 @@
 package net.jr.lexer;
 
+import net.jr.lexer.impl.DefaultAutomaton;
+import net.jr.lexer.impl.LexemeImpl;
 import net.jr.lexer.impl.QuotedString;
 import net.jr.lexer.impl.Word;
 
@@ -59,6 +61,43 @@ public class Lexemes {
 
     public static final Lexeme eof() {
         return Eof;
+    }
+
+    public static final Lexeme lineComment(String commentStart) {
+        LexemeImpl lexeme = new LexemeImpl();
+        DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(lexeme);
+        DefaultAutomaton.Builder.BuilderState currentState = builder.initialState();
+        for (char c : commentStart.toCharArray()) {
+            DefaultAutomaton.Builder.BuilderState next = builder.newNonFinalState();
+            currentState.when(ch -> ch == c).goTo(next);
+            currentState = next;
+        }
+        currentState.when(c -> c != '\n').goTo(currentState);
+        currentState.when(c -> c == '\n').goTo(builder.newFinalState());
+        lexeme.setAutomaton(builder.build());
+        return lexeme;
+    }
+
+    public static final Lexeme multilineComment(String commentStart, String commentEnd) {
+        LexemeImpl lexeme = new LexemeImpl();
+        DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(lexeme);
+        DefaultAutomaton.Builder.BuilderState currentState = builder.initialState();
+        for (char c : commentStart.toCharArray()) {
+            DefaultAutomaton.Builder.BuilderState next = builder.newNonFinalState();
+            currentState.when(ch -> ch == c).goTo(next);
+            currentState = next;
+        }
+        DefaultAutomaton.Builder.BuilderState inComment = currentState;
+        char[] end = commentEnd.toCharArray();
+        for (int i = 0; i < end.length; i++) {
+            final char c = end[i];
+            DefaultAutomaton.Builder.BuilderState nextState = i == end.length - 1 ? builder.newFinalState() : builder.newNonFinalState();
+            currentState.when(ch -> ch == c).goTo(nextState);
+            currentState.when(ch -> ch != c).goTo(inComment);
+            currentState = nextState;
+        }
+        lexeme.setAutomaton(builder.build());
+        return lexeme;
     }
 
 }

@@ -201,4 +201,37 @@ public class LexerTest {
         Assert.assertEquals(13, i);
         Assert.assertEquals(Lexemes.eof(), token.getTokenType());
     }
+
+    @Test
+    public void testWhitespace2() {
+        SingleChar x = new SingleChar('x');
+        SingleChar eq = new SingleChar('=');
+        SingleChar star = new SingleChar('*');
+        Lexer lexer = new Lexer(x, eq, star);
+        lexer.filterOut(Lexemes.whitespace());
+        List<Token> list;
+        list = asList(lexer.iterator(new StringReader("x=*x")));
+        Assert.assertEquals(5, list.size());
+        Assert.assertEquals(x, list.get(0).getTokenType());
+        Assert.assertEquals(eq, list.get(1).getTokenType());
+        Assert.assertEquals(star, list.get(2).getTokenType());
+        Assert.assertEquals(x, list.get(3).getTokenType());
+        Assert.assertEquals(Lexemes.eof(), list.get(4).getTokenType());
+
+        list = asList(lexer.iterator(new StringReader("x = *    x")));
+        Assert.assertEquals(5, list.size());
+        Assert.assertEquals(x, list.get(0).getTokenType());
+        Assert.assertEquals(eq, list.get(1).getTokenType());
+        Assert.assertEquals(star, list.get(2).getTokenType());
+        Assert.assertEquals(x, list.get(3).getTokenType());
+        Assert.assertEquals(Lexemes.eof(), list.get(4).getTokenType());
+    }
+
+    private static List<Token> asList(Iterator<Token> it) {
+        List<Token> list = new ArrayList<>();
+        while(it.hasNext()) {
+            list.add(it.next());
+        }
+        return list;
+    }
 }

@@ -52,7 +52,8 @@ public class GrammarTest {
         Parser parser = grammar.createParser();
         Lexer lexer = new Lexer(grammar.getTerminals());
         lexer.filterOut(Lexemes.whitespace());
-        parser.parse(lexer.iterator(new StringReader("x=*x")));
+
+        parser.parse(lexer.iterator(new StringReader("x = *x")));
 
     }
 }

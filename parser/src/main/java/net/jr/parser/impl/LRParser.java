@@ -51,7 +51,7 @@ public class LRParser implements Parser {
             Token token = tokenIterator.next();
             Action decision = actionTable.getAction(currentState, token.getTokenType());
             if (decision == null) {
-                throw new IllegalStateException("Internal parser error !");
+                throw new IllegalStateException("Internal parser error ! token="+token.getTokenType());
             }
 
             switch (decision.getActionType()) {

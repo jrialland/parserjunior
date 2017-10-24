@@ -46,7 +46,7 @@ public class Lexer {
     public Lexer filterOut(Lexeme tokenType) {
 
         if (tokenType == null) {
-            return this;
+            throw new IllegalArgumentException();
         }
 
         if (tokenType.equals(Lexemes.eof())) {
@@ -60,7 +60,11 @@ public class Lexer {
                 return this;
             }
         }
-        throw new IllegalArgumentException("Unknown Token type for this Lexer");
+
+        Automaton added = ((LexemeImpl)tokenType).getAutomaton();
+        automatons.add(added);
+        filteredOut.add(tokenType);
+        return this;
     }
 
     public void tokenize(String txt) {
