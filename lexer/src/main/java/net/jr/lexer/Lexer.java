@@ -1,5 +1,6 @@
 package net.jr.lexer;
 
+import net.jr.collection.iterators.PushbackIterator;
 import net.jr.lexer.impl.Automaton;
 import net.jr.lexer.impl.LexemeImpl;
 
@@ -30,17 +31,36 @@ public class Lexer {
     public Lexer(Collection<Lexeme> tokenTypes) {
         automatons = new ArrayList<>(tokenTypes.size());
         for (Lexeme tokenType : tokenTypes) {
-            Automaton a = ((LexemeImpl) tokenType).getAutomaton();
-            automatons.add(a);
+            if (!tokenType.equals(Lexemes.eof())) {
+                Automaton a = ((LexemeImpl) tokenType).getAutomaton();
+                automatons.add(a);
+            }
         }
     }
 
-    public void setTokenListener(TokenListener tokenListener) {
+    public Lexer tokenListener(TokenListener tokenListener) {
         this.tokenListener = tokenListener;
+        return this;
     }
 
-    public void filterOut(Lexeme tokenType) {
-        filteredOut.add(tokenType);
+    public Lexer filterOut(Lexeme tokenType) {
+
+        if (tokenType == null) {
+            return this;
+        }
+
+        if (tokenType.equals(Lexemes.eof())) {
+            filteredOut.add(tokenType);
+            return this;
+        }
+
+        for (Automaton a : automatons) {
+            if (a.getTokenType().equals(tokenType)) {
+                filteredOut.add(tokenType);
+                return this;
+            }
+        }
+        throw new IllegalArgumentException("Unknown Token type for this Lexer");
     }
 
     public void tokenize(String txt) {
@@ -54,18 +74,23 @@ public class Lexer {
     public void tokenize(Reader reader) throws IOException {
         reset();
         PushbackReader pReader = reader instanceof PushbackReader ? (PushbackReader) reader : new PushbackReader(reader);
-        while (step(pReader)) ;
+        while (step(pReader, t -> {
+        })) ;
     }
 
-    public Iterator<Token> iterator(Reader reader) {
+    public Iterator<Token> iterator(final Reader reader) {
         reset();
-        final PushbackReader pReader = reader instanceof PushbackReader ? (PushbackReader) reader : new PushbackReader(reader);
-
-        return new Iterator<Token>() {
+        PushbackReader pReader = reader instanceof PushbackReader ? (PushbackReader) reader : new PushbackReader(reader);
+        return new PushbackIterator<Token>() {
 
             private boolean go = true;
 
             private LinkedList<Token> buffer = new LinkedList<>();
+
+            @Override
+            public void pushback(Token item) {
+                buffer.addFirst(item);
+            }
 
             @Override
             public boolean hasNext() {
@@ -81,7 +106,7 @@ public class Lexer {
                 if (buffer.isEmpty()) {
                     if (go) {
                         try {
-                            while(buffer.isEmpty()) {
+                            while (buffer.isEmpty()) {
                                 go = step(pReader, token -> {
                                     buffer.addLast(token);
                                 });
@@ -108,27 +133,28 @@ public class Lexer {
         void emit(Token token);
     }
 
-    private boolean step(PushbackReader reader) throws IOException {
-        return step(reader, token -> {
-            if (!(tokenListener == null || filteredOut.contains(token.getTokenType()))) {
-                tokenListener.onToken(token);
-            }
-        });
-    }
-
-
     private boolean step(PushbackReader reader, EmitCallback callback) throws IOException {
         int r = reader.read();
         if (r == -1) { //eof reached
+
             if (!atStart) {
                 Optional<Automaton> bestMatch = automatons.stream().filter(a -> a.isInFinalState()).max(Comparator.comparingInt(a -> a.getMatchedLength()));
                 if (bestMatch.isPresent()) {
                     emitForAutomaton(bestMatch.get(), callback);
                 } else {
-                    throw new LexicalError(lastMatchBegin + lastMatchSize);
+                    throw new LexicalError(r, lastMatchBegin + lastMatchSize);
                 }
             }
-            callback.emit(new Token(Lexemes.eof(), lastMatchBegin + lastMatchSize, ""));
+
+            Lexeme eof = Lexemes.eof();
+            if (!filteredOut.contains(eof)) {
+                Token eofToken = new Token(Lexemes.eof(), lastMatchBegin + lastMatchSize, "");
+                if (tokenListener != null) {
+                    tokenListener.onToken(eofToken);
+                }
+                callback.emit(eofToken);
+            }
+
             return false;
         } else {
             final char c = (char) r;
@@ -154,7 +180,7 @@ public class Lexer {
                     reader.unread(r);
                     reset();
                 } else {
-                    throw new LexicalError(lastMatchBegin + lastMatchSize);
+                    throw new LexicalError(r, lastMatchBegin + lastMatchSize);
                 }
             }
         }
@@ -166,7 +192,13 @@ public class Lexer {
         currentSequence = "";
         lastMatchBegin += lastMatchSize;
         lastMatchSize = matchedText.length();
-        Token token = new Token(a.getTokenType(), lastMatchBegin, matchedText);
-        emitCallback.emit(token);
+
+        if (!filteredOut.contains(a.getTokenType())) {
+            Token token = new Token(a.getTokenType(), lastMatchBegin, matchedText);
+            if (tokenListener != null) {
+                tokenListener.onToken(token);
+            }
+            emitCallback.emit(token);
+        }
     }
 }

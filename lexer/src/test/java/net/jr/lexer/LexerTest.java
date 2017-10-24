@@ -14,6 +14,17 @@ import java.util.*;
 public class LexerTest {
 
     @Test
+    public void testWhitespace() {
+        Lexer lexer = new Lexer(Lexemes.whitespace(), new SingleChar('X'));
+        for (int i = 0; i < 100; i++) {
+            lexer.tokenize("      ");
+            lexer.tokenize("  X  X    ");
+        }
+        lexer.filterOut(Lexemes.whitespace());
+        lexer.tokenize("  X  X    ");
+    }
+
+    @Test
     public void testSingleCharOk() {
         Lexer lexer = new Lexer(Arrays.asList(new SingleChar('X')));
         for (int i = 0; i < 100; i++) {
@@ -62,7 +73,7 @@ public class LexerTest {
         lexer.tokenize("this is a       complete phrase with words in lowercase characters that are sometimes separated by           large \t\tspaces");
     }
 
-    protected Lexer getMixed() {
+    protected Set<Lexeme> getMixedTokenTypes() {
         Set<Lexeme> tokenTypes = new HashSet<>();
         tokenTypes.add(new Literal("if"));
         tokenTypes.add(new Literal("then"));
@@ -73,13 +84,12 @@ public class LexerTest {
         tokenTypes.add(new SingleChar('{'));
         tokenTypes.add(new SingleChar('}'));
         tokenTypes.add(Lexemes.cIdentifier());
-        Lexer lexer = new Lexer(tokenTypes);
-        return lexer;
+        return tokenTypes;
     }
 
     @Test
     public void testMixed() throws IOException {
-        getMixed().tokenize(new StringReader("if(a==b)then{c==thenabc}"));
+        new Lexer(getMixedTokenTypes()).tokenize(new StringReader("if(a==b)then{c==thenabc}"));
     }
 
     @Test
@@ -91,7 +101,11 @@ public class LexerTest {
 
         List<Integer> integerList = new ArrayList<>();
 
-        lexer.setTokenListener(token -> {
+        lexer.tokenListener(token -> {
+            boolean whitespace = token.getTokenType().equals(Lexemes.whitespace());
+            if(whitespace) {
+                Assert.fail();
+            }
             integerList.add(Integer.parseInt(token.getMatchedText()));
         });
         lexer.tokenize("254 75468 68468 144 4548 941 1");
@@ -109,7 +123,7 @@ public class LexerTest {
     public void testBestMatch() {
         Lexer lexer = new Lexer(new Literal("id"), Lexemes.cIdentifier());
         List<Token> tokenList = new ArrayList<>();
-        lexer.setTokenListener(t -> tokenList.add(t));
+        lexer.tokenListener(t -> tokenList.add(t));
         lexer.tokenize("identify");
         Assert.assertFalse(tokenList.isEmpty());
         Assert.assertEquals("identify", tokenList.get(0).getMatchedText());
@@ -155,12 +169,35 @@ public class LexerTest {
     public void testIterator() {
         int i=0;
         Token token = null;
-        Iterator<Token> iterator = getMixed().iterator(new StringReader("if(a==b)then{c==thenabc}"));
+        Iterator<Token> iterator = new Lexer(getMixedTokenTypes()).iterator(new StringReader("if(a==b)then{c==thenabc}"));
         while(iterator.hasNext()) {
             token = iterator.next();
             i++;
             //System.out.println(nextToken);
         }
+        Assert.assertEquals(13, i);
+        Assert.assertEquals(Lexemes.eof(), token.getTokenType());
+    }
+
+    @Test
+    public void testIteratorWithFilteredOut() {
+        int i=0;
+        Token token = null;
+
+        Set<Lexeme> tokenTypes = getMixedTokenTypes();
+        tokenTypes.add(Lexemes.whitespace());
+
+        Lexer lexer = new Lexer(tokenTypes);
+
+        Iterator<Token> iterator = lexer
+                .filterOut(Lexemes.whitespace())
+                .iterator(new StringReader("if (a == b) then \t { c == thenabc}"));
+
+        while(iterator.hasNext()) {
+            token = iterator.next();
+            i++;
+        }
+
         Assert.assertEquals(13, i);
         Assert.assertEquals(Lexemes.eof(), token.getTokenType());
     }
