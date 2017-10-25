@@ -7,6 +7,8 @@ import net.jr.parser.Grammar;
 import net.jr.parser.Parser;
 import net.jr.parser.Rule;
 import net.jr.parser.errors.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.Stack;
@@ -15,6 +17,12 @@ import java.util.Stack;
  * Implementation of the LR parser algorithm.
  */
 public class LRParser implements Parser {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(LRParser.class);
+
+    public static Logger getLog() {
+        return LOGGER;
+    }
 
     private Grammar grammar;
 
@@ -31,9 +39,11 @@ public class LRParser implements Parser {
 
     public void parse(Iterator<Token> it) {
 
+        getLog().debug("\n"+actionTable.toString());
+
         final PushbackIterator<Token> tokenIterator;
-        if(it instanceof PushbackIterator) {
-            tokenIterator = (PushbackIterator<Token>)it;
+        if (it instanceof PushbackIterator) {
+            tokenIterator = (PushbackIterator<Token>) it;
         } else {
             tokenIterator = Iterators.pushbackIterator(it);
         }
@@ -51,18 +61,18 @@ public class LRParser implements Parser {
             Token token = tokenIterator.next();
             Action decision = actionTable.getAction(currentState, token.getTokenType());
             if (decision == null) {
-                throw new IllegalStateException("Internal parser error ! token="+token.getTokenType());
+                throw new IllegalStateException(String.format("Parse error ! (current state=%s, token=%s)", currentState, token.getTokenType()));
             }
 
             switch (decision.getActionType()) {
                 case Accept:
+                    getLog().debug("Accept");
                     completed = true;
                     break;
                 case Fail:
                     throw new ParseException(token, actionTable.getExpectedLexemes(currentState));
                 case Shift:
-                    //new state is added on the stack, so it becomes the current state
-                    stack.add(decision.getActionParameter());
+                    shift(stack, decision.getActionParameter());
                     break;
                 case Reduce:
                     reduce(stack, decision.getActionParameter());
@@ -74,15 +84,30 @@ public class LRParser implements Parser {
         }
     }
 
+    /**
+     * The new state is added to the stack and becomes the current state
+     *
+     * @param stack
+     * @param state
+     */
+    protected void shift(Stack<Integer> stack, int state) {
+        getLog().debug("Shift " + state);
+        stack.add(state);
+    }
+
     protected void reduce(Stack<Integer> stack, int ruleIndex) {
         // for each symbol on the left side of the rule, a state is removed from the stack
         Rule rule = grammar.getRuleById(ruleIndex);
+        getLog().debug("Reduce " + rule);
+
         for (int i = 0; i < rule.getClause().length; i++) {
             stack.pop();
         }
+
         // depending state that is now on the top of stack, and the target of the rule,
         // a new state is searched in the goto table and becomes the current state
         int newState = actionTable.getNextState(stack.peek(), rule.getTarget());
+        getLog().debug("    Goto " + newState);
         stack.push(newState);
     }
 

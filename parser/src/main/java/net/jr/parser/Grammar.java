@@ -62,6 +62,10 @@ public class Grammar {
         rules.add(rule);
     }
 
+    public RuleSpecifier addEmptyRule(Symbol target) {
+        return addRule(target);
+    }
+
     public RuleSpecifier addRule(Symbol target, Symbol... clause) {
 
         //drop eventual parser
@@ -102,7 +106,7 @@ public class Grammar {
         Set<Lexeme> terminals = new HashSet<>();
         for (Rule r : rules) {
             for (Symbol s : r.getClause()) {
-                if (s.isTerminal()) {
+                if (s != Empty && s.isTerminal()) {
                     terminals.add((Lexeme)s);
                 }
             }
@@ -196,6 +200,13 @@ public class Grammar {
             parser = new LRParser(this, ActionTable.lalr1(this, getRuleById(0)));
         }
         return parser;
+    }
+
+    public Symbol optional(Symbol ... symbols) {
+        Symbol opt  = new Forward();
+        addRule(opt, symbols);
+        addEmptyRule(opt);
+        return opt;
     }
 }
 

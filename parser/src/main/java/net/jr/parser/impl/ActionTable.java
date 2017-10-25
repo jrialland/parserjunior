@@ -47,7 +47,10 @@ public class ActionTable {
     }
 
     private void setAction(int state, Symbol symbol, Action action) {
-        data.computeIfAbsent(state, k -> new HashMap<>()).put(symbol, action);
+        Map<Symbol, Action> row = data.computeIfAbsent(state, k -> new HashMap<>());
+        if(row.put(symbol, action) != null && !action.getActionType().equals(ActionType.Accept)) {
+            throw new IllegalStateException();
+        }
     }
 
     Action getAction(int state, Lexeme symbol) {
@@ -147,21 +150,19 @@ public class ActionTable {
             //Syntax Analysis Goal: Translation Table
             Map<Integer, Map<Symbol, Integer>> translationTable = getTranslationTable(grammar, allItemSets);
 
-            // Syntax Analysis Goal: Extended Grammar
-
-
             //Syntax Analysis Goal: Action and Goto Table
-            ActionTable actionTable = new ActionTable(grammar.getTerminals(), grammar.getNonTerminals());
+            Set<Symbol> nonTerms = new HashSet<>(grammar.getNonTerminals());
+            nonTerms.remove(grammar.getTargetSymbol());
+            ActionTable actionTable = new ActionTable(grammar.getTerminals(), nonTerms);
 
             initializeShiftsAndGotos(actionTable, translationTable);
-            initializeReductions(actionTable, grammar, startRule, allItemSets);
+            initializeReductions(actionTable, grammar, allItemSets);
             initializeAccept(actionTable, startRule, allItemSets);
 
             return actionTable;
         }
 
-        void initializeReductions(ActionTable table, Grammar grammar, Rule startRule, Set<ItemSet> itemSets) {
-
+        void initializeReductions(ActionTable table, Grammar grammar, Set<ItemSet> itemSets) {
 
             Grammar extendedGrammar = makeExtendedGrammar(grammar, itemSets);
             // Syntax Analysis Goal: FOLLOW Sets
@@ -313,44 +314,43 @@ public class ActionTable {
         Set<Symbol> getFirst(Grammar grammar, Symbol s) {
             Set<Symbol> set = new HashSet<>();
 
-            // First(terminal) = [terminal]
             if (s.isTerminal()) {
+                // First(terminal) = [terminal]
                 set.add(s);
-                return set;
-            }
+            } else {
 
-            for (Rule r : grammar.getRules()) {
-                if (r.getTarget().equals(s)) {
+                for (Rule r : grammar.getRules()) {
+                    if (r.getTarget().equals(s)) {
 
-                    //if the first symbol is a terminal, the set is this terminal
-                    Symbol firstTerminal;
-                    if (r.getClause().length > 0 && (firstTerminal = r.getClause()[0]).isTerminal()) {
-                        set.add(firstTerminal);
-                        continue;
-                    }
-
-                    //if not, we scan the symbol,
-                    boolean brk = false;
-                    for (Symbol s2 : r.getClause()) {
-
-                        Set<Symbol> a = getFirst(grammar, s2);
-                        boolean containedEmpty = a.remove(Grammar.Empty);
-                        set.addAll(a);
-
-                        //if First(x) did not contain ε, we do not need to contine scanning
-                        if (!containedEmpty) {
-                            brk = true;
-                            break;
+                        //if the first symbol is a terminal, the set is this terminal
+                        Symbol firstTerminal;
+                        if (r.getClause().length > 0 && (firstTerminal = r.getClause()[0]).isTerminal()) {
+                            set.add(firstTerminal);
+                            continue;
                         }
-                    }
 
-                    //every First(x) contained ε, so we have to add it to the set
-                    if (!brk) {
-                        set.add(Grammar.Empty);
+                        //if not, we scan the symbol,
+                        boolean brk = false;
+                        for (Symbol s2 : r.getClause()) {
+
+                            Set<Symbol> a = getFirst(grammar, s2);
+                            boolean containedEmpty = a.remove(Grammar.Empty);
+                            set.addAll(a);
+
+                            //if First(x) did not contain ε, we do not need to contine scanning
+                            if (!containedEmpty) {
+                                brk = true;
+                                break;
+                            }
+                        }
+
+                        //every First(x) contained ε, so we have to add it to the set
+                        if (!brk) {
+                            set.add(Grammar.Empty);
+                        }
                     }
                 }
             }
-
             return set.stream().map(sym -> {
                 if(sym instanceof ExtendedSymbol) {
                     return ((ExtendedSymbol) sym).getSymbol();

@@ -2,9 +2,7 @@ package net.jr.lexer.impl;
 
 import net.jr.lexer.Lexeme;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 public class DefaultAutomaton implements Automaton {
@@ -12,8 +10,11 @@ public class DefaultAutomaton implements Automaton {
     private static final State FailedState = new State(Collections.emptyList(), false);
 
     private Lexeme tokenType;
+
     private State initialState;
+
     private State currentState;
+
     private String matchedString = "";
 
     private DefaultAutomaton(Lexeme tokenType, State initialState) {
@@ -62,15 +63,44 @@ public class DefaultAutomaton implements Automaton {
         return currentState.finalState;
     }
 
-    private static class State {
+    private static class State implements Cloneable {
 
         private List<Transition> outgoingTransitions;
 
         private boolean finalState;
 
+        private State clone(Map<State, State> knownClones) throws CloneNotSupportedException {
+            State s = knownClones.get(this);
+            if (s != null) {
+                return s;
+            } else {
+                return (State) clone();
+            }
+        }
+
+        @Override
+        protected Object clone() throws CloneNotSupportedException {
+
+            List<Transition> clonedTransitions = new ArrayList<>();
+            Map<State, State> clones = new HashMap<>();
+            clones.put(this, new State(clonedTransitions, finalState));
+
+            for (Transition t : clonedTransitions) {
+                Transition tClone = new Transition(t.condition, t.nextState.clone(clones));
+                clonedTransitions.add(tClone);
+            }
+
+            return clones.get(this);
+
+        }
+
         public State(List<Transition> outgoingTransitions, boolean finalState) {
             this.outgoingTransitions = outgoingTransitions;
             this.finalState = finalState;
+        }
+
+        public boolean isFinalState() {
+            return finalState;
         }
 
         public List<Transition> getOutgoingTransitions() {
@@ -173,5 +203,6 @@ public class DefaultAutomaton implements Automaton {
         }
 
     }
+
 
 }

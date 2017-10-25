@@ -23,6 +23,9 @@ public class Lexemes {
 
     public static final String WhitespacesNonNewLine = " \u00A0\u2007\u202F\u000B\u001C\u001D\u001E\u001F\t\f\r";
 
+    public static final String HexDigit = Numbers + "abcdef" + "ABCDEF";
+
+
     private static final Lexeme cIdentifier = new Word("_" + Alpha, "_" + AlphaNum);
 
     private static final Lexeme whitespaces = new Word(WhitespacesNonNewLine);
@@ -100,4 +103,74 @@ public class Lexemes {
         return lexeme;
     }
 
+    private static LexemeImpl HexNumber = null;
+
+    /**
+     * 0x[0-9A-Fa-f]+
+     */
+    public static final Lexeme hexNumber() {
+        if (HexNumber == null) {
+
+            HexNumber = new LexemeImpl() {
+                public String toString() {
+                    return "hexNumber";
+                }
+            };
+
+            DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(HexNumber);
+            DefaultAutomaton.Builder.BuilderState currentState = builder.initialState();
+            DefaultAutomaton.Builder.BuilderState nextState;
+
+            nextState = builder.newNonFinalState();
+            currentState.when(c -> c == '0').goTo(nextState);
+            currentState = nextState;
+
+            nextState = builder.newNonFinalState();
+            currentState.when(c -> c == 'x').goTo(nextState);
+            currentState = nextState;
+
+            DefaultAutomaton.Builder.BuilderState finalState = builder.newFinalState();
+            currentState.when(c -> HexDigit.contains("" + c)).goTo(finalState);
+            finalState.when(c -> HexDigit.contains("" + c)).goTo(finalState);
+            HexNumber.setAutomaton(builder.build());
+
+        }
+        return HexNumber;
+    }
+
+    private static LexemeImpl SimpleFloat;
+
+    /**
+     * [0-9]+ DOT [0-9]* or DOT [0-9]+
+     */
+    public static Lexeme simpleFloat() {
+        if (SimpleFloat == null) {
+            SimpleFloat = new LexemeImpl() {
+                @Override
+                public String toString() {
+                    return "float";
+                }
+            };
+            DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(SimpleFloat);
+            DefaultAutomaton.Builder.BuilderState initialState = builder.initialState();
+            DefaultAutomaton.Builder.BuilderState beforeDot = builder.newNonFinalState();
+            DefaultAutomaton.Builder.BuilderState finalState = builder.newFinalState();
+            DefaultAutomaton.Builder.BuilderState nonFinalDot = builder.newNonFinalState();
+
+            // [0-9]+ DOT [0-9]*
+            initialState.when(Character::isDigit).goTo(beforeDot);
+            beforeDot.when(Character::isDigit).goTo(beforeDot);
+            beforeDot.when(c -> c == '.').goTo(finalState);
+            finalState.when(Character::isDigit).goTo(finalState);
+
+            // DOT [0-9]+
+            initialState.when(c -> c == '.').goTo(nonFinalDot);
+            nonFinalDot.when(Character::isDigit).goTo(finalState);
+
+
+            SimpleFloat.setAutomaton(builder.build());
+
+        }
+        return SimpleFloat;
+    }
 }

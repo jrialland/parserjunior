@@ -25,10 +25,10 @@ import java.util.stream.Collectors;
  */
 public abstract class LazySet {
 
-    private static final Logger Logger = LoggerFactory.getLogger(LazySet.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(LazySet.class);
 
     private static final Logger getLog() {
-        return Logger;
+        return LOGGER;
     }
 
     private Symbol subject;
@@ -83,6 +83,9 @@ public abstract class LazySet {
      */
     private boolean simplify(Collection<? extends LazySet> allEqs) {
 
+        //dont not include self
+        composition.remove(this);
+
         //if already resolved, just return true
         if (resolution != null) {
             return true;
@@ -125,7 +128,7 @@ public abstract class LazySet {
             for (LazySet l : lazySets) {
                 solvedInThisRound += l.simplify(lazySets) ? 1 : 0;
             }
-        } while (solvedInThisRound < size || solvedInPrecRound == solvedInThisRound);
+        } while (solvedInThisRound < size && solvedInPrecRound < solvedInThisRound);
 
         if (solvedInThisRound < size) {
             String message = String.format("Resolution failure ! (only %d/%d solved)", solvedInThisRound, size);

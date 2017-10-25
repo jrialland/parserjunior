@@ -227,6 +227,22 @@ public class LexerTest {
         Assert.assertEquals(Lexemes.eof(), list.get(4).getTokenType());
     }
 
+    @Test
+    public void testHexNumber() {
+
+
+        Lexer lexer = new Lexer(Lexemes.hexNumber(), Lexemes.whitespace());
+        lexer.tokenListener(new TokenListener() {
+            @Override
+            public void onToken(Token token) {
+                System.out.println(token);
+            }
+        });
+        lexer.tokenize("0xdeadbeef 0x15615 0x1223 0x1 0xff");
+
+    }
+
+
     private static List<Token> asList(Iterator<Token> it) {
         List<Token> list = new ArrayList<>();
         while(it.hasNext()) {
