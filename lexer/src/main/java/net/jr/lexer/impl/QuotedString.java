@@ -19,6 +19,10 @@ public class QuotedString extends LexemeImpl {
         this.automaton = builder.build();
     }
 
+    @Override
+    public int getPriority() {
+        return 1;
+    }
 
     @Override
     public Automaton getAutomaton() {

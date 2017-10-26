@@ -9,6 +9,7 @@ import java.io.PushbackReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Lexer {
 
@@ -61,25 +62,30 @@ public class Lexer {
             }
         }
 
-        Automaton added = ((LexemeImpl)tokenType).getAutomaton();
+        Automaton added = ((LexemeImpl) tokenType).getAutomaton();
         automatons.add(added);
         filteredOut.add(tokenType);
         return this;
     }
 
-    public void tokenize(String txt) {
+    public List<Token> tokenize(String txt) {
         try {
-            tokenize(new StringReader(txt));
+            return tokenize(new StringReader(txt));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void tokenize(Reader reader) throws IOException {
+    public List<Token> tokenize(Reader reader) throws IOException {
         reset();
+        final List<Token> tokens = new ArrayList<>();
         PushbackReader pReader = reader instanceof PushbackReader ? (PushbackReader) reader : new PushbackReader(reader);
-        while (step(pReader, t -> {
-        })) ;
+        while (step(pReader, t -> tokens.add(t))) ;
+        return tokens;
+    }
+
+    public Iterator<Token> iterator(String txt) {
+        return iterator(new StringReader(txt));
     }
 
     public Iterator<Token> iterator(final Reader reader) {
@@ -142,9 +148,10 @@ public class Lexer {
         if (r == -1) { //eof reached
 
             if (!atStart) {
-                Optional<Automaton> bestMatch = automatons.stream().filter(a -> a.isInFinalState()).max(Comparator.comparingInt(a -> a.getMatchedLength()));
-                if (bestMatch.isPresent()) {
-                    emitForAutomaton(bestMatch.get(), callback);
+                List<Automaton> matchCandidates = automatons.stream().filter(a -> a.isInFinalState()).collect(Collectors.toList());
+                Automaton bestMatch = findBest(matchCandidates);
+                if (bestMatch != null) {
+                    emitForAutomaton(bestMatch, callback);
                 } else {
                     throw new LexicalError(r, lastMatchBegin + lastMatchSize);
                 }
@@ -152,7 +159,7 @@ public class Lexer {
 
             Lexeme eof = Lexemes.eof();
             if (!filteredOut.contains(eof)) {
-                Token eofToken = new Token(Lexemes.eof(), lastMatchBegin + lastMatchSize, "");
+                Token eofToken = new Token(Lexemes.eof(), lastMatchBegin + lastMatchSize, null);
                 if (tokenListener != null) {
                     tokenListener.onToken(eofToken);
                 }
@@ -178,9 +185,9 @@ public class Lexer {
             }
             atStart = false;
             if (!hasUp) {
-                Optional<Automaton> bestMatch = matchCandidates.stream().max(Comparator.comparingInt(Automaton::getMatchedLength));
-                if (bestMatch.isPresent()) {
-                    emitForAutomaton(bestMatch.get(), callback);
+                Automaton bestMatch = findBest(matchCandidates);
+                if (bestMatch != null) {
+                    emitForAutomaton(bestMatch, callback);
                     reader.unread(r);
                     reset();
                 } else {
@@ -189,6 +196,32 @@ public class Lexer {
             }
         }
         return true;
+    }
+
+    private Automaton findBest(Collection<Automaton> matchCandidates) {
+        // 1 -find the ones with the best matched length
+        int l, bestLength = Integer.MIN_VALUE;
+        List<Automaton> bestMatches = new ArrayList<>();
+        for (Automaton a : matchCandidates) {
+            if (a.getMatchedLength() == bestLength) {
+                bestMatches.add(a);
+            } else if ((l = a.getMatchedLength()) > bestLength) {
+                bestLength = l;
+                bestMatches.clear();
+                bestMatches.add(a);
+            }
+        }
+
+        switch (bestMatches.size()) {
+            case 0:
+                return null;
+            case 1:
+                break;
+            default:
+                Collections.sort(bestMatches, Comparator.comparingInt(a -> -1 * a.getTokenType().getPriority()));
+        }
+
+        return bestMatches.get(0);
     }
 
     private void emitForAutomaton(Automaton a, EmitCallback emitCallback) {

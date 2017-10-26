@@ -8,4 +8,8 @@ public interface Lexeme extends Symbol {
     default boolean isTerminal() {
         return true;
     }
+
+    default int getPriority() {
+        return 1;
+    }
 }

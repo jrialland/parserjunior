@@ -1,5 +1,8 @@
 package net.jr.lexer.impl;
 
+/**
+ * A literal is a 'keyword' i.e a fixed string.
+ */
 public class Literal extends LexemeImpl {
 
     private String value;
@@ -29,6 +32,11 @@ public class Literal extends LexemeImpl {
 
     @Override
     public String toString() {
-        return "t('" + value + "')";
+        return "'" + value + "'";
+    }
+
+    @Override
+    public int getPriority() {
+        return 2;
     }
 }

@@ -250,4 +250,31 @@ public class LexerTest {
         }
         return list;
     }
+
+    @Test
+    public void testSingleChar() {
+        String txt = "()))())()()())((";
+        Lexer lexer = new Lexer(new SingleChar('('), new SingleChar(')'));
+        List<Token> tokens = lexer.tokenize(txt);
+
+        int i=0;
+        for(Token token : tokens) {
+            if(i<txt.length()) {
+                Assert.assertEquals(txt.toCharArray()[i++], token.getMatchedText().charAt(0));
+            }
+        }
+        Assert.assertTrue(tokens.get(tokens.size()-1).getTokenType().equals(Lexemes.eof()));
+    }
+
+    @Test
+    public void testPreferLiteralOverWord() {
+
+        Lexer lexer = new Lexer(new Word(Lexemes.Alpha), new Literal("test"));
+        List<Token> tokens = lexer.tokenize("test");
+        Assert.assertEquals(2, tokens.size());
+        Assert.assertEquals(Lexemes.eof(), tokens.get(1).getTokenType());
+        Assert.assertEquals(Literal.class, tokens.get(0).getTokenType().getClass());
+
+
+    }
 }

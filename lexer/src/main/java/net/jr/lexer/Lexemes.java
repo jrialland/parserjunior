@@ -26,13 +26,18 @@ public class Lexemes {
     public static final String HexDigit = Numbers + "abcdef" + "ABCDEF";
 
 
-    private static final Lexeme cIdentifier = new Word("_" + Alpha, "_" + AlphaNum);
+    private static final Lexeme cIdentifier = new Word("_" + Alpha, "_" + AlphaNum, "CIdentifier");
 
     private static final Lexeme whitespaces = new Word(WhitespacesNonNewLine);
 
     private static final Lexeme lowercaseWord = new Word(LowercaseLetters);
 
-    private static final Lexeme cString = new QuotedString('\"', '\"', '\\', new char[]{'\r', '\n'});
+    private static final Lexeme cString = new QuotedString('\"', '\"', '\\', new char[]{'\r', '\n'}) {
+        @Override
+        public String toString() {
+            return "CString";
+        }
+    };
 
     private static final Lexeme Eof = new Lexeme() {
 
@@ -54,8 +59,18 @@ public class Lexemes {
         return whitespaces;
     }
 
+    private static Lexeme Number = null;
+
     public static final Lexeme number() {
-        return new Word(NumbersExceptZero, Numbers);
+        if (Number == null) {
+            Number = new Word(NumbersExceptZero, Numbers) {
+                @Override
+                public String toString() {
+                    return "Number";
+                }
+            };
+        }
+        return Number;
     }
 
     public static final Lexeme lowercaseWord() {
@@ -112,9 +127,16 @@ public class Lexemes {
         if (HexNumber == null) {
 
             HexNumber = new LexemeImpl() {
-                public String toString() {
-                    return "hexNumber";
+
+                @Override
+                public int getPriority() {
+                    return 1;
                 }
+
+                public String toString() {
+                    return "HexNumber";
+                }
+
             };
 
             DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(HexNumber);
@@ -146,9 +168,15 @@ public class Lexemes {
     public static Lexeme simpleFloat() {
         if (SimpleFloat == null) {
             SimpleFloat = new LexemeImpl() {
+
+                @Override
+                public int getPriority() {
+                    return 1;
+                }
+
                 @Override
                 public String toString() {
-                    return "float";
+                    return "Float";
                 }
             };
             DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(SimpleFloat);
