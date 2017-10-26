@@ -51,7 +51,7 @@ public class ActionTableTest {
         assertOnFirst(builder.getFirst(grammar, N));
         assertOnFirst(builder.getFirst(grammar, S));
         Set<ItemSet> itemSets = builder.getAllItemSets(grammar, builder.getFirstItemSet(grammar, grammar.getRuleById(0)));
-        Grammar extended = builder.makeExtendedGrammar(grammar, itemSets);
+        Grammar extended = builder.makeExtendedGrammar(grammar.getRuleById(0), itemSets);
         for (Symbol nonTerminal : extended.getNonTerminals()) {
             assertOnFirst(builder.getFirst(extended, nonTerminal));
         }
@@ -68,8 +68,8 @@ public class ActionTableTest {
     public void testExtendedGrammar() {
         ActionTable.LALR1Builder builder = new ActionTable.LALR1Builder();
         Set<ItemSet> itemSets = builder.getAllItemSets(grammar, builder.getFirstItemSet(grammar, grammar.getRuleById(0)));
-        Grammar extended = builder.makeExtendedGrammar(grammar, itemSets);
-        ExtendedSymbol es = (ExtendedSymbol)extended.getTargetSymbol();
+        Grammar extended = builder.makeExtendedGrammar(grammar.getRuleById(0), itemSets);
+        ExtendedSymbol es = (ExtendedSymbol) extended.getTargetSymbol();
         Assert.assertEquals(S, es.getSymbol());
     }
 
@@ -79,14 +79,14 @@ public class ActionTableTest {
         ActionTable.LALR1Builder builder = new ActionTable.LALR1Builder();
         Set<ItemSet> itemSets = builder.getAllItemSets(grammar, builder.getFirstItemSet(grammar, grammar.getRuleById(0)));
 
-        Grammar extended = builder.makeExtendedGrammar(grammar, itemSets);
+        Grammar extended = builder.makeExtendedGrammar(grammar.getRuleById(0), itemSets);
 
-        ExtendedSymbol eS = extended.getNonTerminals().stream().map(s->(ExtendedSymbol)s).filter(s->s.getSymbol().equals(S)).findAny().get();
+        ExtendedSymbol eS = extended.getNonTerminals().stream().map(s -> (ExtendedSymbol) s).filter(s -> s.getSymbol().equals(S)).findAny().get();
 
 
         Map<Symbol, Set<Symbol>> followSets = builder.getFollowSets(extended, eS);
         for (Map.Entry<Symbol, Set<Symbol>> entry : followSets.entrySet()) {
-            System.out.println(entry.getKey()+"    " + entry.getValue());
+            System.out.println(entry.getKey() + "    " + entry.getValue());
         }
     }
 }

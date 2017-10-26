@@ -58,24 +58,6 @@ public abstract class LazySet {
     }
 
     /**
-     * Is this set a 'synonym' of l ?.
-     * a synonym is a {@link LazySet} that describes the same group, maybe under a different name
-     *
-     * @param allEqs
-     * @param l
-     * @return
-     */
-    private boolean isSynonymOf(Collection<? extends LazySet> allEqs, LazySet l) {
-        if (composition.size() == 1 && composition.iterator().next().equals(l)) {
-            return true;
-        }
-        if (l.composition.size() == 1 && l.composition.iterator().next().equals(this)) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * Tries to replace the definition of the set by its real value
      *
      * @param allEqs the other definitions
@@ -88,15 +70,27 @@ public abstract class LazySet {
 
         //if already resolved, just return true
         if (resolution != null) {
+
+            if(resolution.isEmpty()) {
+                for(LazySet l : allEqs) {
+                    l.composition.remove(this);
+                }
+            }
             return true;
+
         } else {
 
             if (composition.size() > 1) {
                 Iterator<LazySet> it = composition.iterator();
                 while (it.hasNext()) {
                     LazySet n = it.next();
-                    if (n.isSynonymOf(allEqs, this)) {
+                    if(n.resolution != null && n.resolution.isEmpty()) {
                         it.remove();
+                        continue;
+                    }
+                    if(n.composition.contains(this)) {
+                        n.composition.remove(this);
+                        continue;
                     }
                 }
             }

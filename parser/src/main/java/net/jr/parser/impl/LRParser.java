@@ -2,8 +2,10 @@ package net.jr.parser.impl;
 
 import net.jr.collection.iterators.Iterators;
 import net.jr.collection.iterators.PushbackIterator;
+import net.jr.lexer.Lexeme;
 import net.jr.lexer.Token;
 import net.jr.parser.Grammar;
+import net.jr.parser.ParseError;
 import net.jr.parser.Parser;
 import net.jr.parser.Rule;
 import net.jr.parser.errors.ParseException;
@@ -11,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.Set;
 import java.util.Stack;
 
 /**
@@ -39,7 +42,7 @@ public class LRParser implements Parser {
 
     public void parse(Iterator<Token> it) {
 
-        getLog().debug("\n"+actionTable.toString());
+        getLog().debug("\n" + actionTable.toString());
 
         final PushbackIterator<Token> tokenIterator;
         if (it instanceof PushbackIterator) {
@@ -58,15 +61,27 @@ public class LRParser implements Parser {
         while (!completed) {
 
             int currentState = stack.peek();
+            getLog().debug("-> Current state : " + currentState);
+
             Token token = tokenIterator.next();
+            getLog().debug("   Input token : " + token.getTokenType() + " (matched text : '" + token.getMatchedText() + "' )");
+
             Action decision = actionTable.getAction(currentState, token.getTokenType());
             if (decision == null) {
-                throw new IllegalStateException(String.format("Parse error ! (current state=%s, token=%s)", currentState, token.getTokenType()));
+                Set<Lexeme> expected = actionTable.getExpectedLexemes(currentState);
+                //if ε is was a possible 'symbol'
+                if (expected.contains(Grammar.Empty)) {
+                    decision = actionTable.getAction(currentState, Grammar.Empty);
+                    tokenIterator.pushback(token);
+                } else {
+                    throw new ParseError(actionTable.getExpectedLexemes(currentState));
+                }
             }
+
+            getLog().debug(String.format("   Decision : %s %d", decision.getActionType().name(), decision.getActionParameter()));
 
             switch (decision.getActionType()) {
                 case Accept:
-                    getLog().debug("Accept");
                     completed = true;
                     break;
                 case Fail:
@@ -91,14 +106,13 @@ public class LRParser implements Parser {
      * @param state
      */
     protected void shift(Stack<Integer> stack, int state) {
-        getLog().debug("Shift " + state);
         stack.add(state);
     }
 
     protected void reduce(Stack<Integer> stack, int ruleIndex) {
         // for each symbol on the left side of the rule, a state is removed from the stack
         Rule rule = grammar.getRuleById(ruleIndex);
-        getLog().debug("Reduce " + rule);
+        getLog().debug("      - reducing rule : " + rule);
 
         for (int i = 0; i < rule.getClause().length; i++) {
             stack.pop();
@@ -107,7 +121,7 @@ public class LRParser implements Parser {
         // depending state that is now on the top of stack, and the target of the rule,
         // a new state is searched in the goto table and becomes the current state
         int newState = actionTable.getNextState(stack.peek(), rule.getTarget());
-        getLog().debug("    Goto " + newState);
+        getLog().debug("      - goto " + newState);
         stack.push(newState);
     }
 

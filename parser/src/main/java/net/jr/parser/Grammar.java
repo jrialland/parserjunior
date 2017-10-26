@@ -19,11 +19,7 @@ import java.util.stream.Collectors;
  */
 public class Grammar {
 
-    public static final Symbol Empty = new Symbol() {
-        @Override
-        public boolean isTerminal() {
-            return true;
-        }
+    public static final Lexeme Empty = new Lexeme() {
 
         @Override
         public String toString() {
@@ -35,7 +31,7 @@ public class Grammar {
 
     private Set<Rule> rules = new HashSet<>();
 
-    private Parser parser;
+    private Symbol targetSymbol;
 
     public Grammar() {
         this(null);
@@ -59,6 +55,9 @@ public class Grammar {
     }
 
     public void addRule(Rule rule) {
+        if(rules.isEmpty()) {
+            targetSymbol = rule.getTarget();
+        }
         rules.add(rule);
     }
 
@@ -66,13 +65,14 @@ public class Grammar {
         return addRule(target);
     }
 
+    public RuleSpecifier addRule(Symbol target, Collection<Symbol> clause) {
+        return addRule(target, clause.toArray(new Symbol[]{}));
+    }
+
     public RuleSpecifier addRule(Symbol target, Symbol... clause) {
 
-        //drop eventual parser
-        parser =  null;
-
         //replace empty clause with the 'Empty' pseudo-terminal
-        if(clause.length == 0) {
+        if (clause.length == 0) {
             clause = new Symbol[]{Empty};
         }
 
@@ -107,20 +107,11 @@ public class Grammar {
         for (Rule r : rules) {
             for (Symbol s : r.getClause()) {
                 if (s != Empty && s.isTerminal()) {
-                    terminals.add((Lexeme)s);
+                    terminals.add((Lexeme) s);
                 }
             }
         }
         return terminals;
-    }
-
-    public Symbol or(Symbol ... syms) {
-        assert syms.length>1;
-        Symbol tmp = new Forward();
-        for(Symbol s : syms) {
-            addRule(tmp, s);
-        }
-        return tmp;
     }
 
     public Set<Symbol> getSymbols() {
@@ -145,29 +136,33 @@ public class Grammar {
     }
 
     public void setTargetRule(Rule rule) {
-        if(rule.equals(getRuleById(0))) {
+        setTargetSymbol(rule.getTarget());
+        if (rule.equals(getRuleById(0))) {
             return;
         }
-        if(!rules.contains(rule)) {
+        if (!rules.contains(rule)) {
             throw new IllegalArgumentException("Unknown rule :" + rule);
         }
         List<Rule> lRules = new ArrayList<>(rules);
         lRules.remove(rule);
         lRules.add(0, rule);
-        int i=0;
-        for(Rule r : lRules) {
+        int i = 0;
+        for (Rule r : lRules) {
             r.setId(i++);
         }
         rules = new HashSet<>(lRules);
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    /**
-     * The rule that appears on left side but never on right side, if any
-     * @return
-     */
     public Symbol getTargetSymbol() {
-       return getRuleById(0).getTarget();
+        return targetSymbol;
+    }
+
+    public void setTargetSymbol(Symbol targetSymbol) {
+        this.targetSymbol = targetSymbol;
     }
 
     @Override
@@ -177,12 +172,12 @@ public class Grammar {
         Collections.sort(lRules, Comparator.comparing(Rule::getId));
 
         StringWriter sw = new StringWriter();
-        if(name != null) {
+        if (name != null) {
             sw.append(name);
             sw.append(" : ");
         }
         sw.append("{\n");
-        for(Rule r : lRules) {
+        for (Rule r : lRules) {
             sw.append("    " + r.toString());
             sw.append("\n");
         }
@@ -196,17 +191,100 @@ public class Grammar {
     }
 
     public Parser createParser() {
-        if(parser ==  null) {
-            parser = new LRParser(this, ActionTable.lalr1(this, getRuleById(0)));
-        }
-        return parser;
+        return createParser(getTargetSymbol());
     }
 
-    public Symbol optional(Symbol ... symbols) {
-        Symbol opt  = new Forward();
+    public Parser createParser(Symbol targetSymbol) {
+
+        Set<Rule> targetRules = rules.stream().filter(r -> r.getTarget().equals(targetSymbol)).collect(Collectors.toSet());
+
+        if (targetRules.isEmpty()) {
+            throw new IllegalArgumentException(String.format("Symbol '%s' is not a target for this grammar", targetSymbol));
+        }
+
+        if (targetRules.size() == 1) {
+            Rule targetRule = targetRules.iterator().next();
+            setTargetRule(targetRule);
+            return new LRParser(this, ActionTable.lalr1(this, targetRules.iterator().next()));
+        } else {
+            //ensure that we have a target rule that appear only once
+            Symbol start = new Forward("(all)");
+            Grammar cleanGrammar = new Grammar();
+
+
+            //find all the rules that depend on the target rules
+            HashSet<Symbol> seen = new HashSet<>();
+            seen.add(targetSymbol);
+
+            Stack<Rule> stack = new Stack<>();
+            stack.addAll(targetRules);
+
+            //add all the rules with a definition that depend on the target symbol, recursively
+            while (!stack.isEmpty()) {
+                Rule rule = stack.pop();
+                cleanGrammar.addRule(rule);
+                seen.add(rule.getTarget());
+                for (Symbol symbol : rule.getClause()) {
+                    if (!symbol.isTerminal() && !seen.contains(symbol)) {
+                        rules.stream().filter(r -> r.getTarget().equals(symbol)).forEach(r -> stack.push(r));
+                    }
+                }
+            }
+
+            Rule startRule = cleanGrammar.addRule(start, targetSymbol).get();
+            cleanGrammar.setTargetRule(startRule);
+
+            return new LRParser(this, ActionTable.lalr1(cleanGrammar, startRule));
+        }
+
+
+    }
+
+    public Symbol or(Symbol... syms) {
+        assert syms.length > 1;
+        Symbol tmp = new Forward();
+        for (Symbol s : syms) {
+            addRule(tmp, s);
+        }
+        return tmp;
+    }
+
+    public Forward optional(Symbol... symbols) {
+        Forward opt = new Forward("optional(" + String.join(", ", Arrays.asList(symbols).stream().map(Symbol::toString).collect(Collectors.toList())) + ")");
         addRule(opt, symbols);
         addEmptyRule(opt);
         return opt;
+    }
+
+    public Forward oneOrMore(Symbol... symbols) {
+        Forward tmp = new Forward();
+        tmp.setName("oneOrMore" + tmp.hashCode());
+        addRule(tmp, symbols);
+        List<Symbol> list = new ArrayList<>();
+        list.add(tmp);
+        list.addAll(Arrays.asList(symbols));
+        addRule(tmp, list);
+        return tmp;
+    }
+
+    public Forward zeroOrMore(Symbol... symbols) {
+        Forward tmp = new Forward();
+        tmp.setName("zeroOrMore" + tmp.hashCode());
+        addRule(tmp, symbols);
+        List<Symbol> list = new ArrayList<>();
+        list.add(tmp);
+        list.addAll(Arrays.asList(symbols));
+        addRule(tmp, list);
+        addRule(tmp, Empty);
+        return tmp;
+    }
+
+    public Forward list(Symbol separator, Symbol typeOfItems) {
+        Forward tmp = new Forward("listOf(" + typeOfItems + ")");
+        addRule(tmp, typeOfItems);
+        addRule(tmp, tmp, separator, typeOfItems);
+        addEmptyRule(tmp);
+        return tmp;
     }
 }
 

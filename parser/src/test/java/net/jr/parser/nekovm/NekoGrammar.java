@@ -23,7 +23,9 @@ public class NekoGrammar extends Grammar {
 
     public static final Lexeme T_Eq = new SingleChar('=');
 
-    public static final Lexeme T_Ident = new Word("@" + Lexemes.Alpha, "@" + Lexemes.AlphaNum);
+    public static final Lexeme T_Ident = new Word("@" + Lexemes.Alpha, "@" + Lexemes.AlphaNum, "Identifier");
+
+    public static final Lexeme T_Number = new Word(Lexemes.Numbers, Lexemes.Numbers, "Number");
 
     public static final Lexeme T_Comma = new SingleChar(',');
 
@@ -34,8 +36,6 @@ public class NekoGrammar extends Grammar {
     public static final Lexeme T_Default = new Literal("default");
 
     public static final Lexeme T_Arrow = new Literal("=>");
-
-    public static final Forward all = new Forward("all");
 
     public static final Forward program = new Forward("program");
 
@@ -54,8 +54,6 @@ public class NekoGrammar extends Grammar {
     private Lexer lexer;
 
     public NekoGrammar() {
-
-        addRule(all, program);
 
         //program :=
         //	| expr program
@@ -77,7 +75,7 @@ public class NekoGrammar extends Grammar {
         //  | null
         //  | this
         //  | ident
-        addRule(value, new Word(Lexemes.Numbers));
+        addRule(value, T_Number);
         addRule(value, Lexemes.hexNumber());
         addRule(value, Lexemes.simpleFloat());
         addRule(value, Lexemes.cString());
@@ -131,6 +129,6 @@ public class NekoGrammar extends Grammar {
     }
 
     public void parse(String s) {
-        createParser().parse(lexer.iterator(new StringReader(s)));
+        createParser(getTargetSymbol()).parse(lexer.iterator(new StringReader(s)));
     }
 }

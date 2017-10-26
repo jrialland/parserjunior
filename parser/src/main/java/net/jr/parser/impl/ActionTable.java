@@ -35,22 +35,31 @@ public class ActionTable {
 
     private List<Symbol> nonTerminals;
 
-    private ActionTable(Set<Lexeme> terminals, Set<Symbol> nonTerminals) {
-        this.terminals = new ArrayList<>(terminals);
-        if (!terminals.contains(Lexemes.eof())) {
-            this.terminals.add(Lexemes.eof());
-        }
-        Collections.sort(this.terminals, Comparator.comparing(Symbol::toString));
+    private ActionTable() {
+    }
 
-        this.nonTerminals = new ArrayList<>(nonTerminals);
-        Collections.sort(this.nonTerminals, Comparator.comparing(Symbol::toString));
+    private void onInitialized() {
+        Set<Symbol> allSymbols = data.values().stream().map(m->m.keySet()).reduce(new HashSet<>(), (acc, s) -> {acc.addAll(s); return acc;});
+        terminals = allSymbols.stream().filter(s -> s.isTerminal()).collect(Collectors.toList());
+        terminals.sort(Comparator.comparing(Symbol::toString));
+
+        nonTerminals = allSymbols.stream().filter(s -> !s.isTerminal()).collect(Collectors.toList());
+        nonTerminals.sort(Comparator.comparing(Symbol::toString));
     }
 
     private void setAction(int state, Symbol symbol, Action action) {
         Map<Symbol, Action> row = data.computeIfAbsent(state, k -> new HashMap<>());
-        if(row.put(symbol, action) != null && !action.getActionType().equals(ActionType.Accept)) {
-            throw new IllegalStateException();
+        Action oldAction = row.put(symbol, action);
+
+        if (action.getActionType().equals(ActionType.Accept)) {
+            return;
         }
+
+        if (oldAction != null) {
+            throw new IllegalStateException(oldAction.getActionType() + "/" + action.getActionType());
+        }
+
+
     }
 
     Action getAction(int state, Lexeme symbol) {
@@ -73,15 +82,25 @@ public class ActionTable {
 
     Set<Lexeme> getExpectedLexemes(int state) {
         Map<Symbol, Action> row = data.get(state);
-        return row.values().stream().map(s -> (Lexeme) s).collect(Collectors.toSet());
+        return row.keySet().stream()
+                .filter(s -> s.isTerminal())
+                .map(s -> (Lexeme) s).collect(Collectors.toSet());
     }
 
     private int getColumnFor(Symbol symbol) {
         if (symbol.isTerminal()) {
-            return terminals.indexOf(symbol);
+            return getTerminals().indexOf(symbol);
         } else {
-            return terminals.size() + nonTerminals.indexOf(symbol);
+            return getTerminals().size() + getNonTerminals().indexOf(symbol);
         }
+    }
+
+    private List<Symbol> getTerminals() {
+        return terminals;
+    }
+
+    public List<Symbol> getNonTerminals() {
+       return nonTerminals;
     }
 
     private static String actionToString(Action action) {
@@ -143,6 +162,8 @@ public class ActionTable {
 
         public ActionTable build(Grammar grammar, Rule startRule) {
 
+            getLog().debug("Building action Table for : " + grammar.toString());
+
             //Syntax Analysis Goal: Item Sets
             ItemSet i0 = getFirstItemSet(grammar, startRule);
             Set<ItemSet> allItemSets = getAllItemSets(grammar, i0);
@@ -151,20 +172,20 @@ public class ActionTable {
             Map<Integer, Map<Symbol, Integer>> translationTable = getTranslationTable(grammar, allItemSets);
 
             //Syntax Analysis Goal: Action and Goto Table
-            Set<Symbol> nonTerms = new HashSet<>(grammar.getNonTerminals());
-            nonTerms.remove(grammar.getTargetSymbol());
-            ActionTable actionTable = new ActionTable(grammar.getTerminals(), nonTerms);
+            ActionTable actionTable = new ActionTable();
 
             initializeShiftsAndGotos(actionTable, translationTable);
-            initializeReductions(actionTable, grammar, allItemSets);
+            initializeReductions(actionTable, startRule, allItemSets);
             initializeAccept(actionTable, startRule, allItemSets);
+
+            actionTable.onInitialized();
 
             return actionTable;
         }
 
-        void initializeReductions(ActionTable table, Grammar grammar, Set<ItemSet> itemSets) {
+        void initializeReductions(ActionTable table, Rule startRule, Set<ItemSet> itemSets) {
 
-            Grammar extendedGrammar = makeExtendedGrammar(grammar, itemSets);
+            Grammar extendedGrammar = makeExtendedGrammar(startRule, itemSets);
             // Syntax Analysis Goal: FOLLOW Sets
             Map<Symbol, Set<Symbol>> followSets = getFollowSets(extendedGrammar, extendedGrammar.getTargetSymbol());
             //build a list of rules and and follow sets
@@ -177,6 +198,12 @@ public class ActionTable {
                         .collect(Collectors.toSet());
 
                 step1.add(new PreMergeReduction((ExtendedRule) eRule, followSet));
+            }
+
+            if (getLog().isDebugEnabled()) {
+                for (PreMergeReduction pm : step1) {
+                    getLog().debug(pm.toString());
+                }
             }
 
             //merging some rules
@@ -194,6 +221,10 @@ public class ActionTable {
                     MergedReduction merged = new MergedReduction(pm.getBaseRule(), pm.getFinalState(), newFollowSet);
                     step2.add(merged);
                 }
+            }
+
+            for (MergedReduction m : step2) {
+                getLog().debug(m.toString());
             }
 
             for (MergedReduction merged : step2) {
@@ -251,8 +282,8 @@ public class ActionTable {
 
             //The follow set of a terminal is the empty set
             Map<Symbol, FollowSet> map = grammar.getSymbols().stream()
-                    .filter(s->s.isTerminal())
-                    .collect(Collectors.toMap(s->s, s->FollowSet.emptySet(s)));
+                    .filter(s -> s.isTerminal())
+                    .collect(Collectors.toMap(s -> s, s -> FollowSet.emptySet(s)));
 
             //Initialize an new set for each nonterminal
             for (Symbol s : grammar.getNonTerminals()) {
@@ -264,6 +295,10 @@ public class ActionTable {
 
             for (Symbol s : grammar.getNonTerminals()) {
                 defineFollowSet(map, grammar, s);
+            }
+
+            for (FollowSet f : map.values()) {
+                getLog().debug(f.toString() + " = " + f.compositionToString());
             }
 
             LazySet.resolveAll(map.values());
@@ -312,11 +347,17 @@ public class ActionTable {
         }
 
         Set<Symbol> getFirst(Grammar grammar, Symbol s) {
+
             Set<Symbol> set = new HashSet<>();
 
             if (s.isTerminal()) {
                 // First(terminal) = [terminal]
-                set.add(s);
+                if (s instanceof ExtendedSymbol) {
+                    set.add(((ExtendedSymbol) s).getSymbol());
+                } else {
+                    set.add(s);
+                }
+
             } else {
 
                 for (Rule r : grammar.getRules()) {
@@ -351,16 +392,18 @@ public class ActionTable {
                     }
                 }
             }
+
             return set.stream().map(sym -> {
-                if(sym instanceof ExtendedSymbol) {
+                if (sym instanceof ExtendedSymbol) {
                     return ((ExtendedSymbol) sym).getSymbol();
                 } else {
                     return sym;
                 }
             }).collect(Collectors.toSet());
+
         }
 
-        Grammar makeExtendedGrammar(Grammar baseGrammar, Set<ItemSet> allItemSets) {
+        Grammar makeExtendedGrammar(Rule targetRule, Set<ItemSet> allItemSets) {
 
             Map<List<?>, ExtendedSymbol> extSyms = new HashMap<>();
             Grammar eGrammar = new Grammar();
@@ -394,8 +437,8 @@ public class ActionTable {
                 }
             }
 
-            Symbol target = baseGrammar.getTargetSymbol();
-            ExtendedRule eTargetRule = eGrammar.getRules().stream().map(r->(ExtendedRule)r).filter(r->((ExtendedSymbol)r.getTarget()).getSymbol().equals(target)).findFirst().get();
+
+            ExtendedRule eTargetRule = eGrammar.getRules().stream().map(r -> (ExtendedRule) r).filter(r -> ((ExtendedSymbol) r.getTarget()).getSymbol().equals(targetRule.getTarget())).findFirst().get();
             eGrammar.setTargetRule(eTargetRule);
             return eGrammar;
         }
