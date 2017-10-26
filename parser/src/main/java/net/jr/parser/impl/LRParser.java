@@ -74,7 +74,7 @@ public class LRParser implements Parser {
                     decision = actionTable.getAction(currentState, Grammar.Empty);
                     tokenIterator.pushback(token);
                 } else {
-                    throw new ParseError(actionTable.getExpectedLexemes(currentState));
+                    throw new ParseError(token, actionTable.getExpectedLexemes(currentState));
                 }
             }
 
