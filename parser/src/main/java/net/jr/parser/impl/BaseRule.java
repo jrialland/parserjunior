@@ -3,11 +3,9 @@ package net.jr.parser.impl;
 import net.jr.common.Symbol;
 import net.jr.parser.Derivation;
 import net.jr.parser.Rule;
+import net.jr.parser.ast.AstNode;
 
-import java.io.StringWriter;
-import java.util.Arrays;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * Base implementation of a grammar {@link Rule}.
@@ -16,13 +14,17 @@ public class BaseRule extends Rule {
 
     private Derivation derivation = Derivation.None;
 
-    private Consumer<Rule> action;
+    private Consumer<AstNode> action;
 
     private String name;
 
     private Symbol target;
 
     private Symbol[] clause;
+
+    private ActionType conflictArbitration;
+
+    private int precedenceLevel;
 
     public BaseRule(int id, String name, Symbol target, Symbol... clause) {
         setId(id);
@@ -31,11 +33,11 @@ public class BaseRule extends Rule {
         this.clause = clause;
     }
 
-    public void setAction(Consumer<Rule> action) {
+    public void setAction(Consumer<AstNode> action) {
         this.action = action;
     }
 
-    public Consumer<Rule> getAction() {
+    public Consumer<AstNode> getAction() {
         return action;
     }
 
@@ -59,4 +61,19 @@ public class BaseRule extends Rule {
         return derivation;
     }
 
+    public void setPrecedenceLevel(int precedenceLevel) {
+        this.precedenceLevel = precedenceLevel;
+    }
+
+    public Integer getPrecedenceLevel() {
+        return precedenceLevel;
+    }
+
+    public void setConflictArbitration(ActionType conflictArbitration) {
+        this.conflictArbitration = conflictArbitration;
+    }
+
+    public ActionType getConflictArbitration() {
+        return conflictArbitration;
+    }
 }

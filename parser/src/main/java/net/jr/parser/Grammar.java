@@ -3,9 +3,13 @@ package net.jr.parser;
 
 import net.jr.common.Symbol;
 import net.jr.lexer.Lexeme;
+import net.jr.parser.ast.AstNode;
 import net.jr.parser.impl.ActionTable;
+import net.jr.parser.impl.ActionType;
 import net.jr.parser.impl.BaseRule;
 import net.jr.parser.impl.LRParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.StringWriter;
 import java.util.*;
@@ -19,6 +23,12 @@ import java.util.stream.Collectors;
  */
 public class Grammar {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(Grammar.class);
+
+    private static final Logger getLog() {
+        return LOGGER;
+    }
+
     public static final Lexeme Empty = new Lexeme() {
 
         @Override
@@ -30,6 +40,8 @@ public class Grammar {
     private String name;
 
     private Set<Rule> rules = new HashSet<>();
+
+    private Map<Symbol, Integer> precedenceLevels = new HashMap<>();
 
     private Symbol targetSymbol;
 
@@ -47,15 +59,23 @@ public class Grammar {
 
     public interface RuleSpecifier {
 
-        RuleSpecifier withAction(Consumer<Rule> consumer);
+        RuleSpecifier withAction(Consumer<AstNode> consumer);
+
+        RuleSpecifier withPrecedenceLevel(int level);
 
         RuleSpecifier withName(String name);
+
+        RuleSpecifier preferShiftOverReduce();
+
+        RuleSpecifier preferReduceOverShift();
+
+        RuleSpecifier withAssociativity(Associativity associativity);
 
         Rule get();
     }
 
     public void addRule(Rule rule) {
-        if(rules.isEmpty()) {
+        if (rules.isEmpty()) {
             targetSymbol = rule.getTarget();
         }
         rules.add(rule);
@@ -83,8 +103,9 @@ public class Grammar {
         final BaseRule rule = new BaseRule(rules.size(), null, target, clause);
         addRule(rule);
         return new RuleSpecifier() {
+
             @Override
-            public RuleSpecifier withAction(Consumer<Rule> consumer) {
+            public RuleSpecifier withAction(Consumer<AstNode> consumer) {
                 rule.setAction(consumer);
                 return this;
             }
@@ -96,8 +117,42 @@ public class Grammar {
             }
 
             @Override
+            public RuleSpecifier withPrecedenceLevel(int level) {
+                return this;
+            }
+
+            @Override
             public Rule get() {
                 return rule;
+            }
+
+            @Override
+            public RuleSpecifier preferReduceOverShift() {
+                rule.setConflictArbitration(ActionType.Reduce);
+                return this;
+            }
+
+            @Override
+            public RuleSpecifier preferShiftOverReduce() {
+                rule.setConflictArbitration(ActionType.Shift);
+                return this;
+            }
+
+            @Override
+            public RuleSpecifier withAssociativity(Associativity associativity) {
+                assert associativity != null;
+                switch (associativity) {
+                    case NonAssoc:
+                        rule.setConflictArbitration(ActionType.Fail);
+                        break;
+                    case Right:
+                        rule.setConflictArbitration(ActionType.Shift);
+                        break;
+                    case Left:
+                        rule.setConflictArbitration(ActionType.Reduce);
+                        break;
+                }
+                return this;
             }
         };
     }
@@ -194,27 +249,77 @@ public class Grammar {
         return createParser(getTargetSymbol());
     }
 
-    public Parser createParser(Symbol targetSymbol) {
+    private Set<Rule> getRulesFor(Symbol symbol) {
+        return rules.stream().filter(r -> r.getTarget().equals(symbol)).collect(Collectors.toSet());
+    }
 
-        Set<Rule> targetRules = rules.stream().filter(r -> r.getTarget().equals(targetSymbol)).collect(Collectors.toSet());
+    private int computePrecedenceLevel(Rule rule) {
+        List<Symbol> rClause = new ArrayList<>(Arrays.asList(rule.getClause()));
+        Collections.reverse(rClause);
+
+        //If this is a 'simple' rule that contain terminals,
+        //the precedence of the rule is the one of the last terminal
+        for (Symbol symbol : rClause) {
+            if (symbol.isTerminal()) {
+                return getPrecedenceLevel(symbol);
+            }
+        }
+
+        Stack<Symbol> stack = new Stack<>();
+        Set<Symbol> seen = new HashSet<>();
+        stack.add(rClause.get(0));
+        while (true) {
+            Symbol s = stack.pop();
+            if (s.isTerminal()) {
+                return getPrecedenceLevel(s);
+            } else {
+                if (!seen.contains(s)) {
+                    for (Rule r : getRulesFor(s)) {
+                        if(r != rule) {
+                            Symbol[] c = r.getClause();
+                            for (int i = c.length - 1; i >= 0; i--) {
+                                stack.add(c[i]);
+                            }
+                        }
+                    }
+                }
+            }
+            seen.add(s);
+        }
+
+
+    }
+
+    private void fixPrecedenceLevels() {
+        //ensure that the rules have the right precedence levels
+        for (Rule rule : rules) {
+            ((BaseRule) rule).setPrecedenceLevel(computePrecedenceLevel(rule));
+        }
+    }
+
+    public Parser createParser(Symbol symbol) {
+
+        fixPrecedenceLevels();
+
+        Set<Rule> targetRules = getRulesFor(symbol);
 
         if (targetRules.isEmpty()) {
-            throw new IllegalArgumentException(String.format("Symbol '%s' is not a target for this grammar", targetSymbol));
+            throw new IllegalArgumentException(String.format("Symbol '%s' is not a target for this grammar", symbol));
         }
 
         if (targetRules.size() == 1) {
             Rule targetRule = targetRules.iterator().next();
             setTargetRule(targetRule);
-            return new LRParser(this, ActionTable.lalr1(this, targetRules.iterator().next()));
+            return new LRParser(this, targetRule, ActionTable.lalr1(this, targetRules.iterator().next()));
         } else {
             //ensure that we have a target rule that appear only once
             Symbol start = new Forward("(all)");
             Grammar cleanGrammar = new Grammar();
-
+            cleanGrammar.precedenceLevels = precedenceLevels;
 
             //find all the rules that depend on the target rules
             HashSet<Symbol> seen = new HashSet<>();
-            seen.add(targetSymbol);
+            seen.add(symbol);
 
             Stack<Rule> stack = new Stack<>();
             stack.addAll(targetRules);
@@ -224,26 +329,70 @@ public class Grammar {
                 Rule rule = stack.pop();
                 cleanGrammar.addRule(rule);
                 seen.add(rule.getTarget());
-                for (Symbol symbol : rule.getClause()) {
-                    if (!symbol.isTerminal() && !seen.contains(symbol)) {
-                        rules.stream().filter(r -> r.getTarget().equals(symbol)).forEach(r -> stack.push(r));
+                for (Symbol s : rule.getClause()) {
+                    if (!s.isTerminal() && !seen.contains(s)) {
+                        rules.stream().filter(r -> r.getTarget().equals(s)).forEach(r -> stack.push(r));
                     }
                 }
             }
 
-            Rule startRule = cleanGrammar.addRule(start, targetSymbol).get();
+            Rule startRule = cleanGrammar.addRule(start, symbol).get();
             cleanGrammar.setTargetRule(startRule);
 
-            return new LRParser(this, ActionTable.lalr1(cleanGrammar, startRule));
+            return new LRParser(this, startRule, ActionTable.lalr1(cleanGrammar, startRule));
         }
-
-
     }
 
-    public Symbol or(Symbol... syms) {
-        assert syms.length > 1;
-        Symbol tmp = new Forward();
-        for (Symbol s : syms) {
+    /**
+     * shift/reduce conflict resolution
+     * <p>
+     * <p>
+     * The resolution of conflicts works by comparing the precedence of the rule being considered with that of the look-ahead token.
+     * If the token's precedence is higher, the choice is to shift.
+     * If the rule's precedence is higher, the choice is to reduce.
+     * If they have equal precedence, the choice is made based on the associativity of that precedence level
+     *
+     * @param rule
+     * @param symbol
+     * @return
+     */
+    public ActionType getConflictResolutionHint(Rule rule, Symbol symbol) {
+
+        int rulePrecedence = ((BaseRule) rule).getPrecedenceLevel();
+        int tokenPrecedence = getPrecedenceLevel(symbol);
+
+        if (getLog().isDebugEnabled()) {
+            getLog().debug("Rule : " + rule + " Precedence level = " + rulePrecedence);
+            getLog().debug("Symbol : " + symbol + " Precedence level = " + tokenPrecedence);
+        }
+
+        if (tokenPrecedence > rulePrecedence) {
+            return ActionType.Shift;
+        }
+
+        if (rulePrecedence > tokenPrecedence) {
+            return ActionType.Reduce;
+        }
+
+        return ((BaseRule) rule).getConflictArbitration();
+    }
+
+    private int getPrecedenceLevel(Symbol symbol) {
+        Integer val = precedenceLevels.get(symbol);
+        return val == null ? 0 : val;
+    }
+
+    public void setPrecedenceLevel(int level, Symbol... symbols) {
+        //set precedence for the symbols
+        for (Symbol symbol : symbols) {
+            precedenceLevels.put(symbol, level);
+        }
+    }
+
+    public Forward or(Symbol... symbols) {
+        assert symbols.length > 1;
+        Forward tmp = new Forward("or(" + String.join(", ", Arrays.asList(symbols).stream().map(Symbol::toString).collect(Collectors.toList())) + ")");
+        for (Symbol s : symbols) {
             addRule(tmp, s);
         }
         return tmp;

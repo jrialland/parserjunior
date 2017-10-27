@@ -5,12 +5,14 @@ import net.jr.lexer.Lexemes;
 import net.jr.lexer.Lexer;
 import net.jr.lexer.impl.Literal;
 import net.jr.lexer.impl.SingleChar;
+import net.jr.lexer.impl.Word;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.StringReader;
+import java.util.Stack;
 
 public class GrammarTest {
 
@@ -28,8 +30,11 @@ public class GrammarTest {
 
     SingleChar x = new SingleChar('x');
     SingleChar eq = new SingleChar('=');
-    SingleChar star = new SingleChar('*');
+
     SingleChar plus = new SingleChar('+');
+    SingleChar minus = new SingleChar('-');
+    SingleChar mult = new SingleChar('*');
+    SingleChar div = new SingleChar('/');
 
     SingleChar zero = new SingleChar('0');
     SingleChar one = new SingleChar('1');
@@ -52,7 +57,7 @@ public class GrammarTest {
         //5. V → x
         grammar.addRule(V, x);
         //6. V → * E
-        grammar.addRule(V, star, E);
+        grammar.addRule(V, mult, E);
     }
 
     @Test
@@ -74,7 +79,7 @@ public class GrammarTest {
         g.addRule(S, E);
 
         // (1) E → E * B
-        g.addRule(E, E, star, B);
+        g.addRule(E, E, mult, B);
 
         // (2) E → E + B
         g.addRule(E, E, plus, B);
@@ -173,6 +178,93 @@ public class GrammarTest {
         //list of identifiers
         parser.parse(lexer.iterator(new StringReader(">>oh! eh! yeah!")));
 
+    }
+
+    @Test
+    public void testOneOrMore() {
+        Grammar g = new Grammar();
+        Symbol S = new Forward("S");
+        g.addRule(S, g.oneOrMore(new Word("nahnah")), new Word("batman"));
+
+        Parser parser = g.createParser(S);
+        Lexer lexer = new Lexer(g.getTerminals());
+        lexer.filterOut(Lexemes.whitespace());
+
+        parser.parse(lexer.iterator(new StringReader("nahnah nahnah nahnah nahnah nahnah batman")));
+        parser.parse(lexer.iterator(new StringReader("nahnah batman")));
+
+        try {
+            parser.parse(lexer.iterator(new StringReader("batman")));
+            Assert.fail();
+        } catch(ParseError pe) {
+            //ok!
+        }
+    }
+
+    @Test
+    public void testFourOps() {
+        Assert.assertEquals(8, computeNumber("15-7"));
+        Assert.assertEquals(18, computeNumber("3*6"));
+        Assert.assertEquals(5, computeNumber("50/10"));
+        Assert.assertEquals(32, computeNumber("3 * 6 + 2 * 7"));
+        Assert.assertEquals(3, computeNumber("1-3+4-5+6"));
+
+    }
+
+
+    private int computeNumber(String expression) {
+
+        Stack<Integer> calculator = new Stack<>();
+        Grammar g = new Grammar();
+        Symbol E = new Forward("E");
+
+        g.setPrecedenceLevel(10, mult, div);
+        g.setPrecedenceLevel(20, plus, minus);
+
+        g.addRule(E, Lexemes.number()).withAction(node -> {
+            int value = Integer.parseInt(node.asToken().getMatchedText());
+            calculator.push(value);
+        });
+
+        g.addRule(E, E, g.or(plus, minus), E)
+                .withAssociativity(Associativity.Left)
+                .withAction(ctx -> {
+                    int topOfStack = calculator.pop();
+                    int nextInStack = calculator.pop();
+                    String operation = ctx.getChildren().get(1).asToken().getMatchedText();
+                    switch (operation) {
+                        case "-":
+                            calculator.push(nextInStack - topOfStack);
+                            break;
+                        case "+":
+                            calculator.push(nextInStack + topOfStack);
+                            break;
+                    }
+                });
+
+        g.addRule(E, E, g.or(mult, div), E)
+                .withAssociativity(Associativity.Left)
+                .withAction(ctx -> {
+                    int topOfStack = calculator.pop();
+                    int nextInStack = calculator.pop();
+                    String operation = ctx.getChildren().get(1).asToken().getMatchedText();
+                    switch (operation) {
+                        case "*":
+                            calculator.push(nextInStack * topOfStack);
+                            break;
+                        case "/":
+                            calculator.push(nextInStack / topOfStack);
+                            break;
+                    }
+                });
+
+        Parser parser = g.createParser(E);
+        Lexer lexer = new Lexer(g.getTerminals());
+        lexer.filterOut(Lexemes.whitespace());
+
+        parser.parse(lexer.iterator(new StringReader(expression)));
+
+        return calculator.pop();
     }
 
 }

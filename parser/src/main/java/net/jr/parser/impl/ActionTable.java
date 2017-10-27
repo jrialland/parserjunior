@@ -5,11 +5,13 @@ import net.jr.lexer.Lexeme;
 import net.jr.lexer.Lexemes;
 import net.jr.parser.Grammar;
 import net.jr.parser.Rule;
+import net.jr.parser.errors.ShiftReduceConflictException;
 import net.jr.util.AsciiTableView;
 import net.jr.util.TableModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.StringWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,7 +41,10 @@ public class ActionTable {
     }
 
     private void onInitialized() {
-        Set<Symbol> allSymbols = data.values().stream().map(m->m.keySet()).reduce(new HashSet<>(), (acc, s) -> {acc.addAll(s); return acc;});
+        Set<Symbol> allSymbols = data.values().stream().map(m -> m.keySet()).reduce(new HashSet<>(), (acc, s) -> {
+            acc.addAll(s);
+            return acc;
+        });
         terminals = allSymbols.stream().filter(s -> s.isTerminal()).collect(Collectors.toList());
         terminals.sort(Comparator.comparing(Symbol::toString));
 
@@ -47,22 +52,23 @@ public class ActionTable {
         nonTerminals.sort(Comparator.comparing(Symbol::toString));
     }
 
-    private void setAction(int state, Symbol symbol, Action action) {
+    private void setAction(int state, Symbol symbol, Action action, boolean allowReplace) {
         Map<Symbol, Action> row = data.computeIfAbsent(state, k -> new HashMap<>());
         Action oldAction = row.put(symbol, action);
 
-        if (action.getActionType().equals(ActionType.Accept)) {
-            return;
+        if (!allowReplace && oldAction != null && !oldAction.equals(action)) {
+            StringWriter sw = new StringWriter();
+            sw.append("Unresolved " + oldAction.getActionType() + "/" + action.getActionType() + " conflict");
+            sw.append("    For state : " + state);
+            sw.append("    For symbol : " + symbol);
+            sw.append("    Action 1 : " + oldAction.toString());
+            sw.append("    Action 2 : " + action.toString());
+
+            throw new IllegalStateException(sw.toString());
         }
-
-        if (oldAction != null) {
-            throw new IllegalStateException(oldAction.getActionType() + "/" + action.getActionType());
-        }
-
-
     }
 
-    Action getAction(int state, Lexeme symbol) {
+    Action getAction(int state, Symbol symbol) {
         return _getAction(state, symbol);
     }
 
@@ -79,6 +85,10 @@ public class ActionTable {
         return row.get(symbol);
     }
 
+    private Action getActionNoCheck(int state, Symbol s) {
+        Map<Symbol, Action> row = data.get(state);
+        return row == null ? null : row.get(s);
+    }
 
     Set<Lexeme> getExpectedLexemes(int state) {
         Map<Symbol, Action> row = data.get(state);
@@ -100,7 +110,7 @@ public class ActionTable {
     }
 
     public List<Symbol> getNonTerminals() {
-       return nonTerminals;
+        return nonTerminals;
     }
 
     private static String actionToString(Action action) {
@@ -175,7 +185,7 @@ public class ActionTable {
             ActionTable actionTable = new ActionTable();
 
             initializeShiftsAndGotos(actionTable, translationTable);
-            initializeReductions(actionTable, startRule, allItemSets);
+            initializeReductions(grammar, actionTable, startRule, allItemSets);
             initializeAccept(actionTable, startRule, allItemSets);
 
             actionTable.onInitialized();
@@ -183,7 +193,7 @@ public class ActionTable {
             return actionTable;
         }
 
-        void initializeReductions(ActionTable table, Rule startRule, Set<ItemSet> itemSets) {
+        void initializeReductions(Grammar grammar, ActionTable table, Rule startRule, Set<ItemSet> itemSets) {
 
             Grammar extendedGrammar = makeExtendedGrammar(startRule, itemSets);
             // Syntax Analysis Goal: FOLLOW Sets
@@ -231,10 +241,63 @@ public class ActionTable {
                 int ruleId = merged.getRule().getId();
                 for (Symbol s : merged.getFollowSet()) {
                     int state = merged.getFinalState();
-                    table.setAction(state, s, new Action(ActionType.Reduce, ruleId));
+
+                    //add a reduce action to the table
+                    Action actionToInsert = new Action(ActionType.Reduce, ruleId);
+                    Action existingAction = table.getActionNoCheck(state, s);
+                    if (existingAction != null) {
+                        table.setAction(state, s, resolveConflict(grammar, merged.getRule(), s, existingAction, actionToInsert), true);
+                    } else {
+                        table.setAction(state, s, actionToInsert, false);
+                    }
+
                 }
             }
 
+        }
+
+        /**
+         * When the action table already has an action (accept or shift) for a given state/lexeme,
+         * try to apply precedence rules to arbitrate
+         *
+         * @param grammar      the grammar
+         * @param rule         the rule that is reduced
+         * @param existing     a shift or accept or reduce
+         * @param reduceAction a reduce action
+         * @return
+         */
+        private Action resolveConflict(Grammar grammar, Rule rule, Symbol symbol, Action existing, Action reduceAction) {
+            switch (existing.getActionType()) {
+
+                case Accept:
+                    //accept always wins
+                    return existing;
+
+                case Shift:
+                    // shift/reduce conflict !
+                    ActionType preference = grammar.getConflictResolutionHint(rule, symbol);
+                    if (preference != null) {
+                        switch (preference) {
+                            case Fail:
+                                return null;
+                            case Shift:
+                                return existing;
+                            case Reduce:
+                                return reduceAction;
+                            default:
+                                throw new IllegalArgumentException(preference.toString());
+                        }
+                    } else {
+                        throw new ShiftReduceConflictException(symbol, rule);
+                    }
+                case Reduce:
+                    throw new UnsupportedOperationException("not implemented");
+                    //reduce / reduce conflict !
+                    //return existing;
+
+                default:
+                    throw new IllegalStateException();
+            }
         }
 
         /**
@@ -251,7 +314,7 @@ public class ActionTable {
             Item allParsed = new Item(startingRule, startingRule.getClause().length);
             itemSets.stream()
                     .filter(itemSet -> itemSet.allItems().filter(item -> item.equals(allParsed)).findAny().isPresent())
-                    .forEach(itemSet -> table.setAction(itemSet.getId(), eof, accept));
+                    .forEach(itemSet -> table.setAction(itemSet.getId(), eof, accept, true));
         }
 
         /**
@@ -269,9 +332,9 @@ public class ActionTable {
                 for (Map.Entry<Symbol, Integer> entry : tEntry.getValue().entrySet()) {
                     Symbol s = entry.getKey();
                     if (s.isTerminal()) {
-                        table.setAction(state, s, new Action(ActionType.Shift, entry.getValue()));
+                        table.setAction(state, s, new Action(ActionType.Shift, entry.getValue()), false);
                     } else {
-                        table.setAction(state, s, new Action(ActionType.Goto, entry.getValue()));
+                        table.setAction(state, s, new Action(ActionType.Goto, entry.getValue()), false);
                     }
                 }
             }
@@ -373,15 +436,15 @@ public class ActionTable {
                         //if not, we scan the symbol,
                         boolean brk = false;
                         for (Symbol s2 : r.getClause()) {
-
-                            Set<Symbol> a = getFirst(grammar, s2);
-                            boolean containedEmpty = a.remove(Grammar.Empty);
-                            set.addAll(a);
-
-                            //if First(x) did not contain ε, we do not need to contine scanning
-                            if (!containedEmpty) {
-                                brk = true;
-                                break;
+                            if (s != s2) {
+                                Set<Symbol> a = getFirst(grammar, s2);
+                                boolean containedEmpty = a.remove(Grammar.Empty);
+                                set.addAll(a);
+                                //if First(x) did not contain ε, we do not need to contine scanning
+                                if (!containedEmpty) {
+                                    brk = true;
+                                    break;
+                                }
                             }
                         }
 
