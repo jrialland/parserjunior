@@ -1,9 +1,9 @@
 package net.jr.lexer;
 
-import net.jr.lexer.impl.DefaultAutomaton;
-import net.jr.lexer.impl.LexemeImpl;
-import net.jr.lexer.impl.QuotedString;
-import net.jr.lexer.impl.Word;
+import net.jr.lexer.impl.*;
+
+import java.util.Map;
+import java.util.TreeMap;
 
 public class Lexemes {
 
@@ -221,5 +221,17 @@ public class Lexemes {
             NewLine.setAutomaton(builder.build());
         }
         return NewLine;
+    }
+
+    private static Map<Character, SingleChar> SingleChars = new TreeMap<>();
+
+    public static Lexeme singleChar(char c) {
+        return SingleChars.computeIfAbsent(c, SingleChar::new);
+    }
+
+    private static Map<String, Literal> Literals = new TreeMap<>();
+
+    public static Lexeme literal(String s) {
+        return Literals.computeIfAbsent(s, c->new Literal(s));
     }
 }

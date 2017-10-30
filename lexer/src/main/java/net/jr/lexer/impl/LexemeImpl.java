@@ -12,10 +12,6 @@ public class LexemeImpl implements Lexeme {
         this.priority = 1;
     }
 
-    public void setPriority(int priority) {
-        this.priority = priority;
-    }
-
     @Override
     public int getPriority() {
         return priority;

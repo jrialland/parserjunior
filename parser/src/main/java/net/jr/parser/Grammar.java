@@ -57,6 +57,20 @@ public class Grammar {
         return rules;
     }
 
+    public interface ComponentsSpecifier {
+        ComponentsSpecifier def(Symbol...symbols);
+    }
+
+    public ComponentsSpecifier target(Symbol symbol) {
+        return new ComponentsSpecifier() {
+            @Override
+            public ComponentsSpecifier def(Symbol... symbols) {
+                addRule(symbol, symbols);
+                return this;
+            }
+        };
+    }
+
     public interface RuleSpecifier {
 
         RuleSpecifier withAction(Consumer<AstNode> consumer);
