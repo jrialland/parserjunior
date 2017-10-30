@@ -196,7 +196,7 @@ public class GrammarTest {
         try {
             parser.parse(lexer.iterator(new StringReader("batman")));
             Assert.fail();
-        } catch(ParseError pe) {
+        } catch (ParseError pe) {
             //ok!
         }
     }
@@ -207,37 +207,36 @@ public class GrammarTest {
         Assert.assertEquals(18, computeNumber("3*6"));
         Assert.assertEquals(5, computeNumber("50/10"));
         Assert.assertEquals(32, computeNumber("3 * 6 + 2 * 7"));
-        Assert.assertEquals(3, computeNumber("1-3+4-5+6"));
-
+        Assert.assertEquals(4, computeNumber("1-2+3-4+5-6+7"));
     }
 
 
     private int computeNumber(String expression) {
 
-        Stack<Integer> calculator = new Stack<>();
+        Stack<Integer> calculatorStack = new Stack<>();
         Grammar g = new Grammar();
         Symbol E = new Forward("E");
 
-        g.setPrecedenceLevel(10, mult, div);
-        g.setPrecedenceLevel(20, plus, minus);
+        g.setPrecedenceLevel(20, mult, div);
+        g.setPrecedenceLevel(10, plus, minus);
 
         g.addRule(E, Lexemes.number()).withAction(node -> {
             int value = Integer.parseInt(node.asToken().getMatchedText());
-            calculator.push(value);
+            calculatorStack.push(value);
         });
 
         g.addRule(E, E, g.or(plus, minus), E)
                 .withAssociativity(Associativity.Left)
                 .withAction(ctx -> {
-                    int topOfStack = calculator.pop();
-                    int nextInStack = calculator.pop();
+                    int topOfStack = calculatorStack.pop();
+                    int nextInStack = calculatorStack.pop();
                     String operation = ctx.getChildren().get(1).asToken().getMatchedText();
                     switch (operation) {
                         case "-":
-                            calculator.push(nextInStack - topOfStack);
+                            calculatorStack.push(nextInStack - topOfStack);
                             break;
                         case "+":
-                            calculator.push(nextInStack + topOfStack);
+                            calculatorStack.push(nextInStack + topOfStack);
                             break;
                     }
                 });
@@ -245,15 +244,15 @@ public class GrammarTest {
         g.addRule(E, E, g.or(mult, div), E)
                 .withAssociativity(Associativity.Left)
                 .withAction(ctx -> {
-                    int topOfStack = calculator.pop();
-                    int nextInStack = calculator.pop();
+                    int topOfStack = calculatorStack.pop();
+                    int nextInStack = calculatorStack.pop();
                     String operation = ctx.getChildren().get(1).asToken().getMatchedText();
                     switch (operation) {
                         case "*":
-                            calculator.push(nextInStack * topOfStack);
+                            calculatorStack.push(nextInStack * topOfStack);
                             break;
                         case "/":
-                            calculator.push(nextInStack / topOfStack);
+                            calculatorStack.push(nextInStack / topOfStack);
                             break;
                     }
                 });
@@ -264,7 +263,7 @@ public class GrammarTest {
 
         parser.parse(lexer.iterator(new StringReader(expression)));
 
-        return calculator.pop();
+        return calculatorStack.pop();
     }
 
 }

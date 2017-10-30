@@ -253,49 +253,28 @@ public class Grammar {
         return rules.stream().filter(r -> r.getTarget().equals(symbol)).collect(Collectors.toSet());
     }
 
-    private int computePrecedenceLevel(Rule rule) {
-        List<Symbol> rClause = new ArrayList<>(Arrays.asList(rule.getClause()));
-        Collections.reverse(rClause);
-
-        //If this is a 'simple' rule that contain terminals,
-        //the precedence of the rule is the one of the last terminal
-        for (Symbol symbol : rClause) {
-            if (symbol.isTerminal()) {
-                return getPrecedenceLevel(symbol);
-            }
-        }
-
-        Stack<Symbol> stack = new Stack<>();
-        Set<Symbol> seen = new HashSet<>();
-        stack.add(rClause.get(0));
-        while (true) {
-            Symbol s = stack.pop();
-            if (s.isTerminal()) {
-                return getPrecedenceLevel(s);
-            } else {
-                if (!seen.contains(s)) {
-                    for (Rule r : getRulesFor(s)) {
-                        if(r != rule) {
-                            Symbol[] c = r.getClause();
-                            for (int i = c.length - 1; i >= 0; i--) {
-                                stack.add(c[i]);
-                            }
-                        }
-                    }
+    private void fixPrecedenceLevels() {
+        Map<Rule, Integer> mRules = new HashMap<>();
+        for(Rule rule : rules) {
+            List<Symbol> clause = new ArrayList<>(Arrays.asList(rule.getClause()));
+            Collections.reverse(clause);
+            for (Symbol s : clause) {
+                if (s.isTerminal() && precedenceLevels.containsKey(s)) {
+                    int level = precedenceLevels.get(s);
+                    mRules.put(rule, level);
+                    rules.stream().filter(r -> Arrays.asList(r.getClause()).contains(rule.getTarget())).forEach(r -> {
+                            mRules.put(r, level);
+                    });
+                    break;
                 }
             }
-            seen.add(s);
         }
-
-
-    }
-
-    private void fixPrecedenceLevels() {
-        //ensure that the rules have the right precedence levels
-        for (Rule rule : rules) {
-            ((BaseRule) rule).setPrecedenceLevel(computePrecedenceLevel(rule));
+        for(Map.Entry<Rule, Integer> entry: mRules.entrySet()) {
+            getLog().debug(String.format("Precedence Level %d : %s", entry.getValue(), entry.getKey()));
+            ((BaseRule) entry.getKey()).setPrecedenceLevel(entry.getValue());
         }
     }
+
 
     public Parser createParser(Symbol symbol) {
 
@@ -357,24 +336,22 @@ public class Grammar {
      * @return
      */
     public ActionType getConflictResolutionHint(Rule rule, Symbol symbol) {
+        ActionType decision = null;
 
         int rulePrecedence = ((BaseRule) rule).getPrecedenceLevel();
         int tokenPrecedence = getPrecedenceLevel(symbol);
 
-        if (getLog().isDebugEnabled()) {
-            getLog().debug("Rule : " + rule + " Precedence level = " + rulePrecedence);
-            getLog().debug("Symbol : " + symbol + " Precedence level = " + tokenPrecedence);
-        }
-
         if (tokenPrecedence > rulePrecedence) {
-            return ActionType.Shift;
+            getLog().debug(String.format("{rule=%s, symbol=%s} : Shift ((tokenPrecedence=%d) > (rulePrecedence=%d))", rule, symbol, tokenPrecedence, rulePrecedence));
+            decision = ActionType.Shift;
+        } else if (rulePrecedence > tokenPrecedence) {
+            getLog().debug(String.format("{rule=%s, symbol=%s} : Reduce ((tokenPrecedence=%d) < (rulePrecedence=%d))", rule, symbol, tokenPrecedence, rulePrecedence));
+            decision = ActionType.Reduce;
+        } else {
+            decision = ((BaseRule) rule).getConflictArbitration();
+            getLog().debug(String.format("{rule=%s, symbol=%s} : %s", rule, symbol, decision));
         }
-
-        if (rulePrecedence > tokenPrecedence) {
-            return ActionType.Reduce;
-        }
-
-        return ((BaseRule) rule).getConflictArbitration();
+        return decision;
     }
 
     private int getPrecedenceLevel(Symbol symbol) {

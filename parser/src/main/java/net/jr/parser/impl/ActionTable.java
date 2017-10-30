@@ -210,11 +210,11 @@ public class ActionTable {
                 step1.add(new PreMergeReduction((ExtendedRule) eRule, followSet));
             }
 
-            if (getLog().isDebugEnabled()) {
-                for (PreMergeReduction pm : step1) {
-                    getLog().debug(pm.toString());
-                }
-            }
+            //if (getLog().isDebugEnabled()) {
+            //    for (PreMergeReduction pm : step1) {
+            //        getLog().debug(pm.toString());
+            //    }
+            //}
 
             //merging some rules
             Set<MergedReduction> step2 = new HashSet<>();
@@ -233,9 +233,9 @@ public class ActionTable {
                 }
             }
 
-            for (MergedReduction m : step2) {
-                getLog().debug(m.toString());
-            }
+            //for (MergedReduction m : step2) {
+            //    getLog().debug(m.toString());
+            //}
 
             for (MergedReduction merged : step2) {
                 int ruleId = merged.getRule().getId();
@@ -360,9 +360,9 @@ public class ActionTable {
                 defineFollowSet(map, grammar, s);
             }
 
-            for (FollowSet f : map.values()) {
-                getLog().debug(f.toString() + " = " + f.compositionToString());
-            }
+            //for (FollowSet f : map.values()) {
+            //    getLog().debug(f.toString() + " = " + f.compositionToString());
+            //}
 
             LazySet.resolveAll(map.values());
 
