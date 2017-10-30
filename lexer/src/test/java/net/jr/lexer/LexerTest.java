@@ -268,13 +268,34 @@ public class LexerTest {
 
     @Test
     public void testPreferLiteralOverWord() {
-
         Lexer lexer = new Lexer(new Word(Lexemes.Alpha), new Literal("test"));
         List<Token> tokens = lexer.tokenize("test");
         Assert.assertEquals(2, tokens.size());
         Assert.assertEquals(Lexemes.eof(), tokens.get(1).getTokenType());
         Assert.assertEquals(Literal.class, tokens.get(0).getTokenType().getClass());
+    }
 
+    @Test
+    public void testPosition() {
+        Lexer lexer = new Lexer(Lexemes.hexNumber());
+        lexer.filterOut(Lexemes.newLine());
+        lexer.filterOut(Lexemes.whitespace());
+        List<Token> tokens = lexer.tokenize("0xdead\n0xbeef\n\n    0xcafe 0xbabe");
 
+        Assert.assertEquals("0xdead", tokens.get(0).getMatchedText());
+        Assert.assertEquals(1, tokens.get(0).getPosition().getLine());
+        Assert.assertEquals(1, tokens.get(0).getPosition().getColumn());
+
+        Assert.assertEquals("0xbeef", tokens.get(1).getMatchedText());
+        Assert.assertEquals(2, tokens.get(1).getPosition().getLine());
+        Assert.assertEquals(1, tokens.get(1).getPosition().getColumn());
+
+        Assert.assertEquals("0xcafe", tokens.get(2).getMatchedText());
+        Assert.assertEquals(4, tokens.get(2).getPosition().getLine());
+        Assert.assertEquals(5, tokens.get(2).getPosition().getColumn());
+
+        Assert.assertEquals("0xbabe", tokens.get(3).getMatchedText());
+        Assert.assertEquals(4, tokens.get(3).getPosition().getLine());
+        Assert.assertEquals(12, tokens.get(3).getPosition().getColumn());
     }
 }

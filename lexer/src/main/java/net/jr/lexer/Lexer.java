@@ -1,6 +1,7 @@
 package net.jr.lexer;
 
 import net.jr.collection.iterators.PushbackIterator;
+import net.jr.common.Position;
 import net.jr.lexer.impl.Automaton;
 import net.jr.lexer.impl.LexemeImpl;
 
@@ -77,7 +78,8 @@ public class Lexer {
     }
 
     public List<Token> tokenize(Reader reader) throws IOException {
-        reset();
+        resetPosition();
+        resetAutomatons();
         final List<Token> tokens = new ArrayList<>();
         PushbackReader pReader = reader instanceof PushbackReader ? (PushbackReader) reader : new PushbackReader(reader);
         while (step(pReader, t -> tokens.add(t))) ;
@@ -89,7 +91,8 @@ public class Lexer {
     }
 
     public Iterator<Token> iterator(final Reader reader) {
-        reset();
+        resetPosition();
+        resetAutomatons();
         PushbackReader pReader = reader instanceof PushbackReader ? (PushbackReader) reader : new PushbackReader(reader);
         return new PushbackIterator<Token>() {
 
@@ -134,7 +137,7 @@ public class Lexer {
 
     }
 
-    private void reset() {
+    private void resetAutomatons() {
         automatons.forEach(Automaton::reset);
         atStart = true;
     }
@@ -159,7 +162,7 @@ public class Lexer {
 
             Lexeme eof = Lexemes.eof();
             if (!filteredOut.contains(eof)) {
-                Token eofToken = new Token(Lexemes.eof(), lastMatchBegin + lastMatchSize, null);
+                Token eofToken = new Token(Lexemes.eof(), position.nextColumn(), null);
                 if (tokenListener != null) {
                     tokenListener.onToken(eofToken);
                 }
@@ -189,7 +192,7 @@ public class Lexer {
                 if (bestMatch != null) {
                     emitForAutomaton(bestMatch, callback);
                     reader.unread(r);
-                    reset();
+                    resetAutomatons();
                 } else {
                     throw new LexicalError(r, lastMatchBegin + lastMatchSize);
                 }
@@ -228,14 +231,34 @@ public class Lexer {
         String matchedText = currentSequence.substring(0, a.getMatchedLength());
         currentSequence = "";
         lastMatchBegin += lastMatchSize;
-        lastMatchSize = matchedText.length();
-
+        Position p = updatePosition(matchedText);
         if (!filteredOut.contains(a.getTokenType())) {
-            Token token = new Token(a.getTokenType(), lastMatchBegin, matchedText);
+            Token token = new Token(a.getTokenType(), p, matchedText);
             if (tokenListener != null) {
                 tokenListener.onToken(token);
             }
             emitCallback.emit(token);
         }
+        lastMatchSize = matchedText.length();
+    }
+
+    private Position position;
+
+    private void resetPosition() {
+        position = new Position(1, 1);
+    }
+
+    private Position updatePosition(String matchedText) {
+        Position oldPos = position;
+        if(matchedText != null) {
+            for (char c : matchedText.toCharArray()) {
+                if (c == '\n') {
+                    position = position.nextLine();
+                } else {
+                    position = position.nextColumn();
+                }
+            }
+        }
+        return oldPos;
     }
 }

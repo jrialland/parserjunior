@@ -25,7 +25,6 @@ public class Lexemes {
 
     public static final String HexDigit = Numbers + "abcdef" + "ABCDEF";
 
-
     private static final Lexeme cIdentifier = new Word("_" + Alpha, "_" + AlphaNum, "CIdentifier");
 
     private static final Lexeme whitespaces = new Word(WhitespacesNonNewLine);
@@ -200,5 +199,27 @@ public class Lexemes {
 
         }
         return SimpleFloat;
+    }
+
+    private static LexemeImpl NewLine;
+
+    public static Lexeme newLine() {
+        if(NewLine == null) {
+            NewLine = new LexemeImpl() {
+                @Override
+                public String toString() {
+                    return "NewLine";
+                }
+            };
+            DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(NewLine);
+            DefaultAutomaton.Builder.BuilderState init = builder.initialState();
+            DefaultAutomaton.Builder.BuilderState gotCR = builder.newNonFinalState();
+            DefaultAutomaton.Builder.BuilderState finalState = builder.newFinalState();
+            init.when(c -> c=='\r').goTo(gotCR);
+            gotCR.when(c-> c=='\n').goTo(finalState);
+            init.when(c -> c=='\n').goTo(finalState);
+            NewLine.setAutomaton(builder.build());
+        }
+        return NewLine;
     }
 }

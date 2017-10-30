@@ -1,16 +1,18 @@
 package net.jr.lexer;
 
+import net.jr.common.Position;
+
 public class Token {
 
     private Lexeme tokenType;
 
-    private int offset;
+    private Position position;
 
     private String matchedText;
 
-    public Token(Lexeme tokenType, int offset, String matchedText) {
+    public Token(Lexeme tokenType, Position position, String matchedText) {
         this.tokenType = tokenType;
-        this.offset = offset;
+        this.position = position;
         this.matchedText = matchedText;
     }
 
@@ -22,12 +24,12 @@ public class Token {
         return tokenType;
     }
 
-    public int getOffset() {
-        return offset;
+    public Position getPosition() {
+        return position;
     }
 
     @Override
     public String toString() {
-        return tokenType.toString()+"@"+offset;
+        return tokenType.toString() + "@" + position.toString();
     }
 }
