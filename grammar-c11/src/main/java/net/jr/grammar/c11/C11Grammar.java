@@ -28,7 +28,6 @@ public class C11Grammar extends Grammar {
         Lexeme Tilde = Lexemes.singleChar('~');
         Lexeme Exclamation = Lexemes.singleChar('!');
         Lexeme Question = Lexemes.singleChar('?');
-        Lexeme __extension__ = Lexemes.literal("__extension__");
         Lexeme ShiftRight = Lexemes.literal(">>");
         Lexeme ShiftLeft = Lexemes.literal("<<");
         Lexeme Gt = Lexemes.literal(">");
@@ -47,13 +46,36 @@ public class C11Grammar extends Grammar {
         Lexeme DivEq = Lexemes.literal("/=");
         Lexeme ModEq = Lexemes.literal("%=");
         Lexeme PlusEq = Lexemes.literal("+=");
-        Lexeme MinusEq= Lexemes.literal("-=");
+        Lexeme MinusEq = Lexemes.literal("-=");
         Lexeme ShiftLeftEq = Lexemes.literal("<<=");
         Lexeme ShiftRightEq = Lexemes.literal(">>=");
         Lexeme AndEq = Lexemes.literal("&=");
         Lexeme PowEq = Lexemes.literal("^=");
         Lexeme PipeEq = Lexemes.literal("|=");
         Lexeme DotComma = Lexemes.singleChar(';');
+        Lexeme Typedef = Lexemes.literal("typedef");
+        Lexeme Extern = Lexemes.literal("extern");
+        Lexeme Static = Lexemes.literal("static");
+        Lexeme _Thread_local = Lexemes.literal("_Thread_local");
+        Lexeme Auto = Lexemes.literal("auto");
+        Lexeme Register = Lexemes.literal("register");
+        Lexeme __extension__ = Lexemes.literal("__extension__");
+        Lexeme Void = Lexemes.literal("void");
+        Lexeme Char = Lexemes.literal("char");
+        Lexeme Short = Lexemes.literal("short");
+        Lexeme Int = Lexemes.literal("int");
+        Lexeme Long = Lexemes.literal("long");
+        Lexeme Float = Lexemes.literal("float");
+        Lexeme Double = Lexemes.literal("double");
+        Lexeme Signed = Lexemes.literal("signed");
+        Lexeme Unsigned = Lexemes.literal("unsigned");
+        Lexeme _Bool = Lexemes.literal("_Bool");
+        Lexeme _Complex = Lexemes.literal("_Complex");
+        Lexeme __m128 = Lexemes.literal("__m128");
+        Lexeme __m128d = Lexemes.literal("__m128d");
+        Lexeme __m128i = Lexemes.literal("__m128i");
+        Lexeme __typeof__ = Lexemes.literal("__typeof__");
+
     }
 
     public static Forward PrimaryExpression;
@@ -81,10 +103,25 @@ public class C11Grammar extends Grammar {
     public static Forward ConstantExpression;
 
     public static Forward Declaration;
-    public static Forward DeclarationSpecifier;
     public static Forward InitDeclarator;
     public static Forward StaticAssertDeclaration;
     public static Forward DeclarationSpecifier2;
+
+    public static Forward DeclarationSpecifier;
+    public static Forward TypeSpecifier;
+    public static Forward TypeQualifier;
+    public static Forward FunctionSpecifier;
+    public static Forward AlignmentSpecifier;
+    public static Forward Declarator;
+    public static Forward Initializer;
+    public static Forward StorageClassSpecifier;
+    public static Forward SimpleTypeSpecifier;
+    public static Forward AtomicTypeSpecifier;
+    public static Forward StructOrUnionTypeSpecifier;
+    public static Forward EnumSpecifier;
+    public static Forward TypedefName;
+    public static Forward TypeOf;
+
     C11Grammar() {
 
         addRule(PrimaryExpression, Tokens.Identifier);
@@ -110,7 +147,7 @@ public class C11Grammar extends Grammar {
                 .def(Tokens.AndAnd, Tokens.Identifier);
 
         target(UnaryOperator)
-                .def(or(Tokens.And, Tokens.Mult, Tokens.Plus, Tokens.Minus, Tokens.Tilde, Tokens.Exclamation));
+                .def(oneOf(Tokens.And, Tokens.Mult, Tokens.Plus, Tokens.Minus, Tokens.Tilde, Tokens.Exclamation));
 
         target(CastExpression)
                 .def(UnaryExpression)
@@ -171,21 +208,62 @@ public class C11Grammar extends Grammar {
 
         target(AssignmentExpression)
                 .def(ConditionalExpression)
-                .def(UnaryExpression, or(Tokens.Eq, Tokens.MinusEq, Tokens.PlusEq, Tokens.MulEq, Tokens.DivEq, Tokens.ModEq, Tokens.ShiftLeftEq, Tokens.ShiftRightEq, Tokens.AndEq, Tokens.PowEq, Tokens.PipeEq), AssignmentExpression);
+                .def(UnaryExpression, oneOf(Tokens.Eq, Tokens.MinusEq, Tokens.PlusEq, Tokens.MulEq, Tokens.DivEq, Tokens.ModEq, Tokens.ShiftLeftEq, Tokens.ShiftRightEq, Tokens.AndEq, Tokens.PowEq, Tokens.PipeEq), AssignmentExpression);
         //  .def(digitSequence)
 
         target(Expression)
-           .def(AssignmentExpression)
-           .def(Expression, Tokens.Comma, AssignmentExpression);
+                .def(AssignmentExpression)
+                .def(Expression, Tokens.Comma, AssignmentExpression);
 
         target(ConstantExpression)
-           .def(ConditionalExpression);
+                .def(ConditionalExpression);
 
 
         target(Declaration)
-           .def(oneOrMore(DeclarationSpecifier), optional(InitDeclarator), zeroOrMore(Tokens.Comma, InitDeclarator), Tokens.DotComma)
-           .def(oneOrMore(DeclarationSpecifier))
-           .def(StaticAssertDeclaration);
+                .def(oneOrMore(DeclarationSpecifier), optional(InitDeclarator), zeroOrMore(Tokens.Comma, InitDeclarator), Tokens.DotComma)
+                .def(oneOrMore(DeclarationSpecifier))
+                .def(StaticAssertDeclaration);
+
+
+        target(DeclarationSpecifier2)
+                .def(oneOrMore(DeclarationSpecifier));
+
+        target(DeclarationSpecifier)
+                .def(StorageClassSpecifier)
+                .def(TypeSpecifier)
+                .def(TypeQualifier)
+                .def(FunctionSpecifier)
+                .def(AlignmentSpecifier);
+
+        target(InitDeclarator)
+                .def(Declarator)
+                .def(Declarator, Tokens.Eq, Initializer);
+
+        target(StorageClassSpecifier)
+                .def(Tokens.Typedef)
+                .def(Tokens.Extern)
+                .def(Tokens.Static)
+                .def(Tokens._Thread_local)
+                .def(Tokens.Auto)
+                .def(Tokens.Register);
+
+        target(TypeSpecifier)
+                .def(SimpleTypeSpecifier)
+                .def(AtomicTypeSpecifier)
+                .def(StructOrUnionTypeSpecifier)
+                .def(EnumSpecifier)
+                .def(TypedefName)
+                .def(TypeOf);
+
+        target(SimpleTypeSpecifier)
+                .def(oneOf(Tokens.Void, Tokens.Char, Tokens.Short, Tokens.Int, Tokens.Long, Tokens.Float, Tokens.Double, Tokens.Signed, Tokens.Unsigned, Tokens._Bool, Tokens.__m128, Tokens.__m128i, Tokens.__m128d))
+                .def(Tokens.__extension__, Tokens.LeftBrace, oneOf(Tokens.__m128, Tokens.__m128i, Tokens.__m128d), Tokens.RightBrace);
+
+        target(TypeOf)
+                .def(Tokens.__typeof__, Tokens.LeftBrace, ConstantExpression, Tokens.RightBrace);
+
+
+
     }
 
 

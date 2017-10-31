@@ -257,12 +257,12 @@ public class ActionTable {
         }
 
         /**
-         * When the action table already has an action (accept or shift) for a given state/lexeme,
+         * When the action table already has an action (accept oneOf shift) for a given state/lexeme,
          * try to apply precedence rules to arbitrate
          *
          * @param grammar      the grammar
          * @param rule         the rule that is reduced
-         * @param existing     a shift or accept or reduce
+         * @param existing     a shift oneOf accept oneOf reduce
          * @param reduceAction a reduce action
          * @return
          */

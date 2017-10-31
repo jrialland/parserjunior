@@ -4,10 +4,11 @@ import net.jr.collection.iterators.Iterators;
 import net.jr.collection.iterators.PushbackIterator;
 import net.jr.lexer.Lexeme;
 import net.jr.lexer.Token;
-import net.jr.parser.*;
+import net.jr.parser.Grammar;
+import net.jr.parser.ParseError;
+import net.jr.parser.Parser;
+import net.jr.parser.Rule;
 import net.jr.parser.ast.AstNode;
-import net.jr.parser.ast.AstNodeLeaf;
-import net.jr.parser.ast.AstNodeNonLeaf;
 import net.jr.parser.errors.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,11 +94,11 @@ public class LRParser implements Parser {
             int currentState = currentContext.getState();
             Token token = tokenIterator.next();
 
-            if(getLog().isDebugEnabled()) {
+            if (getLog().isDebugEnabled()) {
                 getLog().debug("-> Current state : " + currentState);
                 String msg = "   Input token : " + token.getTokenType();
                 String txt = token.getMatchedText();
-                if(txt != null) {
+                if (txt != null) {
                     msg += " (matched text : '" + token.getMatchedText() + "' )";
                 }
 
@@ -142,8 +143,49 @@ public class LRParser implements Parser {
      * The new state is added to the stack and becomes the current state
      */
     protected void shift(Token token, final Stack<ParserContext> stack, final int nextState) {
-        stack.add(new ParserContext(new AstNodeLeaf(token), nextState));
+        //add a node that represents the terminal
+        stack.add(new ParserContext(new AstNode() {
+
+            @Override
+            public List<AstNode> getChildren() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public Token asToken() {
+                return token;
+            }
+
+            @Override
+            public String toString() {
+                return token.toString();
+            }
+        }, nextState));
     }
+
+    private static class AstNodeNonLeaf implements AstNode {
+
+        private Rule rule;
+
+        private List<AstNode> children = new ArrayList<>();
+
+        public AstNodeNonLeaf(Rule rule) {
+            this.rule = rule;
+        }
+
+        public List<AstNode> getChildren() {
+            return children;
+        }
+
+        @Override
+        public Token asToken() {
+            if (children.size() == 1) {
+                return children.get(0).asToken();
+            }
+            return null;
+        }
+    }
+
 
     protected void reduce(Stack<ParserContext> stack, int ruleIndex) {
 
@@ -160,7 +202,7 @@ public class LRParser implements Parser {
         }
         Collections.reverse(children);
 
-        if(((BaseRule)rule).getAction() != null) {
+        if (((BaseRule) rule).getAction() != null) {
             ((BaseRule) rule).getAction().accept(astNode);
         }
 

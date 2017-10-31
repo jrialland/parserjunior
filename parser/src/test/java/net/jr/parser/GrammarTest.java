@@ -225,7 +225,7 @@ public class GrammarTest {
             calculatorStack.push(value);
         });
 
-        g.addRule(E, E, g.or(plus, minus), E)
+        g.addRule(E, E, g.oneOf(plus, minus), E)
                 .withAssociativity(Associativity.Left)
                 .withAction(ctx -> {
                     int topOfStack = calculatorStack.pop();
@@ -241,7 +241,7 @@ public class GrammarTest {
                     }
                 });
 
-        g.addRule(E, E, g.or(mult, div), E)
+        g.addRule(E, E, g.oneOf(mult, div), E)
                 .withAssociativity(Associativity.Left)
                 .withAction(ctx -> {
                     int topOfStack = calculatorStack.pop();

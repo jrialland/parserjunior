@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 /**
  * Collection of {@link Item}. the 'kernel' and the 'members' form a closure.
  * <p>
- * (Implementation note) : The identity of an ItemSet is based on the kernel, and not the id or members
+ * (Implementation note) : The identity of an ItemSet is based on the kernel, and not the id oneOf members
  */
 public class ItemSet {
 

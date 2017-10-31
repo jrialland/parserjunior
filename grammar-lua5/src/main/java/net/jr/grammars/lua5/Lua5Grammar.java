@@ -65,7 +65,7 @@ public class Lua5Grammar extends Grammar {
 
     private Lua5Grammar() {
 
-        // %left      'or' .
+        // %left      'oneOf' .
         // %left      'and' .
         // %left      '<' '<=' '>' '>=' '==' '~=' .
         // %right     '..' .
@@ -159,7 +159,7 @@ public class Lua5Grammar extends Grammar {
         // exp        ::= prefixexp .
         // exp        ::= tableconstructor .
         // exp        ::= 'not'|'#'|'-' exp .         ['not']
-//        exp        ::= exp 'or' exp .
+//        exp        ::= exp 'oneOf' exp .
         // exp        ::= exp 'and' exp .
         // exp        ::= exp '<'|'<='|'>'|'>='|'=='|'~=' exp .
         // exp        ::= exp '..' exp .
@@ -215,13 +215,13 @@ public class Lua5Grammar extends Grammar {
         addRule(tableConstructor, T_LeftCurlyBrace, fieldList, T_LeftCurlyBrace);
 
         //tableconstructor ::= '{' fieldlist ','|';' '}' .
-        addRule(tableConstructor, T_LeftCurlyBrace, fieldList, or(T_Comma, T_SemiCol), T_RightCurlyBrace);
+        addRule(tableConstructor, T_LeftCurlyBrace, fieldList, oneOf(T_Comma, T_SemiCol), T_RightCurlyBrace);
 
         //fieldlist ::= field .
         addRule(fieldList, field);
 
         //fieldlist ::= fieldlist ','|';' field .
-        addRule(fieldList, fieldList, or(T_Comma, T_SemiCol), field);
+        addRule(fieldList, fieldList, oneOf(T_Comma, T_SemiCol), field);
 
         //field ::= exp .
         addRule(field, exp);

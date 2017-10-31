@@ -380,9 +380,9 @@ public class Grammar {
         }
     }
 
-    public Forward or(Symbol... symbols) {
+    public Forward oneOf(Symbol... symbols) {
         assert symbols.length > 1;
-        Forward tmp = new Forward("or(" + String.join(", ", Arrays.asList(symbols).stream().map(Symbol::toString).collect(Collectors.toList())) + ")");
+        Forward tmp = new Forward("oneOf(" + String.join(", ", Arrays.asList(symbols).stream().map(Symbol::toString).collect(Collectors.toList())) + ")");
         for (Symbol s : symbols) {
             addRule(tmp, s);
         }
