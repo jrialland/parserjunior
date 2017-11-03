@@ -12,7 +12,7 @@ public class ParseError extends RuntimeException {
 
     private Set<Lexeme> expected;
 
-    private static String getDefaultMessage(Set<Lexeme> expected) {
+    private static String getDefaultMessage(Token token, Set<Lexeme> expected) {
         StringWriter sw = new StringWriter();
         sw.append("Parse errror");
         if (!expected.isEmpty()) {
@@ -24,12 +24,15 @@ public class ParseError extends RuntimeException {
                 sw.append("expected one of ");
                 sw.append(expected.toString());
             }
+            sw.append(" ( got ");
+            sw.append(token.getTokenType().toString());
+            sw.append(" instead)");
         }
         return sw.toString();
     }
 
     public ParseError(Token token, Set<Lexeme> expected) {
-        super(getDefaultMessage(expected));
+        super(getDefaultMessage(token, expected));
         this.token = token;
         this.expected = expected;
     }

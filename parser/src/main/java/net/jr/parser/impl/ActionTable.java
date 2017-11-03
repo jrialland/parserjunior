@@ -3,6 +3,7 @@ package net.jr.parser.impl;
 import net.jr.common.Symbol;
 import net.jr.lexer.Lexeme;
 import net.jr.lexer.Lexemes;
+import net.jr.parser.Forward;
 import net.jr.parser.Grammar;
 import net.jr.parser.Rule;
 import net.jr.parser.errors.ShiftReduceConflictException;
@@ -68,7 +69,7 @@ public class ActionTable {
         }
     }
 
-    Action getAction(int state, Symbol symbol) {
+    public Action getAction(int state, Symbol symbol) {
         return _getAction(state, symbol);
     }
 
@@ -105,12 +106,16 @@ public class ActionTable {
         }
     }
 
-    private List<Symbol> getTerminals() {
+    public List<Symbol> getTerminals() {
         return terminals;
     }
 
     public List<Symbol> getNonTerminals() {
         return nonTerminals;
+    }
+
+    public int getStatesCount() {
+        return data.size();
     }
 
     private static String actionToString(Action action) {
@@ -173,6 +178,7 @@ public class ActionTable {
         public ActionTable build(Grammar grammar, Rule startRule) {
 
             getLog().debug("Building action Table for : " + grammar.toString());
+            getLog().debug("Starting Rule is : " + startRule);
 
             //Syntax Analysis Goal: Item Sets
             ItemSet i0 = getFirstItemSet(grammar, startRule);

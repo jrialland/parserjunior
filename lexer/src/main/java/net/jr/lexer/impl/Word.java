@@ -1,5 +1,7 @@
 package net.jr.lexer.impl;
 
+import net.jr.lexer.CharConstraint;
+
 public class Word extends LexemeImpl {
 
     private Automaton automaton;
@@ -22,8 +24,8 @@ public class Word extends LexemeImpl {
     public Word(String possibleFirstChar, String possibleNextChars, String name) {
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
         DefaultAutomaton.Builder.BuilderState ok = builder.newFinalState();
-        builder.initialState().when(c -> possibleFirstChar.indexOf(c) > -1).goTo(ok);
-        ok.when(c -> possibleNextChars.indexOf(c) > -1).goTo(ok);
+        builder.initialState().when(CharConstraint.Builder.inList(possibleFirstChar)).goTo(ok);
+        ok.when(CharConstraint.Builder.inList(possibleNextChars)).goTo(ok);
         this.automaton = builder.build();
         if (name == null) {
             if (possibleFirstChar.equals(possibleNextChars)) {

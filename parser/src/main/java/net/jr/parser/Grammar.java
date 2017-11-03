@@ -58,7 +58,7 @@ public class Grammar {
     }
 
     public interface ComponentsSpecifier {
-        ComponentsSpecifier def(Symbol...symbols);
+        ComponentsSpecifier def(Symbol... symbols);
     }
 
     public ComponentsSpecifier target(Symbol symbol) {
@@ -263,13 +263,9 @@ public class Grammar {
         return createParser(getTargetSymbol());
     }
 
-    private Set<Rule> getRulesFor(Symbol symbol) {
-        return rules.stream().filter(r -> r.getTarget().equals(symbol)).collect(Collectors.toSet());
-    }
-
     private void fixPrecedenceLevels() {
         Map<Rule, Integer> mRules = new HashMap<>();
-        for(Rule rule : rules) {
+        for (Rule rule : rules) {
             List<Symbol> clause = new ArrayList<>(Arrays.asList(rule.getClause()));
             Collections.reverse(clause);
             for (Symbol s : clause) {
@@ -277,39 +273,42 @@ public class Grammar {
                     int level = precedenceLevels.get(s);
                     mRules.put(rule, level);
                     rules.stream().filter(r -> Arrays.asList(r.getClause()).contains(rule.getTarget())).forEach(r -> {
-                            mRules.put(r, level);
+                        mRules.put(r, level);
                     });
                     break;
                 }
             }
         }
-        for(Map.Entry<Rule, Integer> entry: mRules.entrySet()) {
+        for (Map.Entry<Rule, Integer> entry : mRules.entrySet()) {
             getLog().debug(String.format("Precedence Level %d : %s", entry.getValue(), entry.getKey()));
             ((BaseRule) entry.getKey()).setPrecedenceLevel(entry.getValue());
         }
     }
 
-
     public Parser createParser(Symbol symbol) {
+        Grammar grammar = getSubGrammar(symbol);
+        Rule targetRule = grammar.getRulesTargeting(grammar.getTargetSymbol()).iterator().next();
+        ActionTable actionTable = ActionTable.lalr1(grammar, targetRule);
+        return new LRParser(grammar, targetRule, actionTable);
+    }
 
+    protected Grammar getSubGrammar(Symbol symbol) {
         fixPrecedenceLevels();
-
-        Set<Rule> targetRules = getRulesFor(symbol);
-
+        Set<Rule> targetRules = getRulesTargeting(symbol);
         if (targetRules.isEmpty()) {
             throw new IllegalArgumentException(String.format("Symbol '%s' is not a target for this grammar", symbol));
-        }
-
-        if (targetRules.size() == 1) {
+        } else if (targetRules.size() == 1) {
             Rule targetRule = targetRules.iterator().next();
             setTargetRule(targetRule);
-            return new LRParser(this, targetRule, ActionTable.lalr1(this, targetRules.iterator().next()));
+            return this;
         } else {
             //ensure that we have a target rule that appear only once
             Symbol start = new Forward("(all)");
             Grammar cleanGrammar = new Grammar();
             cleanGrammar.precedenceLevels = precedenceLevels;
-
+            if(name != null) {
+                cleanGrammar.name = String.format("Subgrammar of '%s' targeting '%s'", name, symbol.toString());
+            }
             //find all the rules that depend on the target rules
             HashSet<Symbol> seen = new HashSet<>();
             seen.add(symbol);
@@ -331,9 +330,18 @@ public class Grammar {
 
             Rule startRule = cleanGrammar.addRule(start, symbol).get();
             cleanGrammar.setTargetRule(startRule);
-
-            return new LRParser(this, startRule, ActionTable.lalr1(cleanGrammar, startRule));
+            return cleanGrammar;
         }
+    }
+
+    public ActionTable getActionTable(Symbol symbol) {
+        Grammar grammar = getSubGrammar(symbol);
+        Rule targetRule = grammar.getRulesTargeting(grammar.getTargetSymbol()).iterator().next();
+        return ActionTable.lalr1(grammar, targetRule);
+    }
+
+    public Set<Rule> getRulesTargeting(Symbol symbol) {
+        return rules.stream().filter(r -> r.getTarget().equals(symbol)).collect(Collectors.toSet());
     }
 
     /**

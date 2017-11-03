@@ -1,6 +1,7 @@
 package net.jr.lexer.impl;
 
 import java.util.Arrays;
+import static net.jr.lexer.CharConstraint.Builder.*;
 
 public class QuotedString extends LexemeImpl {
 
@@ -10,12 +11,12 @@ public class QuotedString extends LexemeImpl {
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
         DefaultAutomaton.Builder.BuilderState inString = builder.newNonFinalState();
         DefaultAutomaton.Builder.BuilderState escaping = builder.newNonFinalState();
-        builder.initialState().when(c -> c == startChar).goTo(inString);
-        inString.when(c -> c == escapeChar).goTo(escaping);
-        inString.when(c -> Arrays.binarySearch(forbiddenChars, c) > -1).goTo(builder.failedState());
-        inString.when(c -> c != endChar).goTo(inString);
-        escaping.when(c -> true).goTo(inString);
-        inString.when(c -> c == endChar).goTo(builder.newFinalState());
+        builder.initialState().when(eq(startChar)).goTo(inString);
+        inString.when(eq(escapeChar)).goTo(escaping);
+        inString.when(inList(forbiddenChars)).goTo(builder.failedState());
+        inString.when(not(eq(endChar))).goTo(inString);
+        escaping.when(any()).goTo(inString);
+        inString.when(eq(endChar)).goTo(builder.newFinalState());
         this.automaton = builder.build();
     }
 

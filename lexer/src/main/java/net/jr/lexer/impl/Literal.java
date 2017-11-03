@@ -1,5 +1,7 @@
 package net.jr.lexer.impl;
 
+import static net.jr.lexer.CharConstraint.Builder.eq;
+
 /**
  * A literal is a 'keyword' i.e a fixed string.
  */
@@ -24,7 +26,7 @@ public class Literal extends LexemeImpl {
             } else {
                 targetState = builder.newNonFinalState();
             }
-            currentState.when(x -> x == c).goTo(targetState);
+            currentState.when(eq(c)).goTo(targetState);
             currentState = targetState;
         }
         return builder.build();

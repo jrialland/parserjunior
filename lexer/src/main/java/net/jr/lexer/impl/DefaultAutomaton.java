@@ -1,5 +1,6 @@
 package net.jr.lexer.impl;
 
+import net.jr.lexer.CharConstraint;
 import net.jr.lexer.Lexeme;
 
 import java.util.*;
@@ -165,6 +166,10 @@ public class DefaultAutomaton implements Automaton {
         public interface BuilderState {
 
             BuilderTransition when(Function<Character, Boolean> condition);
+
+            default BuilderTransition when(CharConstraint.Builder builder) {
+                return when(builder.build());
+            }
         }
 
         public interface BuilderTransition {

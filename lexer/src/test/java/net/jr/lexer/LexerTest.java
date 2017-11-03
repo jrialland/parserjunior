@@ -231,7 +231,7 @@ public class LexerTest {
     public void testHexNumber() {
 
 
-        Lexer lexer = new Lexer(Lexemes.hexNumber(), Lexemes.whitespace());
+        Lexer lexer = new Lexer(Lexemes.cHexNumber(), Lexemes.whitespace());
         lexer.tokenListener(new TokenListener() {
             @Override
             public void onToken(Token token) {
@@ -277,7 +277,7 @@ public class LexerTest {
 
     @Test
     public void testPosition() {
-        Lexer lexer = new Lexer(Lexemes.hexNumber());
+        Lexer lexer = new Lexer(Lexemes.cHexNumber());
         lexer.filterOut(Lexemes.newLine());
         lexer.filterOut(Lexemes.whitespace());
         List<Token> tokens = lexer.tokenize("0xdead\n0xbeef\n\n    0xcafe 0xbabe");
@@ -298,4 +298,25 @@ public class LexerTest {
         Assert.assertEquals(4, tokens.get(3).getPosition().getLine());
         Assert.assertEquals(12, tokens.get(3).getPosition().getColumn());
     }
+
+    @Test
+    public void testCChar() {
+        Lexer lexer = new Lexer(Lexemes.cCharacter());
+        lexer.filterOut(Lexemes.newLine());
+        lexer.filterOut(Lexemes.whitespace());
+        List<Token> tokens = lexer.tokenize("'a' 'b' '\\t' '\\n' 'C'");
+    }
+
+    @Test
+    public void testCOctal() {
+        Lexer lexer = new Lexer(Lexemes.cOctal());
+        lexer.tokenize("05135745211");
+    }
+
+    @Test
+    public void testCBinary() {
+        Lexer lexer = new Lexer(Lexemes.cOctal(), Lexemes.cBinary());
+        lexer.tokenize("0b1011011");
+    }
+
 }

@@ -1,6 +1,8 @@
 package net.jr.lexer.impl;
 
 
+import net.jr.lexer.CharConstraint;
+
 public class SingleChar extends LexemeImpl {
 
     private char character;
@@ -12,7 +14,7 @@ public class SingleChar extends LexemeImpl {
     @Override
     public Automaton getAutomaton() {
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
-        builder.initialState().when(c -> c == character).goTo(builder.newFinalState());
+        builder.initialState().when(CharConstraint.Builder.eq(character)).goTo(builder.newFinalState());
         return builder.build();
     }
 

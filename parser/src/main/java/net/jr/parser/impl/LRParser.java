@@ -3,6 +3,7 @@ package net.jr.parser.impl;
 import net.jr.collection.iterators.Iterators;
 import net.jr.collection.iterators.PushbackIterator;
 import net.jr.lexer.Lexeme;
+import net.jr.lexer.Lexer;
 import net.jr.lexer.Token;
 import net.jr.parser.Grammar;
 import net.jr.parser.ParseError;
@@ -13,6 +14,7 @@ import net.jr.parser.errors.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Reader;
 import java.util.*;
 
 /**
@@ -27,6 +29,8 @@ public class LRParser implements Parser {
     }
 
     private Grammar grammar;
+
+    private Lexer defaultLexer;
 
     private Rule targetRule;
 
@@ -70,7 +74,15 @@ public class LRParser implements Parser {
         this.actionTable = actionTable;
     }
 
-    public void parse(Iterator<Token> it) {
+    public void parse(String txt) {
+        parse(getDefaultLexer().iterator(txt));
+    }
+
+    public void parse(Reader reader) {
+        parse(getDefaultLexer().iterator(reader));
+    }
+
+    public AstNode parse(Iterator<Token> it) {
 
         getLog().debug("\n" + actionTable.toString());
 
@@ -137,6 +149,7 @@ public class LRParser implements Parser {
                     throw new IllegalStateException(String.format("Illegal action type '%s' !", decision.getActionType().name()));
             }
         }
+        return stack.pop().getAstNode();
     }
 
     /**
@@ -218,5 +231,17 @@ public class LRParser implements Parser {
 
     public Grammar getGrammar() {
         return grammar;
+    }
+
+    @Override
+    public Lexer getDefaultLexer() {
+        if (defaultLexer == null) {
+            defaultLexer = new Lexer(getGrammar().getTerminals());
+        }
+        return defaultLexer;
+    }
+
+    public void setDefaultLexer(Lexer defaultLexer) {
+        this.defaultLexer = defaultLexer;
     }
 }

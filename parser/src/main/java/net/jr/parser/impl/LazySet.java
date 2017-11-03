@@ -6,10 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.StringWriter;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -80,30 +77,32 @@ public abstract class LazySet {
 
         } else {
 
-            if (composition.size() > 1) {
-                Iterator<LazySet> it = composition.iterator();
-                while (it.hasNext()) {
-                    LazySet n = it.next();
-                    if(n.resolution != null && n.resolution.isEmpty()) {
-                        it.remove();
-                        continue;
-                    }
-                    if(n.composition.contains(this)) {
-                        n.composition.remove(this);
-                        continue;
-                    }
+            Iterator<LazySet> it = composition.iterator();
+            while (it.hasNext()) {
+                LazySet n = it.next();
+                if(n.resolution != null && n.resolution.isEmpty()) {
+                   it.remove();
+                   continue;
+                }
+                if(n.composition.contains(this)) {
+                    n.composition.remove(this);
+                    continue;
                 }
             }
 
+            boolean resolved = true;
             Set<Symbol> attempt = new HashSet<>();
             for (LazySet l : composition) {
                 if (l.resolution == null) {
-                    return false;
+                    resolved = false;
+                } else {
+                    attempt.addAll(l.resolution);
                 }
-                attempt.addAll(l.resolution);
             }
-            this.resolution = attempt;
-            return true;
+            if(resolved) {
+                this.resolution = attempt;
+            }
+            return resolved;
         }
     }
 
@@ -122,7 +121,8 @@ public abstract class LazySet {
             for (LazySet l : lazySets) {
                 solvedInThisRound += l.simplify(lazySets) ? 1 : 0;
             }
-            //getLog().debug(String.format("%d/%d", solvedInThisRound, size));
+            getLog().debug(String.format("%d/%d", solvedInThisRound, size));
+
         } while (solvedInThisRound < size && solvedInPrecRound < solvedInThisRound);
 
         if (solvedInThisRound < size) {
@@ -130,8 +130,10 @@ public abstract class LazySet {
             StringWriter sw = new StringWriter();
             sw.append(message + "\n");
             for (LazySet l : lazySets) {
-                sw.append("    " + l.toString() + " = " + l.compositionToString());
-                sw.append("\n");
+                if(l.resolution == null) {
+                    sw.append("    " + l.toString() + " = " + l.compositionToString());
+                    sw.append("\n");
+                }
             }
             getLog().error(sw.toString());
             throw new RuntimeException(message);
