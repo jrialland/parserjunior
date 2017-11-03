@@ -5,12 +5,17 @@ import java.util.List;
 
 public class AstNodeVisitor<T> {
 
-    public T visit(AstNode node) {
-        List<AstNode> childrenCopy = new ArrayList<>(node.getChildren());
-        for (AstNode child : childrenCopy) {
-            visit(child);
+    public List<T> visitChildren(AstNode node) {
+        List<T> list = new ArrayList<>();
+        for (AstNode child : node.getChildren()) {
+            list.add(visit(child));
         }
-        return node.getVisited(this);
+        return list;
+    }
+
+    public T visit(AstNode node) {
+        visitChildren(node);
+        return null;
     }
 
 }

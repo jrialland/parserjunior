@@ -9,6 +9,4 @@ public interface AstNode {
     List<AstNode> getChildren();
 
     Token asToken();
-
-    <T> T getVisited(AstNodeVisitor<T> visitor);
 }
