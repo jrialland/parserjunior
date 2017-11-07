@@ -74,14 +74,6 @@ public class LRParser implements Parser {
         this.actionTable = actionTable;
     }
 
-    public void parse(String txt) {
-        parse(getDefaultLexer().iterator(txt));
-    }
-
-    public void parse(Reader reader) {
-        parse(getDefaultLexer().iterator(reader));
-    }
-
     public AstNode parse(Iterator<Token> it) {
 
         getLog().debug("\n" + actionTable.toString());
@@ -236,7 +228,7 @@ public class LRParser implements Parser {
     @Override
     public Lexer getDefaultLexer() {
         if (defaultLexer == null) {
-            defaultLexer = new Lexer(getGrammar().getTerminals());
+            defaultLexer = Lexer.forLexemes(getGrammar().getTerminals());
         }
         return defaultLexer;
     }

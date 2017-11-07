@@ -1,6 +1,5 @@
 package net.jr.lexer.impl;
 
-import net.jr.lexer.CharConstraint;
 import net.jr.lexer.Lexeme;
 
 import java.util.*;
@@ -100,10 +99,6 @@ public class DefaultAutomaton implements Automaton {
             this.finalState = finalState;
         }
 
-        public boolean isFinalState() {
-            return finalState;
-        }
-
         public List<Transition> getOutgoingTransitions() {
             return outgoingTransitions;
         }
@@ -165,11 +160,7 @@ public class DefaultAutomaton implements Automaton {
 
         public interface BuilderState {
 
-            BuilderTransition when(Function<Character, Boolean> condition);
-
-            default BuilderTransition when(CharConstraint.Builder builder) {
-                return when(builder.build());
-            }
+            BuilderTransition when(CharConstraint.Builder builder);
         }
 
         public interface BuilderTransition {
@@ -184,8 +175,8 @@ public class DefaultAutomaton implements Automaton {
                 this.state = state;
             }
 
-            public BuilderTransition when(Function<Character, Boolean> condition) {
-                return new BuilderTransitionImpl(state, condition);
+            public BuilderTransition when(CharConstraint.Builder conditionBuilder) {
+                return new BuilderTransitionImpl(state, conditionBuilder.build());
             }
         }
 
@@ -193,9 +184,9 @@ public class DefaultAutomaton implements Automaton {
 
             private State state;
 
-            private Function<Character, Boolean> condition;
+            private CharConstraint condition;
 
-            BuilderTransitionImpl(State state, Function<Character, Boolean> condition) {
+            BuilderTransitionImpl(State state, CharConstraint condition) {
                 this.state = state;
                 this.condition = condition;
             }

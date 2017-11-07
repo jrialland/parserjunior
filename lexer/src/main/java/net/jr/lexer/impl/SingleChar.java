@@ -1,8 +1,6 @@
 package net.jr.lexer.impl;
 
 
-import net.jr.lexer.CharConstraint;
-
 public class SingleChar extends LexemeImpl {
 
     private char character;

@@ -3,10 +3,8 @@ package net.jr.parser.impl;
 import net.jr.common.Symbol;
 import net.jr.lexer.Lexeme;
 import net.jr.lexer.Lexemes;
-import net.jr.parser.Forward;
 import net.jr.parser.Grammar;
 import net.jr.parser.Rule;
-import net.jr.parser.errors.ShiftReduceConflictException;
 import net.jr.util.AsciiTableView;
 import net.jr.util.TableModel;
 import org.slf4j.Logger;
@@ -202,8 +200,10 @@ public class ActionTable {
         void initializeReductions(Grammar grammar, ActionTable table, Rule startRule, Set<ItemSet> itemSets) {
 
             Grammar extendedGrammar = makeExtendedGrammar(startRule, itemSets);
+
             // Syntax Analysis Goal: FOLLOW Sets
-            Map<Symbol, Set<Symbol>> followSets = getFollowSets(extendedGrammar, extendedGrammar.getTargetSymbol());
+            Map<Symbol, Set<? extends Symbol>> followSets = getFollowSets(extendedGrammar);
+
             //build a list of rules and and follow sets
 
             List<PreMergeReduction> step1 = new ArrayList<>();
@@ -294,12 +294,14 @@ public class ActionTable {
                                 throw new IllegalArgumentException(preference.toString());
                         }
                     } else {
-                        throw new ShiftReduceConflictException(symbol, rule);
+
+                        //choose the shift by default
+                        return existing;
+
                     }
                 case Reduce:
-                    throw new UnsupportedOperationException("not implemented");
-                    //reduce / reduce conflict !
-                    //return existing;
+                    return existing;
+                    // return new Action(ActionType.Fail, rule.getId());
 
                 default:
                     throw new IllegalStateException();
@@ -346,10 +348,10 @@ public class ActionTable {
             }
         }
 
-        Map<Symbol, Set<Symbol>> getFollowSets(Grammar grammar, Symbol target) {
+        Map<Symbol, Set<? extends Symbol>> getFollowSets(Grammar grammar) {
 
 
-            //The follow set of a terminal is the empty set
+            //The follow set of a terminal is always empty
             Map<Symbol, FollowSet> map = grammar.getSymbols().stream()
                     .filter(s -> s.isTerminal())
                     .collect(Collectors.toMap(s -> s, s -> FollowSet.emptySet(s)));
@@ -360,17 +362,13 @@ public class ActionTable {
             }
 
             //Place an End of Input token ($) into the starting rule's follow set.
-            map.get(target).setResolution(new HashSet<>(Arrays.asList(Lexemes.eof())));
+            map.get(grammar.getTargetSymbol()).setResolution(new HashSet<>(Arrays.asList(Lexemes.eof())));
 
             for (Symbol s : grammar.getNonTerminals()) {
                 defineFollowSet(map, grammar, s);
             }
 
-            //for (FollowSet f : map.values()) {
-            //    getLog().debug(f.toString() + " = " + f.compositionToString());
-            //}
-
-            LazySet.resolveAll(map.values());
+            LazySet.resolveAll(map);
 
             return map.values()
                     .stream()

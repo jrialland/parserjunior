@@ -5,8 +5,8 @@ import net.jr.parser.Grammar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.StringWriter;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -15,10 +15,10 @@ import java.util.stream.Collectors;
  * <p>
  * Some set are also given a 'real' value by calling the {@link LazySet#setResolution(Set)} method.
  * <p>
- * When all the sets ared defined, one may call {@link LazySet#resolveAll(Collection)} in order to try to give a 'real' value (aka a 'resolution')
+ * When all the sets ared defined, one may call {@link LazySet#resolveAll(Map)} in order to try to give a 'real' value (aka a 'resolution')
  * to every sets.
  *
- * @see ActionTable.LALR1Builder#getFollowSets(Grammar, Symbol)
+ * @see ActionTable.LALR1Builder#getFollowSets(Grammar)
  */
 public abstract class LazySet {
 
@@ -42,6 +42,10 @@ public abstract class LazySet {
         return subject;
     }
 
+    public Set<LazySet> getComposition() {
+        return composition;
+    }
+
     public void add(LazySet lazySet) {
         composition.add(lazySet);
     }
@@ -50,95 +54,87 @@ public abstract class LazySet {
         this.resolution = resolution;
     }
 
+    public boolean isResolved() {
+        return resolution != null;
+    }
+
     public Set<Symbol> getResolution() {
+        if(resolution == null) {
+            throw new IllegalStateException("Could not determine terminals for " + this.toString()+ " = " + compositionToString());
+        }
         return resolution;
     }
 
-    /**
-     * Tries to replace the definition of the set by its real value
-     *
-     * @param allEqs the other definitions
-     * @return true is the set is resolved
-     */
-    private boolean simplify(Collection<? extends LazySet> allEqs) {
 
-        //dont not include self
-        composition.remove(this);
+    private static class Bus<E>{
 
-        //if already resolved, just return true
-        if (resolution != null) {
+        private Set<Consumer<E>> listeners = new HashSet<>();
 
-            if(resolution.isEmpty()) {
-                for(LazySet l : allEqs) {
-                    l.composition.remove(this);
-                }
+        public void emit(E evt) {
+            for(Consumer<E> consumer : listeners) {
+                consumer.accept(evt);
             }
-            return true;
-
-        } else {
-
-            Iterator<LazySet> it = composition.iterator();
-            while (it.hasNext()) {
-                LazySet n = it.next();
-                if(n.resolution != null && n.resolution.isEmpty()) {
-                   it.remove();
-                   continue;
-                }
-                if(n.composition.contains(this)) {
-                    n.composition.remove(this);
-                    continue;
-                }
-            }
-
-            boolean resolved = true;
-            Set<Symbol> attempt = new HashSet<>();
-            for (LazySet l : composition) {
-                if (l.resolution == null) {
-                    resolved = false;
-                } else {
-                    attempt.addAll(l.resolution);
-                }
-            }
-            if(resolved) {
-                this.resolution = attempt;
-            }
-            return resolved;
         }
-    }
 
+        public void addListener(Consumer<E> listener) {
+            listeners.add(listener);
+        }
+
+    };
+
+    public static void resolveAll(Map<Symbol, FollowSet> map) {
+        _resolveAll(map);
+
+    }
     /**
      * Tries to resolve all the passed-in definitions
      *
-     * @param lazySets definitions
+     * @param map definitions
      * @throws RuntimeException when it fails at finding a resolution for every sets
      */
-    public static void resolveAll(Collection<? extends LazySet> lazySets) {
-        int size = lazySets.size();
-        int solvedInPrecRound, solvedInThisRound = 0;
-        do {
-            solvedInPrecRound = solvedInThisRound;
-            solvedInThisRound = 0;
-            for (LazySet l : lazySets) {
-                solvedInThisRound += l.simplify(lazySets) ? 1 : 0;
-            }
-            getLog().debug(String.format("%d/%d", solvedInThisRound, size));
+    private static void _resolveAll(Map<Symbol, FollowSet> map) {
 
-        } while (solvedInThisRound < size && solvedInPrecRound < solvedInThisRound);
 
-        if (solvedInThisRound < size) {
-            String message = String.format("Resolution failure ! (only %d/%d solved)", solvedInThisRound, size);
-            StringWriter sw = new StringWriter();
-            sw.append(message + "\n");
-            for (LazySet l : lazySets) {
-                if(l.resolution == null) {
-                    sw.append("    " + l.toString() + " = " + l.compositionToString());
-                    sw.append("\n");
-                }
+        final Bus bus = new Bus();
+
+        Set<FollowSet> propositions = new HashSet<>();
+
+        for(LazySet ls : map.values()) {
+
+            if(ls.composition.size() == 1) {
+                bus.addListener(lazySet -> {
+                    if(lazySet == ls) {
+                        LazySet compo = ls.getComposition().iterator().next();
+                        compo.setResolution(ls.resolution);
+                        bus.emit(compo);
+                    }
+                });
             }
-            getLog().error(sw.toString());
-            throw new RuntimeException(message);
+
+            if(!ls.isResolved()) {
+                Set<LazySet> toResolve = ls.composition.stream().filter(s->!s.isResolved()).collect(Collectors.toSet());
+                bus.addListener(lazySet -> {
+                        toResolve.remove(lazySet);
+                        if(toResolve.isEmpty() && !ls.isResolved()) {
+                            ls.setResolved();
+                            bus.emit(ls);
+                        }
+                    });
+            }
         }
 
+        for(LazySet ls : map.values()) {
+            if(ls.isResolved()) {
+                bus.emit(ls);
+            }
+        }
+    }
+
+    private void setResolved() {
+        resolution = new HashSet<>();
+        for(LazySet ls : composition) {
+            resolution.addAll(ls.getResolution());
+        }
     }
 
     /**
@@ -154,7 +150,7 @@ public abstract class LazySet {
             if (composition.isEmpty()) {
                 return "[]";
             } else {
-                return String.join(" ∪ ", composition.stream().map(s -> s.toString()).collect(Collectors.toList()));
+                return String.join(" ∪ ", composition.stream().map(s -> s.toString() + (s.isResolved() ? "*" : "")).collect(Collectors.toList()));
             }
         }
     }

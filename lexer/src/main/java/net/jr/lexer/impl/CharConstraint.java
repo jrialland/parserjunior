@@ -1,4 +1,4 @@
-package net.jr.lexer;
+package net.jr.lexer.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,6 +73,10 @@ public class CharConstraint implements Function<Character, Boolean> {
 
         public static Builder or(Builder b1, Builder b2) {
             return new Builder("(" + b1.expr.toString() + ")||(" + b2.expr.toString() + ")", x -> b1.fn.apply(x) || b2.fn.apply(x));
+        }
+
+        public static Builder and(Builder b1, Builder b2) {
+            return new Builder("(" + b1.expr.toString() + ")&&(" + b2.expr.toString() + ")", x -> b1.fn.apply(x) && b2.fn.apply(x));
         }
 
         public CharConstraint build() {

@@ -5,7 +5,7 @@ import net.jr.lexer.impl.*;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static net.jr.lexer.CharConstraint.Builder.*;
+import static net.jr.lexer.impl.CharConstraint.Builder.*;
 
 public class Lexemes {
 
@@ -60,20 +60,6 @@ public class Lexemes {
 
     public static final Lexeme whitespace() {
         return whitespaces;
-    }
-
-    private static Lexeme Number = null;
-
-    public static final Lexeme number() {
-        if (Number == null) {
-            Number = new Word(NumbersExceptZero, Numbers) {
-                @Override
-                public String toString() {
-                    return "Number";
-                }
-            };
-        }
-        return Number;
     }
 
     public static final Lexeme lowercaseWord() {
@@ -283,9 +269,14 @@ public class Lexemes {
             };
             DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(CInteger);
             DefaultAutomaton.Builder.BuilderState init = builder.initialState();
+            DefaultAutomaton.Builder.BuilderState got0 = builder.newFinalState();
             DefaultAutomaton.Builder.BuilderState finalState = builder.newFinalState();
-            init.when(c -> NumbersExceptZero.contains("" + c)).goTo(finalState);
-            finalState.when(c -> Numbers.contains("" + c)).goTo(finalState);
+
+            init.when(eq('0')).goTo(got0);
+
+            init.when(inList(NumbersExceptZero)).goTo(finalState);
+            finalState.when(inList(Numbers)).goTo(finalState);
+
             addIntegerSuffix(builder, finalState);
             CInteger.setAutomaton(builder.build());
         }
@@ -306,9 +297,9 @@ public class Lexemes {
             DefaultAutomaton.Builder.BuilderState init = builder.initialState();
             DefaultAutomaton.Builder.BuilderState got0 = builder.initialState();
             DefaultAutomaton.Builder.BuilderState finalState = builder.newFinalState();
-            init.when(c -> c == '0').goTo(got0);
-            got0.when(c -> OctalDigit.contains("" + c)).goTo(finalState);
-            finalState.when(c -> OctalDigit.contains("" + c)).goTo(finalState);
+            init.when(eq('0')).goTo(got0);
+            got0.when(inList(OctalDigit)).goTo(finalState);
+            finalState.when(inList(OctalDigit)).goTo(finalState);
             addIntegerSuffix(builder, finalState);
             COctal.setAutomaton(builder.build());
         }
@@ -335,10 +326,10 @@ public class Lexemes {
             DefaultAutomaton.Builder.BuilderState got0 = builder.initialState();
             DefaultAutomaton.Builder.BuilderState gotB = builder.initialState();
             DefaultAutomaton.Builder.BuilderState finalState = builder.newFinalState();
-            init.when(c -> c == '0').goTo(got0);
-            got0.when(c -> c == 'B' || c == 'b').goTo(gotB);
-            gotB.when(c -> c == '0' || c == '1').goTo(finalState);
-            finalState.when(c -> c == '0' || c == '1').goTo(finalState);
+            init.when(eq('0')).goTo(got0);
+            got0.when(or(eq('B'), eq('b'))).goTo(gotB);
+            gotB.when(or(eq('0'), eq('1'))).goTo(finalState);
+            finalState.when(or(eq('0'), eq('1'))).goTo(finalState);
             CBinary.setAutomaton(builder.build());
         }
         return CBinary;
@@ -371,28 +362,28 @@ public class Lexemes {
             DefaultAutomaton.Builder.BuilderState gotHexQuad2;
             DefaultAutomaton.Builder.BuilderState done = builder.newFinalState();
 
-            init.when(c -> c == '\'').goTo(gotFirstQuote);
-            gotFirstQuote.when(c -> c == '\\').goTo(escaped);
-            gotFirstQuote.when(c -> c >= 0x20 && c < 127 && c != '\\').goTo(gotChar);
-            escaped.when(c -> isCEscapeChar(c)).goTo(gotChar);
+            init.when(eq('\'')).goTo(gotFirstQuote);
+            gotFirstQuote.when(eq('\\')).goTo(escaped);
+            gotFirstQuote.when(and(inRange(0x20,128), not(eq('\\')))).goTo(gotChar);
+            escaped.when(inList("\"?abfnrtv\\")).goTo(gotChar);
 
-            escaped.when(c -> OctalDigit.contains("" + c)).goTo(octalEscape);
-            octalEscape.when(c -> OctalDigit.contains("" + c)).goTo(octalEscape2);
-            octalEscape.when(c -> c == '\'').goTo(done);
-            octalEscape2.when(c -> OctalDigit.contains("" + c)).goTo(gotChar);
-            octalEscape2.when(c -> c == '\'').goTo(done);
+            escaped.when(inList(OctalDigit)).goTo(octalEscape);
+            octalEscape.when(inList(OctalDigit)).goTo(octalEscape2);
+            octalEscape.when(eq('\'')).goTo(done);
+            octalEscape2.when(inList(OctalDigit)).goTo(gotChar);
+            octalEscape2.when(eq('\'')).goTo(done);
 
-            escaped.when(c -> c == 'x').goTo(hexEscape);
-            escaped.when(c -> HexDigit.contains("" + c)).goTo(hexEscape);
-            hexEscape.when(c -> c == '\'').goTo(done);
+            escaped.when(eq('x')).goTo(hexEscape);
+            escaped.when(inList(HexDigit)).goTo(hexEscape);
+            hexEscape.when(eq('\'')).goTo(done);
 
-            escaped.when(c -> c == 'u' || c == 'U').goTo(universalEscape);
+            escaped.when(or(eq('u'), eq('U'))).goTo(universalEscape);
             gotHexQuad = addHexQuad(builder, universalEscape);
-            gotHexQuad.when(c -> c == '\'').goTo(done);
+            gotHexQuad.when(eq('\'')).goTo(done);
             gotHexQuad2 = addHexQuad(builder, gotHexQuad);
-            gotHexQuad2.when(c -> c == '\'').goTo(done);
+            gotHexQuad2.when(eq('\'')).goTo(done);
 
-            gotChar.when(c -> c == '\'').goTo(done);
+            gotChar.when(eq('\'')).goTo(done);
             CCharacter.setAutomaton(builder.build());
         }
         return CCharacter;
@@ -403,7 +394,7 @@ public class Lexemes {
         for (int i = 0; i < 4; i++) {
             DefaultAutomaton.Builder.BuilderState from = current;
             current = builder.newNonFinalState();
-            from.when(c -> HexDigit.contains("" + c)).goTo(current);
+            from.when(CharConstraint.Builder.inList(HexDigit)).goTo(current);
         }
         return current;
     }

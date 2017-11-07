@@ -1,7 +1,6 @@
 package net.jr.lexer.impl;
 
-import java.util.Arrays;
-import static net.jr.lexer.CharConstraint.Builder.*;
+import static net.jr.lexer.impl.CharConstraint.Builder.*;
 
 public class QuotedString extends LexemeImpl {
 

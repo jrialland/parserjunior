@@ -10,8 +10,8 @@
     </parent>
 
 
-    <artifactId>parserjunior-grammar-c11</artifactId>
-    <name>ParserJunior - C11 Grammar</name>
+    <artifactId>parserjunior-grammar-c</artifactId>
+    <name>ParserJunior - C Grammar</name>
     <packaging>jar</packaging>
 
 

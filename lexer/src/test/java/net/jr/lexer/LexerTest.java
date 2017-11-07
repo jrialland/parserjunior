@@ -15,7 +15,7 @@ public class LexerTest {
 
     @Test
     public void testWhitespace() {
-        Lexer lexer = new Lexer(Lexemes.whitespace(), new SingleChar('X'));
+        Lexer lexer = Lexer.forLexemes(Lexemes.whitespace(), new SingleChar('X'));
         for (int i = 0; i < 100; i++) {
             lexer.tokenize("      ");
             lexer.tokenize("  X  X    ");
@@ -26,7 +26,7 @@ public class LexerTest {
 
     @Test
     public void testSingleCharOk() {
-        Lexer lexer = new Lexer(Arrays.asList(new SingleChar('X')));
+        Lexer lexer = Lexer.forLexemes(Arrays.asList(new SingleChar('X')));
         for (int i = 0; i < 100; i++) {
             lexer.tokenize("X");
         }
@@ -34,42 +34,42 @@ public class LexerTest {
 
     @Test(expected = LexicalError.class)
     public void testSingleCharFail() {
-        Lexer lexer = new Lexer(Arrays.asList(new SingleChar('X')));
+        Lexer lexer = Lexer.forLexemes(Arrays.asList(new SingleChar('X')));
         lexer.tokenize("Y");
     }
 
     @Test
     public void testLiteralOk() {
-        Lexer lexer = new Lexer(Arrays.asList(new Literal("abc")));
+        Lexer lexer = Lexer.forLexemes(Arrays.asList(new Literal("abc")));
         lexer.tokenize("abc");
     }
 
     @Test(expected = LexicalError.class)
     public void testLiteralFail() {
-        Lexer lexer = new Lexer(Arrays.asList(new Literal("abc")));
+        Lexer lexer = Lexer.forLexemes(Arrays.asList(new Literal("abc")));
         lexer.tokenize("aBc");
     }
 
     @Test
     public void testWordOk() {
-        Lexer lexer = new Lexer(Arrays.asList(new Word("_", "0123456789")));
+        Lexer lexer = Lexer.forLexemes(Arrays.asList(new Word("_", "0123456789")));
         lexer.tokenize("_1235");
         lexer.tokenize("_");
 
-        Lexer lexer2 = new Lexer(Arrays.asList(new Word("ACTG")));
+        Lexer lexer2 = Lexer.forLexemes(Arrays.asList(new Word("ACTG")));
         lexer2.tokenize("GATTACA");
 
     }
 
     @Test(expected = LexicalError.class)
     public void testWordFail() {
-        Lexer lexer = new Lexer(Arrays.asList(new Word("012345689")));
+        Lexer lexer = Lexer.forLexemes(Arrays.asList(new Word("012345689")));
         lexer.tokenize("aBc");
     }
 
     @Test
     public void testMultipleWords() {
-        Lexer lexer = new Lexer(Arrays.asList(new Word(" \t"), new Word("abcdefghijklmnopqrstuvwxyz")));
+        Lexer lexer = Lexer.forLexemes(Arrays.asList(new Word(" \t"), new Word("abcdefghijklmnopqrstuvwxyz")));
         lexer.tokenize("this is a       complete phrase with words in lowercase characters that are sometimes separated by           large \t\tspaces");
     }
 
@@ -89,12 +89,12 @@ public class LexerTest {
 
     @Test
     public void testMixed() throws IOException {
-        new Lexer(getMixedTokenTypes()).tokenize(new StringReader("if(a==b)then{c==thenabc}"));
+        Lexer.forLexemes(getMixedTokenTypes()).tokenize(new StringReader("if(a==b)then{c==thenabc}"));
     }
 
     @Test
     public void testFiltersWhitespaces() {
-        Lexer lexer = new Lexer(Lexemes.number(), Lexemes.whitespace());
+        Lexer lexer = Lexer.forLexemes(Lexemes.cInteger(), Lexemes.whitespace());
         lexer.filterOut(Lexemes.whitespace());
         lexer.filterOut(Lexemes.eof());
 
@@ -121,7 +121,7 @@ public class LexerTest {
 
     @Test
     public void testBestMatch() {
-        Lexer lexer = new Lexer(new Literal("id"), Lexemes.cIdentifier());
+        Lexer lexer = Lexer.forLexemes(new Literal("id"), Lexemes.cIdentifier());
         List<Token> tokenList = new ArrayList<>();
         lexer.tokenListener(t -> tokenList.add(t));
         lexer.tokenize("identify");
@@ -131,7 +131,7 @@ public class LexerTest {
 
     @Test
     public void testNoMatch() {
-        Lexer lexer = new Lexer(Lexemes.lowercaseWord(), Lexemes.whitespace());
+        Lexer lexer = Lexer.forLexemes(Lexemes.lowercaseWord(), Lexemes.whitespace());
         try {
             lexer.tokenize("mostly lowercase words EXCEPT this one");
             Assert.fail();
@@ -142,7 +142,7 @@ public class LexerTest {
 
     @Test
     public void testNoMatchAtEnd() {
-        Lexer lexer = new Lexer(Lexemes.lowercaseWord(), Lexemes.whitespace());
+        Lexer lexer = Lexer.forLexemes(Lexemes.lowercaseWord(), Lexemes.whitespace());
         try {
             lexer.tokenize("mostly lowercase words except this ONE!");
             Assert.fail();
@@ -153,7 +153,7 @@ public class LexerTest {
 
     @Test
     public void testCString() {
-        Lexer lexer = new Lexer(Lexemes.cString(), Lexemes.whitespace());
+        Lexer lexer = Lexer.forLexemes(Lexemes.cString(), Lexemes.whitespace());
         lexer.tokenize("\"Hello world\"\"Hello\\t\\tworld\" \"Hello\\nworld\"    \"Hello world\"");
     }
 
@@ -169,7 +169,7 @@ public class LexerTest {
     public void testIterator() {
         int i=0;
         Token token = null;
-        Iterator<Token> iterator = new Lexer(getMixedTokenTypes()).iterator(new StringReader("if(a==b)then{c==thenabc}"));
+        Iterator<Token> iterator = Lexer.forLexemes(getMixedTokenTypes()).iterator(new StringReader("if(a==b)then{c==thenabc}"));
         while(iterator.hasNext()) {
             token = iterator.next();
             i++;
@@ -187,7 +187,7 @@ public class LexerTest {
         Set<Lexeme> tokenTypes = getMixedTokenTypes();
         tokenTypes.add(Lexemes.whitespace());
 
-        Lexer lexer = new Lexer(tokenTypes);
+        Lexer lexer = Lexer.forLexemes(tokenTypes);
 
         Iterator<Token> iterator = lexer
                 .filterOut(Lexemes.whitespace())
@@ -207,7 +207,7 @@ public class LexerTest {
         SingleChar x = new SingleChar('x');
         SingleChar eq = new SingleChar('=');
         SingleChar star = new SingleChar('*');
-        Lexer lexer = new Lexer(x, eq, star);
+        Lexer lexer = Lexer.forLexemes(x, eq, star);
         lexer.filterOut(Lexemes.whitespace());
         List<Token> list;
         list = asList(lexer.iterator(new StringReader("x=*x")));
@@ -231,7 +231,7 @@ public class LexerTest {
     public void testHexNumber() {
 
 
-        Lexer lexer = new Lexer(Lexemes.cHexNumber(), Lexemes.whitespace());
+        Lexer lexer = Lexer.forLexemes(Lexemes.cHexNumber(), Lexemes.whitespace());
         lexer.tokenListener(new TokenListener() {
             @Override
             public void onToken(Token token) {
@@ -254,7 +254,7 @@ public class LexerTest {
     @Test
     public void testSingleChar() {
         String txt = "()))())()()())((";
-        Lexer lexer = new Lexer(new SingleChar('('), new SingleChar(')'));
+        Lexer lexer = Lexer.forLexemes(new SingleChar('('), new SingleChar(')'));
         List<Token> tokens = lexer.tokenize(txt);
 
         int i=0;
@@ -268,7 +268,7 @@ public class LexerTest {
 
     @Test
     public void testPreferLiteralOverWord() {
-        Lexer lexer = new Lexer(new Word(Lexemes.Alpha), new Literal("test"));
+        Lexer lexer = Lexer.forLexemes(new Word(Lexemes.Alpha), new Literal("test"));
         List<Token> tokens = lexer.tokenize("test");
         Assert.assertEquals(2, tokens.size());
         Assert.assertEquals(Lexemes.eof(), tokens.get(1).getTokenType());
@@ -277,7 +277,7 @@ public class LexerTest {
 
     @Test
     public void testPosition() {
-        Lexer lexer = new Lexer(Lexemes.cHexNumber());
+        Lexer lexer = Lexer.forLexemes(Lexemes.cHexNumber());
         lexer.filterOut(Lexemes.newLine());
         lexer.filterOut(Lexemes.whitespace());
         List<Token> tokens = lexer.tokenize("0xdead\n0xbeef\n\n    0xcafe 0xbabe");
@@ -301,7 +301,7 @@ public class LexerTest {
 
     @Test
     public void testCChar() {
-        Lexer lexer = new Lexer(Lexemes.cCharacter());
+        Lexer lexer = Lexer.forLexemes(Lexemes.cCharacter());
         lexer.filterOut(Lexemes.newLine());
         lexer.filterOut(Lexemes.whitespace());
         List<Token> tokens = lexer.tokenize("'a' 'b' '\\t' '\\n' 'C'");
@@ -309,14 +309,26 @@ public class LexerTest {
 
     @Test
     public void testCOctal() {
-        Lexer lexer = new Lexer(Lexemes.cOctal());
+        Lexer lexer = Lexer.forLexemes(Lexemes.cOctal());
         lexer.tokenize("05135745211");
     }
 
     @Test
     public void testCBinary() {
-        Lexer lexer = new Lexer(Lexemes.cOctal(), Lexemes.cBinary());
+        Lexer lexer = Lexer.forLexemes(Lexemes.cOctal(), Lexemes.cBinary());
         lexer.tokenize("0b1011011");
+    }
+
+    @Test
+    public void testCInteger() {
+        Lexer lexer = Lexer.forLexemes(Lexemes.cInteger());
+        lexer.tokenize("0");
+    }
+
+    @Test
+    public void testNumber() {
+        Lexer lexer = Lexer.forLexemes(Lexemes.cOctal(), Lexemes.cBinary(), Lexemes.cInteger(), Lexemes.cHexNumber());
+        lexer.tokenize("0");
     }
 
 }

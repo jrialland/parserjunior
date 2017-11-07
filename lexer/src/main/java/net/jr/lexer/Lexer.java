@@ -2,6 +2,7 @@ package net.jr.lexer;
 
 import net.jr.collection.iterators.PushbackIterator;
 import net.jr.common.Position;
+import net.jr.common.Symbol;
 import net.jr.lexer.impl.Automaton;
 import net.jr.lexer.impl.LexemeImpl;
 
@@ -26,18 +27,26 @@ public class Lexer {
 
     private String currentSequence = "";
 
-    public Lexer(Lexeme... tokenTypes) {
-        this(Arrays.asList(tokenTypes));
+    public static <L extends Symbol> Lexer forLexemes(L... tokenTypes) {
+        return new Lexer(Arrays.asList(tokenTypes));
     }
 
-    public Lexer(Collection<Lexeme> tokenTypes) {
+    public static Lexer forLexemes(Collection<? extends Symbol> tokenTypes) {
+        return new Lexer(tokenTypes);
+    }
+
+    private <L extends Symbol> Lexer(Collection<L> tokenTypes) {
         automatons = new ArrayList<>(tokenTypes.size());
-        for (Lexeme tokenType : tokenTypes) {
+        for (Symbol tokenType : tokenTypes) {
             if (!tokenType.equals(Lexemes.eof())) {
                 Automaton a = ((LexemeImpl) tokenType).getAutomaton();
                 automatons.add(a);
             }
         }
+    }
+
+    public Set<Lexeme> getLexemes() {
+        return automatons.stream().map(a -> a.getTokenType()).collect(Collectors.toSet());
     }
 
     public Lexer tokenListener(TokenListener tokenListener) {
@@ -171,10 +180,13 @@ public class Lexer {
 
             return false;
         } else {
+
             final char c = (char) r;
             currentSequence += c;
+
             List<Automaton> matchCandidates = new ArrayList<>();
             boolean hasUp = false;
+
             for (Automaton a : automatons) {
                 boolean wasInFinalState = a.isInFinalState();
                 boolean dead = a.step(c);
@@ -186,7 +198,9 @@ public class Lexer {
                     hasUp = true;
                 }
             }
+
             atStart = false;
+
             if (!hasUp) {
                 Automaton bestMatch = findBest(matchCandidates);
                 if (bestMatch != null) {
@@ -250,7 +264,7 @@ public class Lexer {
 
     private Position updatePosition(String matchedText) {
         Position oldPos = position;
-        if(matchedText != null) {
+        if (matchedText != null) {
             for (char c : matchedText.toCharArray()) {
                 if (c == '\n') {
                     position = position.nextLine();

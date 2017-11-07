@@ -1,6 +1,6 @@
 package net.jr.lexer.impl;
 
-import static net.jr.lexer.CharConstraint.Builder.*;
+import static net.jr.lexer.impl.CharConstraint.Builder.*;
 /**
  * Define a lexeme that can be any of the characters passed to its constructor.
  */

@@ -1,5 +1,6 @@
 package net.jr.lexer;
 
+import net.jr.lexer.impl.CharConstraint;
 import org.junit.Assert;
 import org.junit.Test;
 

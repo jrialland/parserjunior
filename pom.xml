@@ -119,7 +119,7 @@
         <module>lexer</module>
         <module>parser</module>
         <module>grammar-lua5</module>
-        <module>grammar-c11</module>
+        <module>grammar-c</module>
     </modules>
 
 </project>

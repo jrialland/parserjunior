@@ -1,6 +1,6 @@
 package net.jr.lexer.impl;
 
-import static net.jr.lexer.CharConstraint.Builder.eq;
+import static net.jr.lexer.impl.CharConstraint.Builder.eq;
 
 /**
  * A literal is a 'keyword' i.e a fixed string.

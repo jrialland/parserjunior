@@ -171,19 +171,19 @@ public class Grammar {
         };
     }
 
-    public Set<Lexeme> getTerminals() {
-        Set<Lexeme> terminals = new HashSet<>();
+    public Set<? extends Symbol> getTerminals() {
+        Set<Symbol> terminals = new HashSet<>();
         for (Rule r : rules) {
             for (Symbol s : r.getClause()) {
                 if (s != Empty && s.isTerminal()) {
-                    terminals.add((Lexeme) s);
+                    terminals.add(s);
                 }
             }
         }
         return terminals;
     }
 
-    public Set<Symbol> getSymbols() {
+    public Set<? extends Symbol> getSymbols() {
         Set<Symbol> symbols = new HashSet<>();
         for (Rule r : rules) {
             symbols.add(r.getTarget());

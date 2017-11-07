@@ -1,7 +1,5 @@
 package net.jr.lexer.impl;
 
-import net.jr.lexer.CharConstraint;
-
 public class Word extends LexemeImpl {
 
     private Automaton automaton;

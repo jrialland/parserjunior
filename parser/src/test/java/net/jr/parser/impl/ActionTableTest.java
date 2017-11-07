@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ActionTableTest {
 
@@ -71,6 +72,9 @@ public class ActionTableTest {
         Grammar extended = builder.makeExtendedGrammar(grammar.getRuleById(0), itemSets);
         ExtendedSymbol es = (ExtendedSymbol) extended.getTargetSymbol();
         Assert.assertEquals(S, es.getSymbol());
+
+        Assert.assertEquals(6, grammar.getRules().size());
+        Assert.assertEquals(12, extended.getRules().size());
     }
 
     @Test
@@ -84,8 +88,8 @@ public class ActionTableTest {
         ExtendedSymbol eS = extended.getNonTerminals().stream().map(s -> (ExtendedSymbol) s).filter(s -> s.getSymbol().equals(S)).findAny().get();
 
 
-        Map<Symbol, Set<Symbol>> followSets = builder.getFollowSets(extended, eS);
-        for (Map.Entry<Symbol, Set<Symbol>> entry : followSets.entrySet()) {
+        Map<Symbol, Set<? extends Symbol>> followSets = builder.getFollowSets(extended);
+        for (Map.Entry<Symbol, Set<? extends Symbol>> entry : followSets.entrySet()) {
             System.out.println(entry.getKey() + "    " + entry.getValue());
         }
     }

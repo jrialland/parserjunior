@@ -1,11 +1,13 @@
 package net.jr.parser;
 
 import net.jr.common.Symbol;
+import net.jr.lexer.Lexeme;
 import net.jr.lexer.Lexemes;
 import net.jr.lexer.Lexer;
 import net.jr.lexer.impl.Literal;
 import net.jr.lexer.impl.SingleChar;
 import net.jr.lexer.impl.Word;
+import net.jr.parser.ast.AstNode;
 import net.jr.parser.impl.LRParser;
 import org.junit.Assert;
 import org.junit.Before;
@@ -64,7 +66,7 @@ public class GrammarTest {
     @Test
     public void testParse() {
         Parser parser = grammar.createParser(grammar.getTargetSymbol());
-        Lexer lexer = new Lexer(grammar.getTerminals());
+        Lexer lexer = Lexer.forLexemes(grammar.getTerminals());
         lexer.filterOut(Lexemes.whitespace());
 
         parser.parse(lexer.iterator(new StringReader("x = *x")));
@@ -95,7 +97,7 @@ public class GrammarTest {
         g.addRule(B, one);
 
         Parser parser = g.createParser(S);
-        Lexer lexer = new Lexer(g.getTerminals());
+        Lexer lexer = Lexer.forLexemes(g.getTerminals());
 
         ((LRParser)parser).parse("1+1");
     }
@@ -108,7 +110,7 @@ public class GrammarTest {
         g.addRule(V, new SingleChar('1'));
 
         Parser parser = g.createParser(V);
-        Lexer lexer = new Lexer(g.getTerminals());
+        Lexer lexer = Lexer.forLexemes(g.getTerminals());
 
         parser.parse(lexer.iterator(new StringReader("0")));
         parser.parse(lexer.iterator(new StringReader("1")));
@@ -127,7 +129,7 @@ public class GrammarTest {
         g.addEmptyRule(I);
 
         Parser parser = g.createParser();
-        Lexer lexer = new Lexer(g.getTerminals());
+        Lexer lexer = Lexer.forLexemes(g.getTerminals());
         lexer.filterOut(Lexemes.whitespace());
 
         //empty list is ok
@@ -146,7 +148,7 @@ public class GrammarTest {
         g.addRule(L, new SingleChar('('), g.list(new SingleChar(','), Lexemes.cIdentifier()), new SingleChar(')'));
 
         Parser parser = g.createParser(L);
-        Lexer lexer = new Lexer(g.getTerminals());
+        Lexer lexer = Lexer.forLexemes(g.getTerminals());
         lexer.filterOut(Lexemes.whitespace());
 
         //empty list are ok
@@ -171,7 +173,7 @@ public class GrammarTest {
         g.addRule(L, new Literal(">>"), g.zeroOrMore(Lexemes.cIdentifier(), new SingleChar('!')));
 
         Parser parser = g.createParser(L);
-        Lexer lexer = new Lexer(g.getTerminals());
+        Lexer lexer = Lexer.forLexemes(g.getTerminals());
         lexer.filterOut(Lexemes.whitespace());
 
         parser.parse(lexer.iterator(new StringReader(">>")));
@@ -188,7 +190,7 @@ public class GrammarTest {
         g.addRule(S, g.oneOrMore(new Word("nahnah")), new Word("batman"));
 
         Parser parser = g.createParser(S);
-        Lexer lexer = new Lexer(g.getTerminals());
+        Lexer lexer = Lexer.forLexemes(g.getTerminals());
         lexer.filterOut(Lexemes.whitespace());
 
         parser.parse(lexer.iterator(new StringReader("nahnah nahnah nahnah nahnah nahnah batman")));
@@ -204,7 +206,7 @@ public class GrammarTest {
 
     @Test
     public void testFourOps() {
-        //Assert.assertEquals(8, computeNumber("15-7"));
+        Assert.assertEquals(8, computeNumber("15-7"));
         Assert.assertEquals(18, computeNumber("3*6"));
         Assert.assertEquals(5, computeNumber("50/10"));
         Assert.assertEquals(32, computeNumber("3 * 6 + 2 * 7"));
@@ -221,7 +223,7 @@ public class GrammarTest {
         g.setPrecedenceLevel(20, mult, div);
         g.setPrecedenceLevel(10, plus, minus);
 
-        g.addRule(E, Lexemes.number()).withAction(node -> {
+        g.addRule(E, Lexemes.cInteger()).withAction(node -> {
             int value = Integer.parseInt(node.asToken().getMatchedText());
             calculatorStack.push(value);
         });
@@ -259,7 +261,7 @@ public class GrammarTest {
                 });
 
         Parser parser = g.createParser(E);
-        Lexer lexer = new Lexer(g.getTerminals());
+        Lexer lexer = Lexer.forLexemes(g.getTerminals());
         lexer.filterOut(Lexemes.whitespace());
 
         parser.parse(lexer.iterator(new StringReader(expression)));
@@ -267,4 +269,45 @@ public class GrammarTest {
         return calculatorStack.pop();
     }
 
+    @Test
+    public void testStability() {
+        for(int i=0; i<1000; i++) {
+            System.out.println(i);
+            testIfElse();
+        }
+    }
+
+    @Test
+    public void testIfElse() {
+        Lexeme If = Lexemes.literal("if");
+        Lexeme Else = Lexemes.literal("else");
+        Lexeme LeftBrace = Lexemes.singleChar('(');
+        Lexeme RightBrace = Lexemes.singleChar(')');
+        Lexeme Expression = Lexemes.singleChar('E');
+
+        Symbol All = new Forward("All");
+        Symbol Statement = new Forward("Statement");
+        Symbol SelectionStatement = new Forward("SelectionStatement");
+
+        Grammar g = new Grammar();
+        g.addRule(All, g.oneOrMore(Statement));
+        g.addRule(Statement, SelectionStatement);
+        g.addRule(Statement, Lexemes.literal("S1"), Lexemes.singleChar(';'));
+        g.addRule(Statement, Lexemes.literal("S2"), Lexemes.singleChar(';'));
+        g.addRule(Statement, Lexemes.literal("S3"), Lexemes.singleChar(';'));
+
+        g.addRule(SelectionStatement, If, LeftBrace, Expression, RightBrace, Statement);
+        g.addRule(SelectionStatement, If, LeftBrace, Expression, RightBrace, Statement, Else, Statement);
+
+        Parser parser  = g.createParser(All);
+        parser.getDefaultLexer().filterOut(Lexemes.whitespace());
+
+        parser.parse("if(E) S1;");
+        parser.parse("if(E) S1; else S2;");
+        parser.parse("if(E) S1; else if (E) S2; else S3;");
+        parser.parse("if(E) S1; if (E) S2; else S3;");
+
+
+
+    }
 }
