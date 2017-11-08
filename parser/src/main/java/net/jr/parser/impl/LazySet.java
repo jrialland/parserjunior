@@ -43,12 +43,33 @@ public abstract class LazySet {
     }
 
     public static void resolveAll(Map<Symbol, FollowSet> map) {
-        System.out.println(String.format("%d/%d", map.values().stream().filter(s->s.isResolved()).count(), map.size()));
+        getLog().debug(String.format("%d/%d", map.values().stream().filter(s->s.isResolved()).count(), map.size()));
         int total = map.size(), lastResolved=0, resolved = simplify(map.values());
         while(resolved < total && lastResolved != resolved) {
+            getLog().debug(String.format("%d/%d", resolved, total));
             lastResolved = resolved;
+
+            for(FollowSet f: map.values()) {
+                f.getComposition().remove(f);
+                for(FollowSet f2 : map.values()) {
+                    if(f != f2) {
+                        if(f2.getComposition().remove(f)) {
+                            f2.getComposition().addAll(f.getComposition());
+                        }
+                    }
+                }
+            }
+
+
+            resolved = simplify(map.values());
         }
-        System.out.println(String.format("%d/%d", resolved, total));
+
+        for(FollowSet f : map.values()) {
+            if(!f.isResolved()) {
+                System.out.println(f + " = " + f.compositionToString());
+            }
+        }
+
     }
 
     /**
@@ -80,24 +101,6 @@ public abstract class LazySet {
             }
         }
         return count;
-    }
-
-    protected void pushAltDefinition(LazySet def) {
-        redefs.add(def);
-        if (resolution == null && composition.remove(def)) {
-            bRedefs.add(true);
-            composition.addAll(def.getComposition());
-        } else {
-            bRedefs.add(false);
-        }
-    }
-
-    protected void popAltDefinition() {
-        LazySet def = redefs.pop();
-        if (bRedefs.pop()) {
-            composition.removeAll(def.getComposition());
-            composition.add(def);
-        }
     }
 
     public Symbol getSubject() {
