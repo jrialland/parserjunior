@@ -1,4 +1,4 @@
-package net.jr.grammar.c11;
+package net.jr.grammar.c;
 
 import net.jr.lexer.Lexeme;
 import net.jr.lexer.Lexemes;
@@ -92,7 +92,6 @@ public class CGrammar extends Grammar {
         public static Lexeme Union = Lexemes.literal("union");
         public static Lexeme Inc_op = Lexemes.literal("++");
         public static Lexeme Default = Lexemes.literal("default");
-        public static Lexeme TypeName = new Word("_" + Lexemes.Alpha, "_" + Lexemes.AlphaNum);
     }
 
     public static final Forward CastExpression = new Forward("CastExpression");
@@ -264,16 +263,21 @@ public class CGrammar extends Grammar {
         addRule(StorageClassSpecifier, Tokens.Auto);
         addRule(StorageClassSpecifier, Tokens.Register);
 
-        addRule(TypeSpecifier, Tokens.Void);
-        addRule(TypeSpecifier, Tokens.Char);
-        addRule(TypeSpecifier, Tokens.Short);
-        addRule(TypeSpecifier, Tokens.Int);
-        addRule(TypeSpecifier, Tokens.Long);
-        addRule(TypeSpecifier, Tokens.Float);
-        addRule(TypeSpecifier, Tokens.Double);
-        addRule(TypeSpecifier, Tokens.Signed);
-        addRule(TypeSpecifier, Tokens.Unsigned);
-        addRule(TypeSpecifier, Tokens.TypeName);
+        Lexeme[] basicTypeNames = new Lexeme[]{
+                Tokens.Void,
+                Tokens.Char,
+                Tokens.Short,
+                Tokens.Int,
+                Tokens.Long,
+                Tokens.Float,
+                Tokens.Double,
+                Tokens.Signed,
+                Tokens.Unsigned
+        };
+
+        addRule(TypeSpecifier, oneOf(basicTypeNames));
+        //addRule(TypeSpecifier, Tokens.Identifier);//FIXME
+
         addRule(TypeSpecifier, StructOrUnionSpecifier);
         addRule(TypeSpecifier, EnumSpecifier);
 

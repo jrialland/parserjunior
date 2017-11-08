@@ -1,10 +1,14 @@
-package net.jr.grammar.c11;
+package net.jr.grammar.c;
 
 
 import net.jr.lexer.Lexeme;
+import net.jr.lexer.Lexemes;
 import net.jr.lexer.Lexer;
 import net.jr.parser.Parser;
 import net.jr.parser.ast.AstNode;
+import net.jr.parser.ast.Target;
+import net.jr.parser.ast.VisitorHelper;
+import net.jr.parser.impl.ActionTable;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -39,9 +43,15 @@ public class CGrammarTest {
 
     @Test
     public void testLexer() {
-        Lexer lexer = new CGrammar().createParser().getDefaultLexer();
-        Lexeme l = lexer.tokenize("int").get(0).getTokenType();
-        Assert.assertEquals(CGrammar.Tokens.Int, l);
+            Lexer lexer = new CGrammar().createParser().getDefaultLexer();
+
+            int priorityOfInt = lexer.getPriority(Lexemes.literal("int"));
+            int priorityOfIdentifier = lexer.getPriority(CGrammar.Tokens.Identifier);
+
+            Assert.assertTrue(priorityOfInt > priorityOfIdentifier);
+
+            Lexeme l = lexer.tokenize("int").get(0).getTokenType();
+            Assert.assertEquals(CGrammar.Tokens.Int, l);
     }
 
     @Test
@@ -62,21 +72,18 @@ public class CGrammarTest {
 
     @Test
     public void testFunc() {
-        AstNode node  =new CGrammar().createParser().parse("int fibo(n) { return n==0||n==1?1: n * fibo(n-1); }");
-
+        AstNode root = new CGrammar().createParser().parse("int fibo(n) { return n==0||n==1?1: n * fibo(n-1); }");
         AtomicBoolean called = new AtomicBoolean(false);
+        VisitorHelper.visit(root, new Object() {
 
-        CGrammarHelper.visit(node, new Object() {
-
-            public void visitFunctionDefinition(AstNode node) {
+            @Target("FunctionDefinition")
+            public void visitFunctionDef(AstNode node) {
                 String methodName = node.getChildOfType(CGrammar.Declarator).getChildOfType(CGrammar.DirectDeclarator).getChildren().get(0).asToken().getMatchedText();
                 Assert.assertEquals("fibo", methodName);
                 called.set(true);
             }
 
         });
-
-
         Assert.assertTrue(called.get());
     }
 

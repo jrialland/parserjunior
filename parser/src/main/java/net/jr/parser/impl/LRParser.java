@@ -11,7 +11,6 @@ import net.jr.parser.ParseError;
 import net.jr.parser.Parser;
 import net.jr.parser.Rule;
 import net.jr.parser.ast.AstNode;
-import net.jr.parser.errors.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,7 +126,7 @@ public class LRParser implements Parser {
                     completed = true;
                     break;
                 case Fail:
-                    throw new ParseException(token, actionTable.getExpectedLexemes(currentState));
+                    throw new ParseError(token, actionTable.getExpectedLexemes(currentState));
                 case Shift:
                     shift(token, stack, decision.getActionParameter());
                     break;

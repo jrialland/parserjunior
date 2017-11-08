@@ -14,9 +14,13 @@ public class ParseError extends RuntimeException {
 
     private static String getDefaultMessage(Token token, Set<Lexeme> expected) {
         StringWriter sw = new StringWriter();
-        sw.append("Parse errror");
+        sw.append("Parse error");
+        sw.append(" : ");
+        sw.append("(");
+        sw.append(token.getPosition().toString());
+        sw.append(")");
         if (!expected.isEmpty()) {
-            sw.append(" - ");
+            sw.append(" : ");
             if (expected.size() == 1) {
                 sw.append("expected : ");
                 sw.append(expected.iterator().next().toString());
@@ -26,6 +30,10 @@ public class ParseError extends RuntimeException {
             }
             sw.append(" ( got ");
             sw.append(token.getTokenType().toString());
+            sw.append("/");
+            sw.append("'");
+            sw.append(token.getMatchedText());
+            sw.append("'");
             sw.append(" instead)");
         }
         return sw.toString();
