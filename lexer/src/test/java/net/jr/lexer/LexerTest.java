@@ -331,4 +331,23 @@ public class LexerTest {
         lexer.tokenize("0");
     }
 
+    @Test
+    public void testInt() {
+        Lexer lexer = Lexer.forLexemes(Lexemes.literal("int"), Lexemes.cIdentifier());
+        Lexeme l = lexer.tokenize("int").get(0).getTokenType();
+        Assert.assertEquals(l, Lexemes.literal("int"));
+        Assert.assertFalse(l.equals(Lexemes.cIdentifier()));
+    }
+
+    @Test
+    public void testInt2() {
+        Lexer lexer = Lexer.forLexemes(Lexemes.literal("int"), Lexemes.cIdentifier());
+
+        //give a low priority to cIdentifier
+        lexer.setPriority(Lexemes.cIdentifier(), 100);
+        Lexeme l = lexer.tokenize("int").get(0).getTokenType();
+        Assert.assertEquals(l, Lexemes.cIdentifier());
+        Assert.assertFalse(l.equals(Lexemes.literal("int")));
+    }
+
 }

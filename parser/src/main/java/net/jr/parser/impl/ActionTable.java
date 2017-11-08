@@ -175,8 +175,8 @@ public class ActionTable {
 
         public ActionTable build(Grammar grammar, Rule startRule) {
 
-            getLog().debug("Building action Table for : " + grammar.toString());
-            getLog().debug("Starting Rule is : " + startRule);
+            getLog().trace("Building action Table for : " + grammar.toString());
+            getLog().trace("Starting Rule is : " + startRule);
 
             //Syntax Analysis Goal: Item Sets
             ItemSet i0 = getFirstItemSet(grammar, startRule);

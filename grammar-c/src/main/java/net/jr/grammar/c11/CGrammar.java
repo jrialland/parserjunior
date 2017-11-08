@@ -1,14 +1,14 @@
 package net.jr.grammar.c11;
 
-import com.sun.javafx.fxml.expression.UnaryExpression;
 import net.jr.lexer.Lexeme;
 import net.jr.lexer.Lexemes;
+import net.jr.lexer.Lexer;
+import net.jr.lexer.impl.Word;
 import net.jr.parser.Forward;
 import net.jr.parser.Grammar;
 import net.jr.parser.Parser;
 import net.jr.parser.Rule;
 
-//https://www.lysator.liu.se/c/ANSI-C-grammar-y.html
 public class CGrammar extends Grammar {
 
     public static final class Tokens {
@@ -53,7 +53,6 @@ public class CGrammar extends Grammar {
         public static Lexeme Ptr_op = Lexemes.singleChar('*');
         public static Lexeme Switch = Lexemes.literal("switch");
         public static Lexeme Void = Lexemes.literal("void");
-        public static Lexeme Type_name = Lexemes.literal("type_name");//FIXME
         public static Lexeme Struct = Lexemes.literal("struct");
         public static Lexeme Div = Lexemes.singleChar('/');
         public static Lexeme And_op = Lexemes.literal("&&");
@@ -93,6 +92,7 @@ public class CGrammar extends Grammar {
         public static Lexeme Union = Lexemes.literal("union");
         public static Lexeme Inc_op = Lexemes.literal("++");
         public static Lexeme Default = Lexemes.literal("default");
+        public static Lexeme TypeName = new Word("_" + Lexemes.Alpha, "_" + Lexemes.AlphaNum);
     }
 
     public static final Forward CastExpression = new Forward("CastExpression");
@@ -263,6 +263,7 @@ public class CGrammar extends Grammar {
         addRule(StorageClassSpecifier, Tokens.Static);
         addRule(StorageClassSpecifier, Tokens.Auto);
         addRule(StorageClassSpecifier, Tokens.Register);
+
         addRule(TypeSpecifier, Tokens.Void);
         addRule(TypeSpecifier, Tokens.Char);
         addRule(TypeSpecifier, Tokens.Short);
@@ -272,9 +273,10 @@ public class CGrammar extends Grammar {
         addRule(TypeSpecifier, Tokens.Double);
         addRule(TypeSpecifier, Tokens.Signed);
         addRule(TypeSpecifier, Tokens.Unsigned);
+        addRule(TypeSpecifier, Tokens.TypeName);
         addRule(TypeSpecifier, StructOrUnionSpecifier);
         addRule(TypeSpecifier, EnumSpecifier);
-        addRule(TypeSpecifier, Tokens.Type_name);
+
         addRule(StructOrUnionSpecifier, StructOrUnion, Tokens.Identifier, Tokens.LeftCurlyBrace, StructDeclarationList, Tokens.RightCurlyBrace);
         addRule(StructOrUnionSpecifier, StructOrUnion, Tokens.LeftCurlyBrace, StructDeclarationList, Tokens.RightCurlyBrace);
         addRule(StructOrUnionSpecifier, StructOrUnion, Tokens.Identifier);
@@ -391,8 +393,9 @@ public class CGrammar extends Grammar {
     @Override
     public Parser createParser() {
         Parser parser = super.createParser();
-        parser.getDefaultLexer().filterOut(Lexemes.whitespace());
-        parser.getDefaultLexer().filterOut(Lexemes.newLine());
+        Lexer lexer = parser.getDefaultLexer();
+        lexer.filterOut(Lexemes.whitespace());
+        lexer.filterOut(Lexemes.newLine());
         return parser;
     }
 

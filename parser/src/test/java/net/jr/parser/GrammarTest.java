@@ -271,43 +271,8 @@ public class GrammarTest {
 
     @Test
     public void testStability() {
-        for(int i=0; i<1000; i++) {
-            System.out.println(i);
-            testIfElse();
+        for(int i=0; i<100; i++) {
+            new IfElseTest().testParseNestedElse();
         }
-    }
-
-    @Test
-    public void testIfElse() {
-        Lexeme If = Lexemes.literal("if");
-        Lexeme Else = Lexemes.literal("else");
-        Lexeme LeftBrace = Lexemes.singleChar('(');
-        Lexeme RightBrace = Lexemes.singleChar(')');
-        Lexeme Expression = Lexemes.singleChar('E');
-
-        Symbol All = new Forward("All");
-        Symbol Statement = new Forward("Statement");
-        Symbol SelectionStatement = new Forward("SelectionStatement");
-
-        Grammar g = new Grammar();
-        g.addRule(All, g.oneOrMore(Statement));
-        g.addRule(Statement, SelectionStatement);
-        g.addRule(Statement, Lexemes.literal("S1"), Lexemes.singleChar(';'));
-        g.addRule(Statement, Lexemes.literal("S2"), Lexemes.singleChar(';'));
-        g.addRule(Statement, Lexemes.literal("S3"), Lexemes.singleChar(';'));
-
-        g.addRule(SelectionStatement, If, LeftBrace, Expression, RightBrace, Statement);
-        g.addRule(SelectionStatement, If, LeftBrace, Expression, RightBrace, Statement, Else, Statement);
-
-        Parser parser  = g.createParser(All);
-        parser.getDefaultLexer().filterOut(Lexemes.whitespace());
-
-        parser.parse("if(E) S1;");
-        parser.parse("if(E) S1; else S2;");
-        parser.parse("if(E) S1; else if (E) S2; else S3;");
-        parser.parse("if(E) S1; if (E) S2; else S3;");
-
-
-
     }
 }

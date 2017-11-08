@@ -43,48 +43,48 @@ public abstract class LazySet {
     }
 
     public static void resolveAll(Map<Symbol, FollowSet> map) {
-        getLog().debug(String.format("%d/%d", map.values().stream().filter(s->s.isResolved()).count(), map.size()));
-        int total = map.size(), lastResolved=0, resolved = simplify(map.values());
-        while(resolved < total && lastResolved != resolved) {
-            getLog().debug(String.format("%d/%d", resolved, total));
+        getLog().trace(String.format("%d/%d", map.values().stream().filter(s -> s.isResolved()).count(), map.size()));
+        int total = map.size(), lastResolved = 0, resolved = simplify(map.values());
+        while (resolved < total && lastResolved != resolved) {
+            getLog().trace(String.format("%d/%d", resolved, total));
             lastResolved = resolved;
-
-            for(FollowSet f: map.values()) {
-                f.getComposition().remove(f);
-                for(FollowSet f2 : map.values()) {
-                    if(f != f2) {
-                        if(f2.getComposition().remove(f)) {
+            for (FollowSet f : map.values()) {
+                f.getComposition().remove(f);//do not include self
+                for (FollowSet f2 : map.values()) {
+                    if (f != f2) {
+                        if (f2.getComposition().remove(f)) {
                             f2.getComposition().addAll(f.getComposition());
                         }
                     }
                 }
             }
-
-
             resolved = simplify(map.values());
         }
+        getLog().trace(String.format("%d/%d", resolved, total));
 
-        for(FollowSet f : map.values()) {
-            if(!f.isResolved()) {
-                System.out.println(f + " = " + f.compositionToString());
-            }
+        if (resolved < total) {
+            throw new IllegalStateException("Could not compute 'Follow' sets, please check your grammar");
         }
 
     }
 
     /**
-     * Tries to resolve all the passed-in definitions
+     * Simplifies the definitions of the follow sets where possible
      *
-     * @param map definitions
-     * @throws RuntimeException when it fails at finding a resolution for every sets
+     * @param sets
+     * @return
      */
     private static int simplify(Collection<FollowSet> sets) {
         final EvtSupport bus = new EvtSupport();
         for (LazySet ls : sets) {
             if (!ls.isResolved()) {
+                //the list that has to be resolved in order to consider ls resolved
                 Set<LazySet> toResolve = ls.composition.stream().filter(s -> !s.isResolved()).collect(Collectors.toSet());
+
                 bus.addListener(lazySet -> {
+                    //remove from the list
                     toResolve.remove(lazySet);
+                    //if the list is empty, we consider that ls is now resolved
                     if (toResolve.isEmpty() && !ls.isResolved()) {
                         ls.setResolved();
                         bus.emit(ls);
@@ -92,15 +92,16 @@ public abstract class LazySet {
                 });
             }
         }
+
         int count = 0;
         for (LazySet ls : sets) {
-            ls.getComposition().remove(ls);
             if (ls.isResolved()) {
                 bus.emit(ls);
                 count++;
             }
         }
         return count;
+
     }
 
     public Symbol getSubject() {

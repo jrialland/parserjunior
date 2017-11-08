@@ -371,7 +371,6 @@ public class Grammar {
             decision = ActionType.Reduce;
         } else {
             decision = ((BaseRule) rule).getConflictArbitration();
-            getLog().debug(String.format("{rule=%s, symbol=%s} : %s", rule, symbol, decision));
         }
         return decision;
     }

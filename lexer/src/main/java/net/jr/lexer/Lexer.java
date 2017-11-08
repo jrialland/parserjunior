@@ -27,6 +27,8 @@ public class Lexer {
 
     private String currentSequence = "";
 
+    private Map<Symbol, Integer> priorities = new HashMap<>();
+
     public static <L extends Symbol> Lexer forLexemes(L... tokenTypes) {
         return new Lexer(Arrays.asList(tokenTypes));
     }
@@ -43,6 +45,19 @@ public class Lexer {
                 automatons.add(a);
             }
         }
+        priorities = new HashMap<>();
+        for (Automaton a : automatons) {
+            priorities.put(a.getTokenType(), a.getTokenType().getPriority());
+        }
+    }
+
+    /**
+     * The higher the number, the lower the priority is
+     * @param s
+     * @param priority 0 is best, Integer.MAX_VALUE is lowest priority
+     */
+    public void setPriority(Symbol s, int priority) {
+        priorities.put(s, priority);
     }
 
     public Set<Lexeme> getLexemes() {
@@ -235,10 +250,15 @@ public class Lexer {
             case 1:
                 break;
             default:
-                Collections.sort(bestMatches, Comparator.comparingInt(a -> -1 * a.getTokenType().getPriority()));
+                Collections.sort(bestMatches, Comparator.comparingInt(a -> -1 * getPriority(a.getTokenType())));
         }
 
         return bestMatches.get(0);
+    }
+
+    public int getPriority(Symbol s) {
+        Integer val = priorities.get(s);
+        return val == null ? 0 : val;
     }
 
     private void emitForAutomaton(Automaton a, EmitCallback emitCallback) {

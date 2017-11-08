@@ -2,6 +2,7 @@ package net.jr.parser.impl;
 
 import net.jr.collection.iterators.Iterators;
 import net.jr.collection.iterators.PushbackIterator;
+import net.jr.common.Symbol;
 import net.jr.lexer.Lexeme;
 import net.jr.lexer.Lexer;
 import net.jr.lexer.Token;
@@ -14,7 +15,6 @@ import net.jr.parser.errors.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Reader;
 import java.util.*;
 
 /**
@@ -76,8 +76,6 @@ public class LRParser implements Parser {
 
     public AstNode parse(Iterator<Token> it) {
 
-        getLog().debug("\n" + actionTable.toString());
-
         final PushbackIterator<Token> tokenIterator;
         if (it instanceof PushbackIterator) {
             tokenIterator = (PushbackIterator<Token>) it;
@@ -98,15 +96,15 @@ public class LRParser implements Parser {
             int currentState = currentContext.getState();
             Token token = tokenIterator.next();
 
-            if (getLog().isDebugEnabled()) {
-                getLog().debug("-> Current state : " + currentState);
+            if (getLog().isTraceEnabled()) {
+                getLog().trace("-> Current state : " + currentState);
                 String msg = "   Input token : " + token.getTokenType();
                 String txt = token.getMatchedText();
                 if (txt != null) {
                     msg += " (matched text : '" + token.getMatchedText() + "' )";
                 }
 
-                getLog().debug(msg);
+                getLog().trace(msg);
             }
 
             Action decision = actionTable.getAction(currentState, token.getTokenType());
@@ -122,7 +120,7 @@ public class LRParser implements Parser {
                 }
             }
 
-            getLog().debug(String.format("   Decision : %s %d", decision.getActionType().name(), decision.getActionParameter()));
+            getLog().trace(String.format("   Decision : %s %d", decision.getActionType().name(), decision.getActionParameter()));
 
             switch (decision.getActionType()) {
                 case Accept:
@@ -165,6 +163,16 @@ public class LRParser implements Parser {
             public String toString() {
                 return token.toString();
             }
+
+            @Override
+            public Symbol getSymbol() {
+                return asToken().getTokenType();
+            }
+
+            @Override
+            public String repr() {
+                return token.getMatchedText();
+            }
         }, nextState));
     }
 
@@ -183,6 +191,11 @@ public class LRParser implements Parser {
         }
 
         @Override
+        public Symbol getSymbol() {
+            return rule.getTarget();
+        }
+
+        @Override
         public Token asToken() {
             if (children.size() == 1) {
                 return children.get(0).asToken();
@@ -196,7 +209,7 @@ public class LRParser implements Parser {
 
         // for each symbol on the left side of the rule, a state is removed from the stack
         Rule rule = grammar.getRuleById(ruleIndex);
-        getLog().debug("      - reducing rule : " + rule);
+        getLog().trace("      - reducing rule : " + rule);
 
         AstNodeNonLeaf astNode = new AstNodeNonLeaf(rule);
         ParserContext nextParserContext = new ParserContext(astNode);
@@ -216,7 +229,7 @@ public class LRParser implements Parser {
         int newState = actionTable.getNextState(stack.peek().getState(), rule.getTarget());
         nextParserContext.setState(newState);
 
-        getLog().debug("      - goto " + newState);
+        getLog().trace("      - goto " + newState);
 
         stack.push(nextParserContext);
     }
