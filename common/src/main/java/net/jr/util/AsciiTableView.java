@@ -62,7 +62,7 @@ public class AsciiTableView {
             Object data = tableModel.getData(i, row);
             String s = data == null ? "" : data.toString().trim().replaceAll("\r?\n", "");
             if (s.length() < colWidth) {
-                while (s.length() != colWidth) s += " ";
+                s = StringUtil.center(s, colWidth);
             } else {
                 s = s.substring(0, Math.min(s.length(), colWidth));
             }
