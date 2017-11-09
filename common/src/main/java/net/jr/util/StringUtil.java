@@ -34,7 +34,7 @@ public final class StringUtil {
      * @param number
      * @return
      */
-    public static String toSuperScript(long number) {
+    public static String toSuperscript(long number) {
         StringWriter sw = new StringWriter();
         for (char c : Long.toString(number).toCharArray()) {
             switch (c) {

@@ -106,7 +106,7 @@ public class LexerTest {
             if(whitespace) {
                 Assert.fail();
             }
-            integerList.add(Integer.parseInt(token.getMatchedText()));
+            integerList.add(Integer.parseInt(token.getText()));
         });
         lexer.tokenize("254 75468 68468 144 4548 941 1");
         Assert.assertEquals(7, integerList.size());
@@ -126,7 +126,7 @@ public class LexerTest {
         lexer.tokenListener(t -> tokenList.add(t));
         lexer.tokenize("identify");
         Assert.assertFalse(tokenList.isEmpty());
-        Assert.assertEquals("identify", tokenList.get(0).getMatchedText());
+        Assert.assertEquals("identify", tokenList.get(0).getText());
     }
 
     @Test
@@ -260,7 +260,7 @@ public class LexerTest {
         int i=0;
         for(Token token : tokens) {
             if(i<txt.length()) {
-                Assert.assertEquals(txt.toCharArray()[i++], token.getMatchedText().charAt(0));
+                Assert.assertEquals(txt.toCharArray()[i++], token.getText().charAt(0));
             }
         }
         Assert.assertTrue(tokens.get(tokens.size()-1).getTokenType().equals(Lexemes.eof()));
@@ -282,19 +282,19 @@ public class LexerTest {
         lexer.filterOut(Lexemes.whitespace());
         List<Token> tokens = lexer.tokenize("0xdead\n0xbeef\n\n    0xcafe 0xbabe");
 
-        Assert.assertEquals("0xdead", tokens.get(0).getMatchedText());
+        Assert.assertEquals("0xdead", tokens.get(0).getText());
         Assert.assertEquals(1, tokens.get(0).getPosition().getLine());
         Assert.assertEquals(1, tokens.get(0).getPosition().getColumn());
 
-        Assert.assertEquals("0xbeef", tokens.get(1).getMatchedText());
+        Assert.assertEquals("0xbeef", tokens.get(1).getText());
         Assert.assertEquals(2, tokens.get(1).getPosition().getLine());
         Assert.assertEquals(1, tokens.get(1).getPosition().getColumn());
 
-        Assert.assertEquals("0xcafe", tokens.get(2).getMatchedText());
+        Assert.assertEquals("0xcafe", tokens.get(2).getText());
         Assert.assertEquals(4, tokens.get(2).getPosition().getLine());
         Assert.assertEquals(5, tokens.get(2).getPosition().getColumn());
 
-        Assert.assertEquals("0xbabe", tokens.get(3).getMatchedText());
+        Assert.assertEquals("0xbabe", tokens.get(3).getText());
         Assert.assertEquals(4, tokens.get(3).getPosition().getLine());
         Assert.assertEquals(12, tokens.get(3).getPosition().getColumn());
     }

@@ -98,9 +98,9 @@ public class LRParser implements Parser {
             if (getLog().isTraceEnabled()) {
                 getLog().trace("-> Current state : " + currentState);
                 String msg = "   Input token : " + token.getTokenType();
-                String txt = token.getMatchedText();
+                String txt = token.getText();
                 if (txt != null) {
-                    msg += " (matched text : '" + token.getMatchedText() + "' )";
+                    msg += " (matched text : '" + token.getText() + "' )";
                 }
 
                 getLog().trace(msg);
@@ -177,7 +177,7 @@ public class LRParser implements Parser {
 
             @Override
             public String repr() {
-                return token.getMatchedText();
+                return token.getText();
             }
         }, nextState));
     }

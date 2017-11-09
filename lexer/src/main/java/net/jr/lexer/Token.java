@@ -16,7 +16,7 @@ public class Token {
         this.matchedText = matchedText;
     }
 
-    public String getMatchedText() {
+    public String getText() {
         return matchedText;
     }
 

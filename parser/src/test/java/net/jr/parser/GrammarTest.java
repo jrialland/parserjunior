@@ -1,13 +1,11 @@
 package net.jr.parser;
 
 import net.jr.common.Symbol;
-import net.jr.lexer.Lexeme;
 import net.jr.lexer.Lexemes;
 import net.jr.lexer.Lexer;
 import net.jr.lexer.impl.Literal;
 import net.jr.lexer.impl.SingleChar;
 import net.jr.lexer.impl.Word;
-import net.jr.parser.ast.AstNode;
 import net.jr.parser.impl.LRParser;
 import org.junit.Assert;
 import org.junit.Before;
@@ -224,7 +222,7 @@ public class GrammarTest {
         g.setPrecedenceLevel(10, plus, minus);
 
         g.addRule(E, Lexemes.cInteger()).withAction(node -> {
-            int value = Integer.parseInt(node.asToken().getMatchedText());
+            int value = Integer.parseInt(node.asToken().getText());
             calculatorStack.push(value);
         });
 
@@ -233,7 +231,7 @@ public class GrammarTest {
                 .withAction(ctx -> {
                     int topOfStack = calculatorStack.pop();
                     int nextInStack = calculatorStack.pop();
-                    String operation = ctx.getChildren().get(1).asToken().getMatchedText();
+                    String operation = ctx.getChildren().get(1).asToken().getText();
                     switch (operation) {
                         case "-":
                             calculatorStack.push(nextInStack - topOfStack);
@@ -249,7 +247,7 @@ public class GrammarTest {
                 .withAction(ctx -> {
                     int topOfStack = calculatorStack.pop();
                     int nextInStack = calculatorStack.pop();
-                    String operation = ctx.getChildren().get(1).asToken().getMatchedText();
+                    String operation = ctx.getChildren().get(1).asToken().getText();
                     switch (operation) {
                         case "*":
                             calculatorStack.push(nextInStack * topOfStack);

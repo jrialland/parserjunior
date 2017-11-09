@@ -31,7 +31,7 @@ public class ParseError extends RuntimeException {
             sw.append(" ( got ");
             sw.append(token.getTokenType().toString());
             sw.append(" '");
-            sw.append(token.getMatchedText());
+            sw.append(token.getText());
             sw.append("'");
             sw.append(" instead)");
         }

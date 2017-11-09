@@ -53,6 +53,7 @@ public class Lexer {
 
     /**
      * The higher the number, the lower the priority is
+     *
      * @param s
      * @param priority 0 is best, Integer.MAX_VALUE is lowest priority
      */
@@ -185,15 +186,19 @@ public class Lexer {
             }
 
             Lexeme eof = Lexemes.eof();
+
             if (!filteredOut.contains(eof)) {
                 Token eofToken = new Token(Lexemes.eof(), position.nextColumn(), null);
                 if (tokenListener != null) {
-                    tokenListener.onToken(eofToken);
+                    eofToken = tokenListener.onNewToken(eofToken);
                 }
-                callback.emit(eofToken);
+                if (eofToken != null) {
+                    callback.emit(eofToken);
+                }
             }
 
             return false;
+
         } else {
 
             final char c = (char) r;
@@ -269,9 +274,11 @@ public class Lexer {
         if (!filteredOut.contains(a.getTokenType())) {
             Token token = new Token(a.getTokenType(), p, matchedText);
             if (tokenListener != null) {
-                tokenListener.onToken(token);
+                token = tokenListener.onNewToken(token);
             }
-            emitCallback.emit(token);
+            if (token != null) {
+                emitCallback.emit(token);
+            }
         }
         lastMatchSize = matchedText.length();
     }

@@ -78,7 +78,7 @@ public class CGrammarTest {
 
             @Target("FunctionDefinition")
             public void visitFunctionDef(AstNode node) {
-                //String methodName = node.getChildOfType(CGrammar.Declarator).getChildOfType(CGrammar.DirectDeclarator).getChildren().get(0).asToken().getMatchedText();
+                //String methodName = node.getChildOfType(CGrammar.Declarator).getChildOfType(CGrammar.DirectDeclarator).getChildren().get(0).asToken().getText();
                 //Assert.assertEquals("fibo", methodName);
                 called.set(true);
             }

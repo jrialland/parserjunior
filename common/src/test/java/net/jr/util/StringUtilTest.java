@@ -12,8 +12,8 @@ public class StringUtilTest {
     }
 
     @Test
-    public void testSuperScript() {
-        String s  = StringUtil.toSuperScript(-123841);
+    public void testSuperscript() {
+        String s  = StringUtil.toSuperscript(-123841);
         Assert.assertEquals("-¹²³⁸⁴¹", s);
     }
 
