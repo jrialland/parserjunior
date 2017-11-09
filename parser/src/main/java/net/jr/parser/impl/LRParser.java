@@ -123,6 +123,7 @@ public class LRParser implements Parser {
 
             switch (decision.getActionType()) {
                 case Accept:
+                    accept(stack);
                     completed = true;
                     break;
                 case Fail:
@@ -139,6 +140,12 @@ public class LRParser implements Parser {
             }
         }
         return stack.pop().getAstNode();
+    }
+
+    protected void accept(Stack<ParserContext> stack) {
+        Rule targetRule = grammar.getRulesTargeting(grammar.getTargetSymbol()).iterator().next();
+        AstNode node = makeNode(stack, targetRule);
+        stack.push(new ParserContext(node));
     }
 
     /**
@@ -203,33 +210,30 @@ public class LRParser implements Parser {
         }
     }
 
-
-    protected void reduce(Stack<ParserContext> stack, int ruleIndex) {
-
+    protected AstNode makeNode(Stack<ParserContext> stack, Rule rule) {
         // for each symbol on the left side of the rule, a state is removed from the stack
-        Rule rule = grammar.getRuleById(ruleIndex);
         getLog().trace("      - reducing rule : " + rule);
-
         AstNodeNonLeaf astNode = new AstNodeNonLeaf(rule);
-        ParserContext nextParserContext = new ParserContext(astNode);
-
         List<AstNode> children = astNode.getChildren();
         for (int i = 0; i < rule.getClause().length; i++) {
             children.add(stack.pop().getAstNode());
         }
         Collections.reverse(children);
-
         if (((BaseRule) rule).getAction() != null) {
             ((BaseRule) rule).getAction().accept(astNode);
         }
+        return astNode;
+    }
 
+    protected void reduce(Stack<ParserContext> stack, int ruleIndex) {
+        Rule rule = grammar.getRuleById(ruleIndex);
+        AstNode astNode = makeNode(stack, rule);
+        ParserContext nextParserContext = new ParserContext(astNode);
         // depending on the state that is now on the top of stack, and the target of the rule,
         // a new state is searched in the goto table and becomes the current state
         int newState = actionTable.getNextState(stack.peek().getState(), rule.getTarget());
         nextParserContext.setState(newState);
-
         getLog().trace("      - goto " + newState);
-
         stack.push(nextParserContext);
     }
 
