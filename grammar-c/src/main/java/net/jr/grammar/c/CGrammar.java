@@ -275,8 +275,13 @@ public class CGrammar extends Grammar {
                 Tokens.Unsigned
         };
 
-        addRule(TypeSpecifier, oneOf(basicTypeNames));
-        //addRule(TypeSpecifier, Tokens.Identifier);//FIXME
+        //addRule(TypeSpecifier, oneOf(basicTypeNames));
+
+        //http://calculist.blogspot.fr/2009/02/c-typedef-parsing-problem.html
+        //The well-known "typedef problem" with parsing C is that the standard C grammar is ambiguous unless the lexer distinguishes identifiers bound by typedef and other identifiers as two separate lexical classes.
+        addRule(TypeSpecifier, Tokens.Identifier).withAction(node -> {
+            System.out.println(node);
+        });//FIXME
 
         addRule(TypeSpecifier, StructOrUnionSpecifier);
         addRule(TypeSpecifier, EnumSpecifier);

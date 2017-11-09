@@ -30,8 +30,7 @@ public class ParseError extends RuntimeException {
             }
             sw.append(" ( got ");
             sw.append(token.getTokenType().toString());
-            sw.append("/");
-            sw.append("'");
+            sw.append(" '");
             sw.append(token.getMatchedText());
             sw.append("'");
             sw.append(" instead)");

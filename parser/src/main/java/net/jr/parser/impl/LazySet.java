@@ -5,6 +5,7 @@ import net.jr.parser.Grammar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.StringWriter;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -60,9 +61,23 @@ public abstract class LazySet {
             }
             resolved = simplify(map.values());
         }
+
         getLog().trace(String.format("%d/%d", resolved, total));
 
         if (resolved < total) {
+
+            if(getLog().isDebugEnabled()) {
+                StringWriter sw = new StringWriter();
+                sw.append("Unresolved expressions :\n");
+                for(FollowSet f : map.values()) {
+                    if(!f.isResolved()) {
+                        sw.append(f.toString() + " = " + f.compositionToString());
+                        sw.append("\n");
+                    }
+                }
+                getLog().debug(sw.toString());
+            }
+
             throw new IllegalStateException("Could not compute 'Follow' sets, please check your grammar");
         }
 
@@ -76,6 +91,7 @@ public abstract class LazySet {
      */
     private static int simplify(Collection<FollowSet> sets) {
         final EvtSupport bus = new EvtSupport();
+
         for (LazySet ls : sets) {
             if (!ls.isResolved()) {
                 //the list that has to be resolved in order to consider ls resolved

@@ -90,7 +90,7 @@ public class ActionTableTest {
 
         Map<Symbol, Set<? extends Symbol>> followSets = builder.getFollowSets(extended);
         for (Map.Entry<Symbol, Set<? extends Symbol>> entry : followSets.entrySet()) {
-            System.out.println(entry.getKey() + "    " + entry.getValue());
+           //System.out.println(entry.getKey() + "    " + entry.getValue());
         }
     }
 }
