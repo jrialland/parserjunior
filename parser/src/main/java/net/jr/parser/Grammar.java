@@ -16,11 +16,6 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-/**
- * https://web.cs.dal.ca/~sjackson/lalr1.html
- * http://jsmachines.sourceforge.net/machines/lalr1.html
- * https://www.codeproject.com/articles/252399/lalr-parse-table-generation-in-csharp
- */
 public class Grammar {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Grammar.class);
@@ -73,7 +68,7 @@ public class Grammar {
 
     public interface RuleSpecifier {
 
-        RuleSpecifier withAction(Consumer<AstNode> consumer);
+        RuleSpecifier withAction(Consumer<ParsingContext> consumer);
 
         RuleSpecifier withPrecedenceLevel(int level);
 
@@ -119,7 +114,7 @@ public class Grammar {
         return new RuleSpecifier() {
 
             @Override
-            public RuleSpecifier withAction(Consumer<AstNode> consumer) {
+            public RuleSpecifier withAction(Consumer<ParsingContext> consumer) {
                 rule.setAction(consumer);
                 return this;
             }
@@ -334,12 +329,6 @@ public class Grammar {
         }
     }
 
-    public ActionTable getActionTable(Symbol symbol) {
-        Grammar grammar = getSubGrammar(symbol);
-        Rule targetRule = grammar.getRulesTargeting(grammar.getTargetSymbol()).iterator().next();
-        return ActionTable.lalr1(grammar, targetRule);
-    }
-
     public Set<Rule> getRulesTargeting(Symbol symbol) {
         return rules.stream().filter(r -> r.getTarget().equals(symbol)).collect(Collectors.toSet());
     }
@@ -426,11 +415,13 @@ public class Grammar {
         return tmp;
     }
 
-    public Forward list(Symbol separator, Symbol typeOfItems) {
+    public Forward list(boolean allowEmptyList, Symbol separator, Symbol typeOfItems) {
         Forward tmp = new Forward("listOf(" + typeOfItems + ")");
         addRule(tmp, typeOfItems);
         addRule(tmp, tmp, separator, typeOfItems);
-        addEmptyRule(tmp);
+        if(allowEmptyList) {
+            addEmptyRule(tmp);
+        }
         return tmp;
     }
 }

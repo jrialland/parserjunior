@@ -1,6 +1,5 @@
 package net.jr.parser.impl;
 
-import net.jr.collection.iterators.Iterators;
 import net.jr.collection.iterators.PushbackIterator;
 import net.jr.common.Symbol;
 import net.jr.lexer.Lexeme;
@@ -14,6 +13,7 @@ import net.jr.parser.ast.AstNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Reader;
 import java.util.*;
 
 /**
@@ -73,14 +73,9 @@ public class LRParser implements Parser {
         this.actionTable = actionTable;
     }
 
-    public AstNode parse(Iterator<Token> it) {
+    public AstNode parse(Lexer lexer, Reader reader) {
 
-        final PushbackIterator<Token> tokenIterator;
-        if (it instanceof PushbackIterator) {
-            tokenIterator = (PushbackIterator<Token>) it;
-        } else {
-            tokenIterator = Iterators.pushbackIterator(it);
-        }
+        final PushbackIterator<Token> tokenIterator = lexer.iterator(reader);
 
         Stack<ParserContext> stack = new Stack<>();
 
@@ -123,7 +118,7 @@ public class LRParser implements Parser {
 
             switch (decision.getActionType()) {
                 case Accept:
-                    accept(stack);
+                    accept(stack, lexer, tokenIterator);
                     completed = true;
                     break;
                 case Fail:
@@ -132,7 +127,7 @@ public class LRParser implements Parser {
                     shift(token, stack, decision.getActionParameter());
                     break;
                 case Reduce:
-                    reduce(stack, decision.getActionParameter());
+                    reduce(stack, lexer, tokenIterator, decision.getActionParameter());
                     tokenIterator.pushback(token);
                     break;
                 default:
@@ -142,9 +137,9 @@ public class LRParser implements Parser {
         return stack.pop().getAstNode();
     }
 
-    protected void accept(Stack<ParserContext> stack) {
+    protected void accept(Stack<ParserContext> stack, Lexer lexer, PushbackIterator<Token> tokenIterator) {
         Rule targetRule = grammar.getRulesTargeting(grammar.getTargetSymbol()).iterator().next();
-        AstNode node = makeNode(stack, targetRule);
+        AstNode node = makeNode(stack, lexer, tokenIterator, targetRule);
         stack.push(new ParserContext(node));
     }
 
@@ -208,9 +203,14 @@ public class LRParser implements Parser {
             }
             return null;
         }
+
+        @Override
+        public String toString() {
+            return rule.getTarget().toString();
+        }
     }
 
-    protected AstNode makeNode(Stack<ParserContext> stack, Rule rule) {
+    protected AstNode makeNode(Stack<ParserContext> stack, final Lexer lexer, final PushbackIterator<Token> tokenIterator, Rule rule) {
         // for each symbol on the left side of the rule, a state is removed from the stack
         getLog().trace("      - reducing rule : " + rule);
         AstNodeNonLeaf astNode = new AstNodeNonLeaf(rule);
@@ -218,16 +218,20 @@ public class LRParser implements Parser {
         for (int i = 0; i < rule.getClause().length; i++) {
             children.add(stack.pop().getAstNode());
         }
+
         Collections.reverse(children);
+
         if (((BaseRule) rule).getAction() != null) {
-            ((BaseRule) rule).getAction().accept(astNode);
+            ParsingContextImpl parsingContext = new ParsingContextImpl(this, lexer, tokenIterator, astNode);
+            ((BaseRule) rule).getAction().accept(parsingContext);
         }
+
         return astNode;
     }
 
-    protected void reduce(Stack<ParserContext> stack, int ruleIndex) {
+    protected void reduce(Stack<ParserContext> stack, final Lexer lexer, final PushbackIterator<Token> tokenIterator, int ruleIndex) {
         Rule rule = grammar.getRuleById(ruleIndex);
-        AstNode astNode = makeNode(stack, rule);
+        AstNode astNode = makeNode(stack, lexer, tokenIterator, rule);
         ParserContext nextParserContext = new ParserContext(astNode);
         // depending on the state that is now on the top of stack, and the target of the rule,
         // a new state is searched in the goto table and becomes the current state

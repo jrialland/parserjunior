@@ -67,7 +67,7 @@ public class GrammarTest {
         Lexer lexer = Lexer.forLexemes(grammar.getTerminals());
         lexer.filterOut(Lexemes.whitespace());
 
-        parser.parse(lexer.iterator(new StringReader("x = *x")));
+        parser.parse(lexer, new StringReader("x = *x"));
 
     }
 
@@ -97,7 +97,7 @@ public class GrammarTest {
         Parser parser = g.createParser(S);
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
 
-        ((LRParser)parser).parse("1+1");
+        ((LRParser) parser).parse("1+1");
     }
 
     @Test
@@ -110,8 +110,8 @@ public class GrammarTest {
         Parser parser = g.createParser(V);
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
 
-        parser.parse(lexer.iterator(new StringReader("0")));
-        parser.parse(lexer.iterator(new StringReader("1")));
+        parser.parse(lexer, new StringReader("0"));
+        parser.parse(lexer, new StringReader("1"));
     }
 
     @Test
@@ -131,10 +131,10 @@ public class GrammarTest {
         lexer.filterOut(Lexemes.whitespace());
 
         //empty list is ok
-        parser.parse(lexer.iterator(new StringReader("()")));
+        parser.parse(lexer, new StringReader("()"));
 
         //list of identifiers
-        parser.parse(lexer.iterator(new StringReader("(list, of, identifiers)")));
+        parser.parse(lexer, new StringReader("(list, of, identifiers)"));
 
 
     }
@@ -143,20 +143,20 @@ public class GrammarTest {
     public void testList() {
         Grammar g = new Grammar();
         Symbol L = new Forward("list");
-        g.addRule(L, new SingleChar('('), g.list(new SingleChar(','), Lexemes.cIdentifier()), new SingleChar(')'));
+        g.addRule(L, new SingleChar('('), g.list(true, new SingleChar(','), Lexemes.cIdentifier()), new SingleChar(')'));
 
         Parser parser = g.createParser(L);
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
         lexer.filterOut(Lexemes.whitespace());
 
         //empty list are ok
-        parser.parse(lexer.iterator(new StringReader("()")));
+        parser.parse(lexer, new StringReader("()"));
 
         //list of identifiers
-        parser.parse(lexer.iterator(new StringReader("(list, of, identifiers)")));
+        parser.parse(lexer, new StringReader("(list, of, identifiers)"));
 
         try {
-            parser.parse(lexer.iterator(new StringReader("(list")));
+            parser.parse(lexer, new StringReader("(list"));
             Assert.fail();
         } catch (ParseError e) {
             //ok!
@@ -174,10 +174,10 @@ public class GrammarTest {
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
         lexer.filterOut(Lexemes.whitespace());
 
-        parser.parse(lexer.iterator(new StringReader(">>")));
+        parser.parse(lexer, new StringReader(">>"));
 
         //list of identifiers
-        parser.parse(lexer.iterator(new StringReader(">>oh! eh! yeah!")));
+        parser.parse(lexer, new StringReader(">>oh! eh! yeah!"));
 
     }
 
@@ -191,11 +191,11 @@ public class GrammarTest {
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
         lexer.filterOut(Lexemes.whitespace());
 
-        parser.parse(lexer.iterator(new StringReader("nahnah nahnah nahnah nahnah nahnah batman")));
-        parser.parse(lexer.iterator(new StringReader("nahnah batman")));
+        parser.parse(lexer, new StringReader("nahnah nahnah nahnah nahnah nahnah batman"));
+        parser.parse(lexer, new StringReader("nahnah batman"));
 
         try {
-            parser.parse(lexer.iterator(new StringReader("batman")));
+            parser.parse(lexer, new StringReader("batman"));
             Assert.fail();
         } catch (ParseError pe) {
             //ok!
@@ -221,8 +221,8 @@ public class GrammarTest {
         g.setPrecedenceLevel(20, mult, div);
         g.setPrecedenceLevel(10, plus, minus);
 
-        g.addRule(E, Lexemes.cInteger()).withAction(node -> {
-            int value = Integer.parseInt(node.asToken().getText());
+        g.addRule(E, Lexemes.cInteger()).withAction(ctx -> {
+            int value = Integer.parseInt(ctx.getAstNode().asToken().getText());
             calculatorStack.push(value);
         });
 
@@ -231,7 +231,7 @@ public class GrammarTest {
                 .withAction(ctx -> {
                     int topOfStack = calculatorStack.pop();
                     int nextInStack = calculatorStack.pop();
-                    String operation = ctx.getChildren().get(1).asToken().getText();
+                    String operation = ctx.getAstNode().getChildren().get(1).asToken().getText();
                     switch (operation) {
                         case "-":
                             calculatorStack.push(nextInStack - topOfStack);
@@ -247,7 +247,7 @@ public class GrammarTest {
                 .withAction(ctx -> {
                     int topOfStack = calculatorStack.pop();
                     int nextInStack = calculatorStack.pop();
-                    String operation = ctx.getChildren().get(1).asToken().getText();
+                    String operation = ctx.getAstNode().getChildren().get(1).asToken().getText();
                     switch (operation) {
                         case "*":
                             calculatorStack.push(nextInStack * topOfStack);
@@ -262,14 +262,14 @@ public class GrammarTest {
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
         lexer.filterOut(Lexemes.whitespace());
 
-        parser.parse(lexer.iterator(new StringReader(expression)));
+        parser.parse(lexer, new StringReader(expression));
 
         return calculatorStack.pop();
     }
 
     @Test
     public void testStability() {
-        for(int i=0; i<100; i++) {
+        for (int i = 0; i < 100; i++) {
             new IfElseTest().testParseNestedElse();
         }
     }

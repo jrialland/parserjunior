@@ -5,19 +5,20 @@ import net.jr.lexer.Token;
 import net.jr.parser.ast.AstNode;
 
 import java.io.Reader;
+import java.io.StringReader;
 import java.util.Iterator;
 
 public interface Parser {
 
-    AstNode parse(Iterator<Token> tokenIterator);
+    AstNode parse(Lexer lexer, Reader reader);
 
     Lexer getDefaultLexer();
 
     default AstNode parse(String txt) {
-        return parse(getDefaultLexer().iterator(txt));
+        return parse(getDefaultLexer(), new StringReader(txt));
     }
 
     default AstNode parse(Reader reader) {
-        return parse(getDefaultLexer().iterator(reader));
+        return parse(getDefaultLexer(), reader);
     }
 }

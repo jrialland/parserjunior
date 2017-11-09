@@ -1,13 +1,13 @@
 package net.jr.grammar.c;
 
-import net.jr.lexer.Lexeme;
-import net.jr.lexer.Lexemes;
-import net.jr.lexer.Lexer;
+import net.jr.common.Symbol;
+import net.jr.lexer.*;
 import net.jr.lexer.impl.Word;
-import net.jr.parser.Forward;
-import net.jr.parser.Grammar;
-import net.jr.parser.Parser;
-import net.jr.parser.Rule;
+import net.jr.parser.*;
+import net.jr.parser.ast.AstNode;
+
+import java.util.Set;
+import java.util.TreeSet;
 
 public class CGrammar extends Grammar {
 
@@ -92,6 +92,7 @@ public class CGrammar extends Grammar {
         public static Lexeme Union = Lexemes.literal("union");
         public static Lexeme Inc_op = Lexemes.literal("++");
         public static Lexeme Default = Lexemes.literal("default");
+        public static Lexeme TypeName = new Word("_" + Lexemes.Alpha, "_" + Lexemes.AlphaNum);
     }
 
     public static final Forward CastExpression = new Forward("CastExpression");
@@ -162,7 +163,7 @@ public class CGrammar extends Grammar {
 
     CGrammar() {
 
-        setName("C11");
+        setName("C");
 
         addRule(Constant, oneOrMore(Tokens.String_literal));
         addRule(Constant, Lexemes.cInteger());
@@ -245,18 +246,50 @@ public class CGrammar extends Grammar {
         addRule(Expression, AssignmentExpression);
         addRule(Expression, Expression, Tokens.Comma, AssignmentExpression);
         addRule(ConstantExpression, ConditionalExpression);
+
         addRule(Declaration, DeclarationSpecifiers, Tokens.DotComma);
-        addRule(Declaration, DeclarationSpecifiers, InitDeclaratorList, Tokens.DotComma);
+
+        //This hacky action for handling the 'typedef-name' issue in C grammar (more comments on this in the LexerHack class)
+        addRule(Declaration, DeclarationSpecifiers, InitDeclaratorList, Tokens.DotComma).withAction(parsingContext -> {
+
+            AstNode astNode = parsingContext.getAstNode();
+            AstNode storageClass = astNode.getChildOfType(DeclarationSpecifiers).getChildOfType(StorageClassSpecifier);
+
+            //when the declaration is a typedef
+            if (storageClass != null && storageClass.repr().equals("typedef")) {
+                AstNode initDeclaratorList = astNode.getChildOfType(InitDeclaratorList);
+
+                //for each declarator
+                for (AstNode initDeclarator : initDeclaratorList.find(InitDeclarator)) {
+                    AstNode declarator = initDeclarator.getChildOfType(Declarator);
+
+                    //find its name
+                    String name = getDeclaratorName(declarator);
+
+                    //update lexer context
+                    Lexer lexer = parsingContext.getLexer();
+                    LexerHack lh = (LexerHack) lexer.getTokenListener();
+                    lh.addTypeName(name);
+                }
+            }
+
+        });
+
         addRule(DeclarationSpecifiers, StorageClassSpecifier);
         addRule(DeclarationSpecifiers, StorageClassSpecifier, DeclarationSpecifiers);
+
         addRule(DeclarationSpecifiers, TypeSpecifier);
         addRule(DeclarationSpecifiers, TypeSpecifier, DeclarationSpecifiers);
+
         addRule(DeclarationSpecifiers, TypeQualifier);
         addRule(DeclarationSpecifiers, TypeQualifier, DeclarationSpecifiers);
+
         addRule(InitDeclaratorList, InitDeclarator);
         addRule(InitDeclaratorList, InitDeclaratorList, Tokens.Comma, InitDeclarator);
+
         addRule(InitDeclarator, Declarator);
         addRule(InitDeclarator, Declarator, Tokens.Eq, Initializer);
+
         addRule(StorageClassSpecifier, Tokens.Typedef);
         addRule(StorageClassSpecifier, Tokens.Extern);
         addRule(StorageClassSpecifier, Tokens.Static);
@@ -275,16 +308,12 @@ public class CGrammar extends Grammar {
                 Tokens.Unsigned
         };
 
-        //addRule(TypeSpecifier, oneOf(basicTypeNames));
-
-        //http://calculist.blogspot.fr/2009/02/c-typedef-parsing-problem.html
-        //The well-known "typedef problem" with parsing C is that the standard C grammar is ambiguous unless the lexer distinguishes identifiers bound by typedef and other identifiers as two separate lexical classes.
-        addRule(TypeSpecifier, Tokens.Identifier).withAction(node -> {
-            System.out.println(node);
-        });//FIXME
-
+        addRule(TypeSpecifier, oneOf(basicTypeNames));
         addRule(TypeSpecifier, StructOrUnionSpecifier);
         addRule(TypeSpecifier, EnumSpecifier);
+
+        //see comments on the LexerHack class for more infos on this rule
+        addRule(TypeSpecifier, Tokens.TypeName);
 
         addRule(StructOrUnionSpecifier, StructOrUnion, Tokens.Identifier, Tokens.LeftCurlyBrace, StructDeclarationList, Tokens.RightCurlyBrace);
         addRule(StructOrUnionSpecifier, StructOrUnion, Tokens.LeftCurlyBrace, StructDeclarationList, Tokens.RightCurlyBrace);
@@ -399,13 +428,57 @@ public class CGrammar extends Grammar {
         setTargetSymbol(CompilationUnit);
     }
 
+    protected String getDeclaratorName(AstNode declarator) {
+        Token t = declarator.getChildOfType(DirectDeclarator).asToken();
+        if(t != null) {
+            return t.getText();
+        }
+        throw new UnsupportedOperationException("");
+    }
+
     @Override
-    public Parser createParser() {
-        Parser parser = super.createParser();
+    public Parser createParser(Symbol targetSymbol) {
+        Parser parser = super.createParser(targetSymbol);
         Lexer lexer = parser.getDefaultLexer();
+        lexer.filterOut(Lexemes.multilineComment("/*", "*/"));
+        lexer.filterOut(Lexemes.lineComment("//"));
         lexer.filterOut(Lexemes.whitespace());
         lexer.filterOut(Lexemes.newLine());
+        lexer.setTokenListener(new LexerHack());
         return parser;
+    }
+
+    /**
+     * http://calculist.blogspot.fr/2009/02/c-typedef-parsing-problem.html
+     * <p>
+     * The well-known "typedef problem" with parsing C is that the standard C grammar is ambiguous unless
+     * the lexer distinguishes identifiers bound by typedef and other identifiers as two separate lexical classes.
+     */
+    private static class LexerHack implements TokenListener {
+
+        private Set<String> typeNames = new TreeSet<>();
+
+        /**
+         * New type names are added when we parse 'typedef ...;' rules.
+         *
+         * @param typeName
+         */
+        public void addTypeName(String typeName) {
+            typeNames.add(typeName);
+        }
+
+        @Override
+        public Token onNewToken(Token token) {
+            String text = token.getText();
+            //we have an identifier that matches a known type name
+            if (text != null && typeNames.contains(text)) {
+                //we return a modified token with the 'TypeName' type
+                return new Token(Tokens.TypeName, token.getPosition(), text);
+            } else {
+                return token;
+            }
+        }
+
     }
 
     public Rule getStartRule() {

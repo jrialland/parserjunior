@@ -101,7 +101,7 @@ public class LexerTest {
 
         List<Integer> integerList = new ArrayList<>();
 
-        lexer.tokenListener(token -> {
+        lexer.setTokenListener(token -> {
             boolean whitespace = token.getTokenType().equals(Lexemes.whitespace());
             if(whitespace) {
                 Assert.fail();
@@ -124,7 +124,7 @@ public class LexerTest {
     public void testBestMatch() {
         Lexer lexer = Lexer.forLexemes(new Literal("id"), Lexemes.cIdentifier());
         List<Token> tokenList = new ArrayList<>();
-        lexer.tokenListener(t -> {
+        lexer.setTokenListener(t -> {
             tokenList.add(t);
             return t;
         });
@@ -236,7 +236,7 @@ public class LexerTest {
 
 
         Lexer lexer = Lexer.forLexemes(Lexemes.cHexNumber(), Lexemes.whitespace());
-        lexer.tokenListener(token -> {
+        lexer.setTokenListener(token -> {
             System.out.println(token);
             return token;
         });

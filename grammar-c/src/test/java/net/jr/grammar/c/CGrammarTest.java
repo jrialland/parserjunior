@@ -42,19 +42,6 @@ public class CGrammarTest {
     }
 
     @Test
-    public void testLexer() {
-            Lexer lexer = new CGrammar().createParser().getDefaultLexer();
-
-            int priorityOfInt = lexer.getPriority(Lexemes.literal("int"));
-            int priorityOfIdentifier = lexer.getPriority(CGrammar.Tokens.Identifier);
-
-            Assert.assertTrue(priorityOfInt > priorityOfIdentifier);
-
-            Lexeme l = lexer.tokenize("int").get(0).getTokenType();
-            Assert.assertEquals(CGrammar.Tokens.Int, l);
-    }
-
-    @Test
     public void testSimple() {
         CGrammar grammar = new CGrammar();
         Parser parser = grammar.createParser();
@@ -68,6 +55,12 @@ public class CGrammarTest {
         Parser parser = grammar.createParser();
         AstNode ast = parser.parse("int main(int argc, char **argv) { if(argc==0) { return false;} else {return true;}}");
         Assert.assertEquals(grammar.getTargetSymbol(), ast.getSymbol());
+    }
+
+    @Test
+    public void testTypedef() {
+        CGrammar grammar = new CGrammar();
+        grammar.createParser().parse("typedef unsigned int size_t, *ptr_size_t; const ptr_size_t pointer = 0;");
     }
 
     @Test

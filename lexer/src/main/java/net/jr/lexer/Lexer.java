@@ -65,9 +65,12 @@ public class Lexer {
         return automatons.stream().map(a -> a.getTokenType()).collect(Collectors.toSet());
     }
 
-    public Lexer tokenListener(TokenListener tokenListener) {
+    public void setTokenListener(TokenListener tokenListener) {
         this.tokenListener = tokenListener;
-        return this;
+    }
+
+    public TokenListener getTokenListener() {
+        return tokenListener;
     }
 
     public Lexer filterOut(Lexeme tokenType) {
@@ -111,11 +114,11 @@ public class Lexer {
         return tokens;
     }
 
-    public Iterator<Token> iterator(String txt) {
+    public PushbackIterator<Token> iterator(String txt) {
         return iterator(new StringReader(txt));
     }
 
-    public Iterator<Token> iterator(final Reader reader) {
+    public PushbackIterator<Token> iterator(final Reader reader) {
         resetPosition();
         resetAutomatons();
         PushbackReader pReader = reader instanceof PushbackReader ? (PushbackReader) reader : new PushbackReader(reader);
@@ -188,7 +191,7 @@ public class Lexer {
             Lexeme eof = Lexemes.eof();
 
             if (!filteredOut.contains(eof)) {
-                Token eofToken = new Token(Lexemes.eof(), position.nextColumn(), null);
+                Token eofToken = new Token(Lexemes.eof(), position.nextColumn(), "");
                 if (tokenListener != null) {
                     eofToken = tokenListener.onNewToken(eofToken);
                 }

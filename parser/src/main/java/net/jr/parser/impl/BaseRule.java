@@ -2,6 +2,7 @@ package net.jr.parser.impl;
 
 import net.jr.common.Symbol;
 import net.jr.parser.Derivation;
+import net.jr.parser.ParsingContext;
 import net.jr.parser.Rule;
 import net.jr.parser.ast.AstNode;
 
@@ -14,7 +15,7 @@ public class BaseRule extends Rule {
 
     private Derivation derivation = Derivation.None;
 
-    private Consumer<AstNode> action;
+    private Consumer<ParsingContext> action;
 
     private String name;
 
@@ -33,11 +34,11 @@ public class BaseRule extends Rule {
         this.clause = clause;
     }
 
-    public void setAction(Consumer<AstNode> action) {
+    public void setAction(Consumer<ParsingContext> action) {
         this.action = action;
     }
 
-    public Consumer<AstNode> getAction() {
+    public Consumer<ParsingContext> getAction() {
         return action;
     }
 
