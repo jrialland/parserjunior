@@ -107,6 +107,7 @@ public class LexerTest {
                 Assert.fail();
             }
             integerList.add(Integer.parseInt(token.getText()));
+            return token;
         });
         lexer.tokenize("254 75468 68468 144 4548 941 1");
         Assert.assertEquals(7, integerList.size());
@@ -123,7 +124,10 @@ public class LexerTest {
     public void testBestMatch() {
         Lexer lexer = Lexer.forLexemes(new Literal("id"), Lexemes.cIdentifier());
         List<Token> tokenList = new ArrayList<>();
-        lexer.tokenListener(t -> tokenList.add(t));
+        lexer.tokenListener(t -> {
+            tokenList.add(t);
+            return t;
+        });
         lexer.tokenize("identify");
         Assert.assertFalse(tokenList.isEmpty());
         Assert.assertEquals("identify", tokenList.get(0).getText());
@@ -232,11 +236,9 @@ public class LexerTest {
 
 
         Lexer lexer = Lexer.forLexemes(Lexemes.cHexNumber(), Lexemes.whitespace());
-        lexer.tokenListener(new TokenListener() {
-            @Override
-            public void onToken(Token token) {
-                System.out.println(token);
-            }
+        lexer.tokenListener(token -> {
+            System.out.println(token);
+            return token;
         });
         lexer.tokenize("0xdeadbeef 0x15615 0x1223 0x1 0xff");
 
