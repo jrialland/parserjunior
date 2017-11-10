@@ -233,10 +233,9 @@ public class LexerTest {
     @Test
     public void testHexNumber() {
 
-
         Lexer lexer = Lexer.forLexemes(Lexemes.cHexNumber(), Lexemes.whitespace());
         lexer.setTokenListener(token -> {
-            System.out.println(token);
+            //System.out.println(token);
             return token;
         });
         lexer.tokenize("0xdeadbeef 0x15615 0x1223 0x1 0xff");

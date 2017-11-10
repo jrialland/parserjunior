@@ -45,9 +45,13 @@ public class LexerStream implements PushbackIterator<Token> {
         resetAutomatons();
     }
 
+    public Lexer getLexer() {
+        return lexer;
+    }
+
     @Override
     public void pushback(Token item) {
-        buffer.addFirst(item);
+        buffer.addFirst(tokenListener.apply(item));
     }
 
     @Override
@@ -57,6 +61,17 @@ public class LexerStream implements PushbackIterator<Token> {
         } else {
             return true;
         }
+    }
+
+    /**
+     * Empties the internal buffer
+     * @return the former content of the buffer, older tokens first (i.e the token that would have appeared next when calling {@link LexerStream#next()} is the last item in the returned list)
+     */
+    public List<Token> flushBuffer() {
+        List<Token> copy = new ArrayList<>(buffer);
+        buffer.clear();
+        Collections.reverse(copy);
+        return copy;
     }
 
     @Override

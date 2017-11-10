@@ -34,7 +34,7 @@ public class IfElseTest {
         g.addRule(SelectionStatement, If, LeftBrace, Expression, RightBrace, Statement);
         g.addRule(SelectionStatement, If, LeftBrace, Expression, RightBrace, Statement, Else, Statement);
         parser = g.createParser(All);
-        parser.getDefaultLexer().filterOut(Lexemes.whitespace());
+        parser.getDefaultLexer().setFilteredOut(Lexemes.whitespace());
     }
 
     @Test

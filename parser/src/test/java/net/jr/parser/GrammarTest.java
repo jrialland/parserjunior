@@ -65,7 +65,7 @@ public class GrammarTest {
     public void testParse() {
         Parser parser = grammar.createParser(grammar.getTargetSymbol());
         Lexer lexer = Lexer.forLexemes(grammar.getTerminals());
-        lexer.filterOut(Lexemes.whitespace());
+        lexer.setFilteredOut(Lexemes.whitespace());
 
         parser.parse(lexer, new StringReader("x = *x"));
 
@@ -128,7 +128,7 @@ public class GrammarTest {
 
         Parser parser = g.createParser();
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
-        lexer.filterOut(Lexemes.whitespace());
+        lexer.setFilteredOut(Lexemes.whitespace());
 
         //empty list is ok
         parser.parse(lexer, new StringReader("()"));
@@ -147,7 +147,7 @@ public class GrammarTest {
 
         Parser parser = g.createParser(L);
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
-        lexer.filterOut(Lexemes.whitespace());
+        lexer.setFilteredOut(Lexemes.whitespace());
 
         //empty list are ok
         parser.parse(lexer, new StringReader("()"));
@@ -172,7 +172,7 @@ public class GrammarTest {
 
         Parser parser = g.createParser(L);
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
-        lexer.filterOut(Lexemes.whitespace());
+        lexer.setFilteredOut(Lexemes.whitespace());
 
         parser.parse(lexer, new StringReader(">>"));
 
@@ -189,7 +189,7 @@ public class GrammarTest {
 
         Parser parser = g.createParser(S);
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
-        lexer.filterOut(Lexemes.whitespace());
+        lexer.setFilteredOut(Lexemes.whitespace());
 
         parser.parse(lexer, new StringReader("nahnah nahnah nahnah nahnah nahnah batman"));
         parser.parse(lexer, new StringReader("nahnah batman"));
@@ -260,7 +260,7 @@ public class GrammarTest {
 
         Parser parser = g.createParser(E);
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
-        lexer.filterOut(Lexemes.whitespace());
+        lexer.setFilteredOut(Lexemes.whitespace());
 
         parser.parse(lexer, new StringReader(expression));
 

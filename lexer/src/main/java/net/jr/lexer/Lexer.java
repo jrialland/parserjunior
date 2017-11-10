@@ -1,6 +1,5 @@
 package net.jr.lexer;
 
-import net.jr.collection.iterators.PushbackIterator;
 import net.jr.common.Symbol;
 import net.jr.lexer.impl.Automaton;
 import net.jr.lexer.impl.LexemeImpl;
@@ -110,7 +109,7 @@ public class Lexer {
         return tokens;
     }
 
-    public PushbackIterator<Token> iterator(final Reader reader) {
+    public LexerStream iterator(final Reader reader) {
         List<Automaton> clonedAutomatons = new ArrayList<>(automatons.size());
         try {
             for (Automaton a : automatons) {

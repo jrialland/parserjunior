@@ -28,13 +28,20 @@ public class ParseError extends RuntimeException {
                 sw.append("expected one of ");
                 sw.append(expected.toString());
             }
-            sw.append(" ( got ");
-            sw.append(token.getTokenType().toString());
+
+            String tokenType = token.getTokenType().toString();
             String txt = token.getText();
+
+
+            sw.append(" ( got ");
+            sw.append(tokenType);
+
             if(txt != null && !txt.isEmpty()) {
-                sw.append(" '");
-                sw.append(txt);
-                sw.append("'");
+                txt = "'" + txt + "'";
+                if(! txt.equals(tokenType)) {
+                    sw.append(" ");
+                    sw.append(txt);
+                }
             }
             sw.append(" instead)");
         }

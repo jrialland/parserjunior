@@ -1,14 +1,10 @@
 package net.jr.grammar.c;
 
 
-import net.jr.lexer.Lexeme;
-import net.jr.lexer.Lexemes;
-import net.jr.lexer.Lexer;
 import net.jr.parser.Parser;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.ast.Target;
 import net.jr.parser.ast.VisitorHelper;
-import net.jr.parser.impl.ActionTable;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -60,7 +56,8 @@ public class CGrammarTest {
     @Test
     public void testTypedef() {
         CGrammar grammar = new CGrammar();
-        grammar.createParser().parse("typedef unsigned int size_t, *ptr_size_t; const ptr_size_t pointer = 0;");
+        Parser parser = grammar.createParser();
+        parser.parse("typedef unsigned int size_t, *ptr_size_t; ptr_size_t pointer = 0;");
     }
 
     @Test

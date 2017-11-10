@@ -1,9 +1,9 @@
 package net.jr.parser.impl;
 
-import net.jr.collection.iterators.PushbackIterator;
 import net.jr.common.Symbol;
 import net.jr.lexer.Lexeme;
 import net.jr.lexer.Lexer;
+import net.jr.lexer.LexerStream;
 import net.jr.lexer.Token;
 import net.jr.parser.Grammar;
 import net.jr.parser.ParseError;
@@ -64,7 +64,8 @@ public class LRParser implements Parser {
     }
 
     /**
-     * @param grammar
+     * @param grammar     target grammar
+     * @param targetRule  the target rule for this parser
      * @param actionTable The actionTable for the grammar, possibly computed using {@link ActionTable.LALR1Builder#build(Grammar, Rule)}
      */
     public LRParser(Grammar grammar, Rule targetRule, ActionTable actionTable) {
@@ -74,8 +75,7 @@ public class LRParser implements Parser {
     }
 
     public AstNode parse(Lexer lexer, Reader reader) {
-
-        final PushbackIterator<Token> tokenIterator = lexer.iterator(reader);
+        final LexerStream lexerStream = lexer.iterator(reader);
 
         Stack<ParserContext> stack = new Stack<>();
 
@@ -88,7 +88,7 @@ public class LRParser implements Parser {
 
             ParserContext currentContext = stack.peek();
             int currentState = currentContext.getState();
-            Token token = tokenIterator.next();
+            Token token = lexerStream.next();
 
             if (getLog().isTraceEnabled()) {
                 getLog().trace("-> Current state : " + currentState);
@@ -108,7 +108,7 @@ public class LRParser implements Parser {
                 //if ε is was a possible 'symbol'
                 if (expected.contains(Grammar.Empty)) {
                     decision = actionTable.getAction(currentState, Grammar.Empty);
-                    tokenIterator.pushback(token);
+                    lexerStream.pushback(token);
                 } else {
                     throw new ParseError(token, actionTable.getExpectedLexemes(currentState));
                 }
@@ -118,7 +118,7 @@ public class LRParser implements Parser {
 
             switch (decision.getActionType()) {
                 case Accept:
-                    accept(stack, lexer, tokenIterator);
+                    accept(stack, lexerStream);
                     completed = true;
                     break;
                 case Fail:
@@ -127,8 +127,8 @@ public class LRParser implements Parser {
                     shift(token, stack, decision.getActionParameter());
                     break;
                 case Reduce:
-                    reduce(stack, lexer, tokenIterator, decision.getActionParameter());
-                    tokenIterator.pushback(token);
+                    reduce(stack, lexerStream, decision.getActionParameter());
+                    lexerStream.pushback(token);
                     break;
                 default:
                     throw new IllegalStateException(String.format("Illegal action type '%s' !", decision.getActionType().name()));
@@ -137,9 +137,9 @@ public class LRParser implements Parser {
         return stack.pop().getAstNode();
     }
 
-    protected void accept(Stack<ParserContext> stack, Lexer lexer, PushbackIterator<Token> tokenIterator) {
+    protected void accept(Stack<ParserContext> stack, LexerStream lexerStream) {
         Rule targetRule = grammar.getRulesTargeting(grammar.getTargetSymbol()).iterator().next();
-        AstNode node = makeNode(stack, lexer, tokenIterator, targetRule);
+        AstNode node = makeNode(stack, lexerStream, targetRule);
         stack.push(new ParserContext(node));
     }
 
@@ -210,7 +210,7 @@ public class LRParser implements Parser {
         }
     }
 
-    protected AstNode makeNode(Stack<ParserContext> stack, final Lexer lexer, final PushbackIterator<Token> tokenIterator, Rule rule) {
+    protected AstNode makeNode(Stack<ParserContext> stack, final LexerStream lexerStream, Rule rule) {
         // for each symbol on the left side of the rule, a state is removed from the stack
         getLog().trace("      - reducing rule : " + rule);
         AstNodeNonLeaf astNode = new AstNodeNonLeaf(rule);
@@ -222,16 +222,16 @@ public class LRParser implements Parser {
         Collections.reverse(children);
 
         if (((BaseRule) rule).getAction() != null) {
-            ParsingContextImpl parsingContext = new ParsingContextImpl(this, lexer, tokenIterator, astNode);
+            ParsingContextImpl parsingContext = new ParsingContextImpl(this, lexerStream, astNode);
             ((BaseRule) rule).getAction().accept(parsingContext);
         }
 
         return astNode;
     }
 
-    protected void reduce(Stack<ParserContext> stack, final Lexer lexer, final PushbackIterator<Token> tokenIterator, int ruleIndex) {
+    protected void reduce(Stack<ParserContext> stack, final LexerStream lexerStream, int ruleIndex) {
         Rule rule = grammar.getRuleById(ruleIndex);
-        AstNode astNode = makeNode(stack, lexer, tokenIterator, rule);
+        AstNode astNode = makeNode(stack, lexerStream, rule);
         ParserContext nextParserContext = new ParserContext(astNode);
         // depending on the state that is now on the top of stack, and the target of the rule,
         // a new state is searched in the goto table and becomes the current state
