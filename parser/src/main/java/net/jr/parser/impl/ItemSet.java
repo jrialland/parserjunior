@@ -11,8 +11,12 @@ import java.util.stream.Stream;
 
 /**
  * Collection of {@link Item}. the 'kernel' and the 'members' form a closure.
+ *
+ * <blockquote cite="https://en.wikipedia.org/wiki/LR_parser#Table_construction">
+ *     Item Sets are used to form groups of states that have the same behaviour for a particular token.</blockquote>
  * <p>
  * (Implementation note) : The identity of an ItemSet is based on the kernel, and not the id oneOf members
+ * </p>
  */
 public class ItemSet {
 

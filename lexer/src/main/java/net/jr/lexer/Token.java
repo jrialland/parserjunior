@@ -2,6 +2,9 @@ package net.jr.lexer;
 
 import net.jr.common.Position;
 
+/**
+ * A {@link Token} is the basic 'word' of a particular program.
+ */
 public class Token {
 
     private Lexeme tokenType;
@@ -16,14 +19,25 @@ public class Token {
         this.matchedText = matchedText;
     }
 
+    /**
+     * @return The matched text
+     */
     public String getText() {
         return matchedText;
     }
 
+    /**
+     * @return the type of this token
+     */
     public Lexeme getTokenType() {
         return tokenType;
     }
 
+    /**
+     * The position where this token in the original stream
+     *
+     * @return
+     */
     public Position getPosition() {
         return position;
     }

@@ -1,4 +1,4 @@
-package net.jr.util;
+package net.jr.util.table;
 
 import java.util.*;
 import java.util.stream.Collectors;

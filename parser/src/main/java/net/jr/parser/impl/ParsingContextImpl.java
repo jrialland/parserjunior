@@ -5,7 +5,7 @@ import net.jr.parser.Parser;
 import net.jr.parser.ParsingContext;
 import net.jr.parser.ast.AstNode;
 
-public class ParsingContextImpl implements ParsingContext {
+class ParsingContextImpl implements ParsingContext {
 
     private Parser parser;
 

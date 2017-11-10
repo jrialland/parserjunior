@@ -1,5 +1,7 @@
 package net.jr.util;
 
+import net.jr.util.table.AsciiTableView;
+import net.jr.util.table.TableModel;
 import org.junit.Assert;
 import org.junit.Test;
 

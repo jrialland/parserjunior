@@ -5,8 +5,8 @@ import net.jr.lexer.Lexeme;
 import net.jr.lexer.Lexemes;
 import net.jr.parser.Grammar;
 import net.jr.parser.Rule;
-import net.jr.util.AsciiTableView;
-import net.jr.util.TableModel;
+import net.jr.util.table.AsciiTableView;
+import net.jr.util.table.TableModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +46,6 @@ public class ActionTable {
         });
         terminals = allSymbols.stream().filter(s -> s.isTerminal()).collect(Collectors.toList());
         terminals.sort(Comparator.comparing(Symbol::toString));
-
         nonTerminals = allSymbols.stream().filter(s -> !s.isTerminal()).collect(Collectors.toList());
         nonTerminals.sort(Comparator.comparing(Symbol::toString));
     }
@@ -62,7 +61,6 @@ public class ActionTable {
             sw.append("    For symbol : " + symbol);
             sw.append("    Action 1 : " + oldAction.toString());
             sw.append("    Action 2 : " + action.toString());
-
             throw new IllegalStateException(sw.toString());
         }
     }
@@ -110,10 +108,6 @@ public class ActionTable {
 
     public List<Symbol> getNonTerminals() {
         return nonTerminals;
-    }
-
-    public int getStatesCount() {
-        return data.size();
     }
 
     private static String actionToString(Action action) {
@@ -205,7 +199,6 @@ public class ActionTable {
             Map<Symbol, Set<? extends Symbol>> followSets = getFollowSets(extendedGrammar);
 
             //build a list of rules and and follow sets
-
             List<PreMergeReduction> step1 = new ArrayList<>();
             for (Rule eRule : extendedGrammar.getRules()) {
                 Set<Symbol> followSet = followSets.get(eRule.getTarget())
@@ -215,12 +208,6 @@ public class ActionTable {
 
                 step1.add(new PreMergeReduction((ExtendedRule) eRule, followSet));
             }
-
-            //if (getLog().isDebugEnabled()) {
-            //    for (PreMergeReduction pm : step1) {
-            //        getLog().debug(pm.toString());
-            //    }
-            //}
 
             //merging some rules
             Set<MergedReduction> step2 = new HashSet<>();
@@ -239,15 +226,11 @@ public class ActionTable {
                 }
             }
 
-            //for (MergedReduction m : step2) {
-            //    getLog().debug(m.toString());
-            //}
-
+            //feed the action table with reductions
             for (MergedReduction merged : step2) {
                 int ruleId = merged.getRule().getId();
                 for (Symbol s : merged.getFollowSet()) {
                     int state = merged.getFinalState();
-
                     //add a reduce action to the table
                     Action actionToInsert = new Action(ActionType.Reduce, ruleId);
                     Action existingAction = table.getActionNoCheck(state, s);
@@ -256,10 +239,8 @@ public class ActionTable {
                     } else {
                         table.setAction(state, s, actionToInsert, false);
                     }
-
                 }
             }
-
         }
 
         /**
@@ -301,7 +282,6 @@ public class ActionTable {
                     }
                 case Reduce:
                     return existing;
-                    // return new Action(ActionType.Fail, rule.getId());
 
                 default:
                     throw new IllegalStateException();
@@ -503,7 +483,6 @@ public class ActionTable {
                     eGrammar.addRule(new ExtendedRule(idCounter++, rule, eTarget, eClause.toArray(new ExtendedSymbol[]{})));
                 }
             }
-
 
             ExtendedRule eTargetRule = eGrammar.getRules().stream().map(r -> (ExtendedRule) r).filter(r -> ((ExtendedSymbol) r.getTarget()).getSymbol().equals(targetRule.getTarget())).findFirst().get();
             eGrammar.setTargetRule(eTargetRule);

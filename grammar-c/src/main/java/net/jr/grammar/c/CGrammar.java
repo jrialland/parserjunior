@@ -5,8 +5,8 @@ import net.jr.lexer.*;
 import net.jr.parser.Forward;
 import net.jr.parser.Grammar;
 import net.jr.parser.Parser;
-import net.jr.parser.Rule;
 import net.jr.parser.ast.AstNode;
+import net.jr.parser.impl.LRParser;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -163,9 +163,13 @@ public class CGrammar extends Grammar {
     public static final Forward CompilationUnit = new Forward("CompilationUnit");
     public static final Forward Constant = new Forward("Constant");
 
+    private Lexer lexer;
+
     CGrammar() {
 
         setName("C");
+
+        setTargetRule(addRule(CompilationUnit, TranslationUnit).get());
 
         addRule(Constant, oneOrMore(Tokens.String_literal));
         addRule(Constant, Lexemes.cInteger());
@@ -417,7 +421,7 @@ public class CGrammar extends Grammar {
         addRule(JumpStatement, Tokens.Return, Expression, Tokens.DotComma);
         addRule(TranslationUnit, ExternalDeclaration);
         addRule(TranslationUnit, TranslationUnit, ExternalDeclaration);
-        addRule(CompilationUnit, TranslationUnit);
+
         addRule(ExternalDeclaration, FunctionDefinition);
         addRule(ExternalDeclaration, Declaration);
         addRule(FunctionDefinition, DeclarationSpecifiers, Declarator, DeclarationList, CompoundStatement);
@@ -425,7 +429,14 @@ public class CGrammar extends Grammar {
         addRule(FunctionDefinition, Declarator, DeclarationList, CompoundStatement);
         addRule(FunctionDefinition, Declarator, CompoundStatement);
 
-        setTargetSymbol(CompilationUnit);
+
+        lexer = Lexer.forLexemes(getTerminals());
+        lexer.setFilteredOut(Lexemes.multilineComment("/*", "*/"));
+        lexer.setFilteredOut(Lexemes.lineComment("//"));
+        lexer.setFilteredOut(Lexemes.whitespace());
+        lexer.setFilteredOut(Lexemes.newLine());
+        lexer.setTokenListener(new LexerHack());
+
     }
 
     protected String getDeclaratorName(AstNode declarator) {
@@ -433,18 +444,13 @@ public class CGrammar extends Grammar {
         if (t != null) {
             return t.getText();
         }
-        throw new UnsupportedOperationException("");
+        throw new UnsupportedOperationException(declarator.repr());
     }
 
     @Override
     public Parser createParser(Symbol targetSymbol) {
-        Parser parser = super.createParser(targetSymbol);
-        Lexer lexer = parser.getDefaultLexer();
-        lexer.setFilteredOut(Lexemes.multilineComment("/*", "*/"));
-        lexer.setFilteredOut(Lexemes.lineComment("//"));
-        lexer.setFilteredOut(Lexemes.whitespace());
-        lexer.setFilteredOut(Lexemes.newLine());
-        lexer.setTokenListener(new LexerHack());
+        LRParser parser = (LRParser) super.createParser(targetSymbol);
+        parser.setDefaultLexer(lexer);
         return parser;
     }
 
@@ -488,10 +494,6 @@ public class CGrammar extends Grammar {
             }
             return token;
         }
-
     }
 
-    public Rule getStartRule() {
-        return getRulesTargeting(getTargetSymbol()).iterator().next();
-    }
 }

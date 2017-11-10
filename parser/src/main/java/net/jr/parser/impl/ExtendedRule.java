@@ -1,7 +1,6 @@
 package net.jr.parser.impl;
 
 import net.jr.common.Symbol;
-import net.jr.parser.Derivation;
 import net.jr.parser.Rule;
 
 import java.util.Set;
@@ -11,7 +10,7 @@ import java.util.Set;
  * This this of rule is used while contructing the extended grammar exploited for computing Reduce decisions
  * during the construction of "LALR(1)" (-by SLR) parse table
  *
- * @see ActionTable.LALR1Builder#makeExtendedGrammar(Set) for usage details
+ * @see ActionTable.LALR1Builder#makeExtendedGrammar(Rule, Set) for usage details
  */
 public class ExtendedRule extends Rule {
 
@@ -44,11 +43,6 @@ public class ExtendedRule extends Rule {
 
     public int getFinalState() {
         return clause[clause.length - 1].getTo();
-    }
-
-    @Override
-    public Derivation getDerivation() {
-        throw new UnsupportedOperationException();
     }
 
     public Rule getBaseRule() {

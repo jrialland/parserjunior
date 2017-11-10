@@ -7,6 +7,9 @@ import java.util.TreeMap;
 
 import static net.jr.lexer.impl.CharConstraint.Builder.*;
 
+/**
+ * Various method to create most common types of Lexemes that one might encounter.
+ */
 public class Lexemes {
 
     public static final String LowercaseLetters = "abcdefghiklmnopqrstuvwxyz";
@@ -50,14 +53,23 @@ public class Lexemes {
         }
     };
 
+    /*
+     * @return The lexeme for a C identifier
+     */
     public static final Lexeme cIdentifier() {
         return cIdentifier;
     }
 
+    /**
+     * @return The Lexeme for a C string (with double-quotes)
+     */
     public static final Lexeme cString() {
         return cString;
     }
 
+    /**
+     * @return a whitespace
+     */
     public static final Lexeme whitespace() {
         return whitespaces;
     }
@@ -66,10 +78,21 @@ public class Lexemes {
         return lowercaseWord;
     }
 
+    /**
+     * The "End of File" lexeme, with is always the last lexeme produced by a Lexer
+     *
+     * @return
+     */
     public static final Lexeme eof() {
         return Eof;
     }
 
+    /**
+     * A C++ style comment (which is lineComment("//") by the way)
+     *
+     * @param commentStart
+     * @return
+     */
     public static final Lexeme lineComment(String commentStart) {
         LexemeImpl lexeme = new LexemeImpl();
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(lexeme);
@@ -85,6 +108,13 @@ public class Lexemes {
         return lexeme;
     }
 
+    /**
+     * A C-style multiline comment
+     *
+     * @param commentStart comment start ("&#47;*" by example)
+     * @param commentEnd   comment end ("*&#47;" by example)
+     * @return
+     */
     public static final Lexeme multilineComment(String commentStart, String commentEnd) {
         LexemeImpl lexeme = new LexemeImpl();
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(lexeme);
@@ -110,7 +140,7 @@ public class Lexemes {
     private static LexemeImpl CHexNumber = null;
 
     /**
-     * 0x[0-9A-Fa-f]+
+     * '0x'- prefixed hexadecimal number : 0x[0-9A-Fa-f]+
      */
     public static final Lexeme cHexNumber() {
         if (CHexNumber == null) {
@@ -163,9 +193,8 @@ public class Lexemes {
 
     private static LexemeImpl CSimpleFloat;
 
-
     /**
-     * [0-9]+ DOT [0-9]* or DOT [0-9]+
+     * [0-9]+ DOT [0-9]* or DOT [0-9]+ (fF|lL)?
      */
     public static Lexeme cFloatingPoint() {
         if (CSimpleFloat == null) {
@@ -400,7 +429,7 @@ public class Lexemes {
     }
 
 
-    private static final Map<String, Lexeme> unLexables = new TreeMap<>();
+    private static final Map<String, Lexeme> artificials = new TreeMap<>();
 
     private static Automaton failAutomaton(final Lexeme lexeme) {
         return new Automaton() {
@@ -443,7 +472,7 @@ public class Lexemes {
      */
     public static Lexeme artificial(String name) {
         assert name != null;
-        return unLexables.computeIfAbsent(name, k -> {
+        return artificials.computeIfAbsent(name, k -> {
             final LexemeImpl l = new LexemeImpl() {
                 @Override
                 public String toString() {

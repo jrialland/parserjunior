@@ -35,7 +35,7 @@ public class LRParser implements Parser {
 
     private ActionTable actionTable;
 
-    private class ParserContext {
+    private class Context {
 
         private int state;
 
@@ -53,11 +53,11 @@ public class LRParser implements Parser {
             return astNode;
         }
 
-        public ParserContext(AstNode astNode) {
+        public Context(AstNode astNode) {
             this.astNode = astNode;
         }
 
-        public ParserContext(AstNode astNode, int state) {
+        public Context(AstNode astNode, int state) {
             this(astNode);
             this.state = state;
         }
@@ -77,16 +77,15 @@ public class LRParser implements Parser {
     public AstNode parse(Lexer lexer, Reader reader) {
         final LexerStream lexerStream = lexer.iterator(reader);
 
-        Stack<ParserContext> stack = new Stack<>();
+        Stack<Context> stack = new Stack<>();
 
         //start with the initial state
-        stack.push(new ParserContext(new AstNodeNonLeaf(targetRule), 0));
+        stack.push(new Context(new AstNodeNonLeaf(targetRule), 0));
 
         //repeat until done
-        boolean completed = false;
-        while (!completed) {
+        while (true) {
 
-            ParserContext currentContext = stack.peek();
+            Context currentContext = stack.peek();
             int currentState = currentContext.getState();
             Token token = lexerStream.next();
 
@@ -119,8 +118,7 @@ public class LRParser implements Parser {
             switch (decision.getActionType()) {
                 case Accept:
                     accept(stack, lexerStream);
-                    completed = true;
-                    break;
+                    return stack.pop().getAstNode();
                 case Fail:
                     throw new ParseError(token, actionTable.getExpectedLexemes(currentState));
                 case Shift:
@@ -134,47 +132,53 @@ public class LRParser implements Parser {
                     throw new IllegalStateException(String.format("Illegal action type '%s' !", decision.getActionType().name()));
             }
         }
-        return stack.pop().getAstNode();
     }
 
-    protected void accept(Stack<ParserContext> stack, LexerStream lexerStream) {
+    protected void accept(Stack<Context> stack, LexerStream lexerStream) {
         Rule targetRule = grammar.getRulesTargeting(grammar.getTargetSymbol()).iterator().next();
         AstNode node = makeNode(stack, lexerStream, targetRule);
-        stack.push(new ParserContext(node));
+        stack.push(new Context(node));
     }
 
     /**
      * The new state is added to the stack and becomes the current state
      */
-    protected void shift(Token token, final Stack<ParserContext> stack, final int nextState) {
+    protected void shift(Token token, final Stack<Context> stack, final int nextState) {
         //add a node that represents the terminal
-        stack.add(new ParserContext(new AstNode() {
+        stack.add(new Context(new AstNodeLeaf(token), nextState));
+    }
 
-            @Override
-            public List<AstNode> getChildren() {
-                return Collections.emptyList();
-            }
+    private static class AstNodeLeaf implements AstNode {
+        private Token token;
 
-            @Override
-            public Token asToken() {
-                return token;
-            }
+        public AstNodeLeaf(Token token) {
+            this.token = token;
+        }
 
-            @Override
-            public String toString() {
-                return token.toString();
-            }
+        @Override
+        public List<AstNode> getChildren() {
+            return Collections.emptyList();
+        }
 
-            @Override
-            public Symbol getSymbol() {
-                return asToken().getTokenType();
-            }
+        @Override
+        public Token asToken() {
+            return token;
+        }
 
-            @Override
-            public String repr() {
-                return token.getText();
-            }
-        }, nextState));
+        @Override
+        public String toString() {
+            return token.toString();
+        }
+
+        @Override
+        public Symbol getSymbol() {
+            return asToken().getTokenType();
+        }
+
+        @Override
+        public String repr() {
+            return token.getText();
+        }
     }
 
     private static class AstNodeNonLeaf implements AstNode {
@@ -208,9 +212,10 @@ public class LRParser implements Parser {
         public String toString() {
             return rule.getTarget().toString();
         }
+
     }
 
-    protected AstNode makeNode(Stack<ParserContext> stack, final LexerStream lexerStream, Rule rule) {
+    protected AstNode makeNode(Stack<Context> stack, final LexerStream lexerStream, Rule rule) {
         // for each symbol on the left side of the rule, a state is removed from the stack
         getLog().trace("      - reducing rule : " + rule);
         AstNodeNonLeaf astNode = new AstNodeNonLeaf(rule);
@@ -229,10 +234,10 @@ public class LRParser implements Parser {
         return astNode;
     }
 
-    protected void reduce(Stack<ParserContext> stack, final LexerStream lexerStream, int ruleIndex) {
+    protected void reduce(Stack<Context> stack, final LexerStream lexerStream, int ruleIndex) {
         Rule rule = grammar.getRuleById(ruleIndex);
         AstNode astNode = makeNode(stack, lexerStream, rule);
-        ParserContext nextParserContext = new ParserContext(astNode);
+        Context nextParserContext = new Context(astNode);
         // depending on the state that is now on the top of stack, and the target of the rule,
         // a new state is searched in the goto table and becomes the current state
         int newState = actionTable.getNextState(stack.peek().getState(), rule.getTarget());

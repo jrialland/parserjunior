@@ -6,6 +6,10 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+/**
+ * a Rule is the base construction of a grammar. it is the association of
+ * a Goal and its 'components' aka 'clause' aka 'predecessors', i.e. the list of symbol that may be used to form the goal.
+ */
 public abstract class Rule {
 
     private int id;
@@ -21,8 +25,6 @@ public abstract class Rule {
     public abstract Symbol[] getClause();
 
     public abstract Symbol getTarget();
-
-    public abstract Derivation getDerivation();
 
     @Override
     public String toString() {

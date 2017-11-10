@@ -12,6 +12,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Actual lexing is done by this class.
+ * instances are obtained by calling {@link Lexer#iterator(Reader)}
+ */
 public class LexerStream implements PushbackIterator<Token> {
 
     private Lexer lexer;
@@ -34,7 +38,14 @@ public class LexerStream implements PushbackIterator<Token> {
 
     private LinkedList<Token> buffer = new LinkedList<>();
 
-    public LexerStream(Lexer lexer, List<Automaton> automatons, Function<Token, Token> tokenListener, Reader reader) {
+    /**
+     *
+     * @param lexer The lexer that defines this stream
+     * @param automatons automatons to use for recognition
+     * @param tokenListener the listener that receives generated tokens (must not be null)
+     * @param reader the input reader
+     */
+    LexerStream(Lexer lexer, List<Automaton> automatons, Function<Token, Token> tokenListener, Reader reader) {
         assert lexer != null;
         assert tokenListener != null;
         assert reader != null;

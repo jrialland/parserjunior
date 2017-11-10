@@ -1,6 +1,7 @@
 package net.jr.parser.impl;
 
 import net.jr.common.Symbol;
+import net.jr.parser.Rule;
 import net.jr.util.StringUtil;
 
 import java.util.Set;
@@ -9,7 +10,7 @@ import java.util.Set;
  * An {@link ExtendedSymbol} is the type of symbol that are used in 'Extended' grammars. It keeps track of the way
  * a particular production is obtained according to a 'base' grammar.
  *
- * @see ActionTable.LALR1Builder#makeExtendedGrammar(Set)
+ * @see ActionTable.LALR1Builder#makeExtendedGrammar(Rule, Set)
  */
 public class ExtendedSymbol implements Symbol {
 

@@ -1,7 +1,6 @@
 package net.jr.parser.impl;
 
 import net.jr.common.Symbol;
-import net.jr.parser.Grammar;
 import net.jr.parser.Rule;
 
 import java.io.StringWriter;
@@ -54,15 +53,7 @@ public class Item {
 
     public Item shift() {
         assert pointer < rule.getClause().length;
-        return new Item(rule, pointer+1);
-    }
-
-    /**
-     *
-     * @return true when the pointer is at the end of the item's clause
-     */
-    public boolean isFinished() {
-        return pointer == rule.getClause().length;
+        return new Item(rule, pointer + 1);
     }
 
     @Override

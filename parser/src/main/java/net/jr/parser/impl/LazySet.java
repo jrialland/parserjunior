@@ -31,10 +31,6 @@ public abstract class LazySet {
 
     private Set<Symbol> resolution;
 
-    private Stack<LazySet> redefs = new Stack<>();
-
-    private Stack<Boolean> bRedefs = new Stack<>();
-
     public LazySet(Symbol subject) {
         this.subject = subject;
     }
@@ -43,15 +39,15 @@ public abstract class LazySet {
         return LOGGER;
     }
 
-    public static void resolveAll(Map<Symbol, FollowSet> map) {
+    public static void resolveAll(Map<Symbol, ? extends LazySet> map) {
         getLog().trace(String.format("%d/%d", map.values().stream().filter(s -> s.isResolved()).count(), map.size()));
         int total = map.size(), lastResolved = 0, resolved = simplify(map.values());
         while (resolved < total && lastResolved != resolved) {
             getLog().trace(String.format("%d/%d", resolved, total));
             lastResolved = resolved;
-            for (FollowSet f : map.values()) {
+            for (LazySet f : map.values()) {
                 f.getComposition().remove(f);//do not include self
-                for (FollowSet f2 : map.values()) {
+                for (LazySet f2 : map.values()) {
                     if (f != f2) {
                         if (f2.getComposition().remove(f)) {
                             f2.getComposition().addAll(f.getComposition());
@@ -66,11 +62,11 @@ public abstract class LazySet {
 
         if (resolved < total) {
 
-            if(getLog().isDebugEnabled()) {
+            if (getLog().isDebugEnabled()) {
                 StringWriter sw = new StringWriter();
                 sw.append("Unresolved expressions :\n");
-                for(FollowSet f : map.values()) {
-                    if(!f.isResolved()) {
+                for (LazySet f : map.values()) {
+                    if (!f.isResolved()) {
                         sw.append(f.toString() + " = " + f.compositionToString());
                         sw.append("\n");
                     }
@@ -89,7 +85,7 @@ public abstract class LazySet {
      * @param sets
      * @return
      */
-    private static int simplify(Collection<FollowSet> sets) {
+    private static int simplify(Collection<? extends LazySet> sets) {
         final EvtSupport bus = new EvtSupport();
 
         for (LazySet ls : sets) {
@@ -162,7 +158,6 @@ public abstract class LazySet {
      * @return
      */
     public String compositionToString() {
-
         if (resolution != null) {
             return resolution.toString();
         } else {

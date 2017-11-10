@@ -1,10 +1,8 @@
 package net.jr.parser.impl;
 
 import net.jr.common.Symbol;
-import net.jr.parser.Derivation;
 import net.jr.parser.ParsingContext;
 import net.jr.parser.Rule;
-import net.jr.parser.ast.AstNode;
 
 import java.util.function.Consumer;
 
@@ -12,8 +10,6 @@ import java.util.function.Consumer;
  * Base implementation of a grammar {@link Rule}.
  */
 public class BaseRule extends Rule {
-
-    private Derivation derivation = Derivation.None;
 
     private Consumer<ParsingContext> action;
 
@@ -56,10 +52,6 @@ public class BaseRule extends Rule {
 
     public Symbol getTarget() {
         return target;
-    }
-
-    public Derivation getDerivation() {
-        return derivation;
     }
 
     public void setPrecedenceLevel(int precedenceLevel) {

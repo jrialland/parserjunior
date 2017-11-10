@@ -6,6 +6,9 @@ import net.jr.lexer.Token;
 import java.io.StringWriter;
 import java.util.Set;
 
+/**
+ * raised when something goes wrong with parsing 'a.k.a' Syntax Error
+ */
 public class ParseError extends RuntimeException {
 
     private Token token;
@@ -36,9 +39,9 @@ public class ParseError extends RuntimeException {
             sw.append(" ( got ");
             sw.append(tokenType);
 
-            if(txt != null && !txt.isEmpty()) {
+            if (txt != null && !txt.isEmpty()) {
                 txt = "'" + txt + "'";
-                if(! txt.equals(tokenType)) {
+                if (!txt.equals(tokenType)) {
                     sw.append(" ");
                     sw.append(txt);
                 }
@@ -48,9 +51,13 @@ public class ParseError extends RuntimeException {
         return sw.toString();
     }
 
-    public ParseError(Token token, Set<Lexeme> expected) {
-        super(getDefaultMessage(token, expected));
-        this.token = token;
+    /**
+     * @param unexpectedToken
+     * @param expected        The lexemes that were expected according to parser's current state
+     */
+    public ParseError(Token unexpectedToken, Set<Lexeme> expected) {
+        super(getDefaultMessage(unexpectedToken, expected));
+        this.token = unexpectedToken;
         this.expected = expected;
     }
 

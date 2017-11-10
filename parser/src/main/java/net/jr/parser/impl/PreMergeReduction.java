@@ -5,6 +5,9 @@ import net.jr.parser.Rule;
 
 import java.util.Set;
 
+/**
+ * (Step 4 - Reductions, Sub-Step 1), as described <a href="https://web.cs.dal.ca/~sjackson/lalr1.html">here</a>
+ */
 public class PreMergeReduction {
 
     private ExtendedRule extendedRule;

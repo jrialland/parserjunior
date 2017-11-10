@@ -10,6 +10,10 @@ import java.io.StringReader;
 import java.util.*;
 import java.util.function.Function;
 
+/**
+ * {@link Lexer} reference all the valid Lexeme that can be scanned, and can produce tokens by analyzing input text, searching
+ * for matches in the list of the referenced Lexemes.
+ */
 public class Lexer {
 
     private List<Automaton> automatons;
@@ -20,10 +24,24 @@ public class Lexer {
 
     private Map<Symbol, Integer> priorities = new HashMap<>();
 
+    /**
+     * Creates a new {@link Lexer} that can recognize the passed Lexemes
+     *
+     * @param tokenTypes
+     * @param <L>
+     * @return
+     */
     public static <L extends Symbol> Lexer forLexemes(L... tokenTypes) {
         return new Lexer(Arrays.asList(tokenTypes));
     }
 
+    /**
+     * Creates a new {@link Lexer} that can recognize the passed Lexemes
+     *
+     * @param tokenTypes
+     * @param <L>
+     * @return
+     */
     public static Lexer forLexemes(Collection<? extends Symbol> tokenTypes) {
         return new Lexer(tokenTypes);
     }
@@ -43,7 +61,10 @@ public class Lexer {
     }
 
     /**
-     * The higher the number, the lower the priority is
+     * A given text may match several lexemes (for example 'int' may be recognized both by {@link Lexemes#literal(String)}  and {@link Lexemes#cIdentifier()})
+     * The priority can make the difference by choosing the right type when there is such conflict.
+     * <p>
+     * In the given example priority(literal('int')) > priority(cIdentifier)
      *
      * @param s
      * @param priority 0 is best, Integer.MAX_VALUE is lowest priority
@@ -57,14 +78,31 @@ public class Lexer {
         return p == null ? 0 : p;
     }
 
+    /**
+     * associates a {@link TokenListener} with this {@link Lexer}
+     *
+     * @param tokenListener
+     */
     public void setTokenListener(TokenListener tokenListener) {
         this.tokenListener = tokenListener;
     }
 
+    /**
+     * gets the associated {@link TokenListener}.
+     * <p>
+     * may return null
+     *
+     * @return
+     */
     public TokenListener getTokenListener() {
         return tokenListener;
     }
 
+    /**
+     * Adds a token type to the list of the 'filtered out' tokens, I.e. the tokens type that are recognized, but not put in the list of recognized tokens.
+     *
+     * @param tokenType
+     */
     public void setFilteredOut(Lexeme tokenType) {
 
         if (tokenType == null) {
@@ -88,6 +126,12 @@ public class Lexer {
         filteredOut.add(tokenType);
     }
 
+    /**
+     * whether a particular token type is filtered out or not
+     *
+     * @param tokenType
+     * @return
+     */
     public boolean isFilteredOut(Lexeme tokenType) {
         return filteredOut.contains(tokenType);
     }
@@ -100,6 +144,13 @@ public class Lexer {
         }
     }
 
+    /**
+     * reads some text, put the recognized tokens in a list
+     *
+     * @param reader
+     * @return the recognized tokens
+     * @throws IOException due to io operations on reader
+     */
     public List<Token> tokenize(Reader reader) throws IOException {
         final List<Token> tokens = new ArrayList<>();
         Iterator<Token> it = iterator(reader);
@@ -109,6 +160,12 @@ public class Lexer {
         return tokens;
     }
 
+    /**
+     * builds a {@link LexerStream} out this Lexer
+     *
+     * @param reader
+     * @return
+     */
     public LexerStream iterator(final Reader reader) {
         List<Automaton> clonedAutomatons = new ArrayList<>(automatons.size());
         try {

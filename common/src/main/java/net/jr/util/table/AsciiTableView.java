@@ -1,5 +1,7 @@
-package net.jr.util;
+package net.jr.util.table;
 
+
+import net.jr.util.StringUtil;
 
 import java.io.IOException;
 import java.io.StringWriter;
