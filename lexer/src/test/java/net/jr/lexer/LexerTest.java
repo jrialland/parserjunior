@@ -20,7 +20,7 @@ public class LexerTest {
             lexer.tokenize("      ");
             lexer.tokenize("  X  X    ");
         }
-        lexer.filterOut(Lexemes.whitespace());
+        lexer.setFilteredOut(Lexemes.whitespace());
         lexer.tokenize("  X  X    ");
     }
 
@@ -95,8 +95,8 @@ public class LexerTest {
     @Test
     public void testFiltersWhitespaces() {
         Lexer lexer = Lexer.forLexemes(Lexemes.cInteger(), Lexemes.whitespace());
-        lexer.filterOut(Lexemes.whitespace());
-        lexer.filterOut(Lexemes.eof());
+        lexer.setFilteredOut(Lexemes.whitespace());
+        lexer.setFilteredOut(Lexemes.eof());
 
 
         List<Integer> integerList = new ArrayList<>();
@@ -192,9 +192,8 @@ public class LexerTest {
         tokenTypes.add(Lexemes.whitespace());
 
         Lexer lexer = Lexer.forLexemes(tokenTypes);
-
+        lexer.setFilteredOut(Lexemes.whitespace());
         Iterator<Token> iterator = lexer
-                .filterOut(Lexemes.whitespace())
                 .iterator(new StringReader("if (a == b) then \t { c == thenabc}"));
 
         while(iterator.hasNext()) {
@@ -212,7 +211,7 @@ public class LexerTest {
         SingleChar eq = new SingleChar('=');
         SingleChar star = new SingleChar('*');
         Lexer lexer = Lexer.forLexemes(x, eq, star);
-        lexer.filterOut(Lexemes.whitespace());
+        lexer.setFilteredOut(Lexemes.whitespace());
         List<Token> list;
         list = asList(lexer.iterator(new StringReader("x=*x")));
         Assert.assertEquals(5, list.size());
@@ -280,8 +279,8 @@ public class LexerTest {
     @Test
     public void testPosition() {
         Lexer lexer = Lexer.forLexemes(Lexemes.cHexNumber());
-        lexer.filterOut(Lexemes.newLine());
-        lexer.filterOut(Lexemes.whitespace());
+        lexer.setFilteredOut(Lexemes.newLine());
+        lexer.setFilteredOut(Lexemes.whitespace());
         List<Token> tokens = lexer.tokenize("0xdead\n0xbeef\n\n    0xcafe 0xbabe");
 
         Assert.assertEquals("0xdead", tokens.get(0).getText());
@@ -304,8 +303,8 @@ public class LexerTest {
     @Test
     public void testCChar() {
         Lexer lexer = Lexer.forLexemes(Lexemes.cCharacter());
-        lexer.filterOut(Lexemes.newLine());
-        lexer.filterOut(Lexemes.whitespace());
+        lexer.setFilteredOut(Lexemes.newLine());
+        lexer.setFilteredOut(Lexemes.whitespace());
         List<Token> tokens = lexer.tokenize("'a' 'b' '\\t' '\\n' 'C'");
     }
 

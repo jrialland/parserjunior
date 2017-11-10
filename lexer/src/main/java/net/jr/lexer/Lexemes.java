@@ -364,7 +364,7 @@ public class Lexemes {
 
             init.when(eq('\'')).goTo(gotFirstQuote);
             gotFirstQuote.when(eq('\\')).goTo(escaped);
-            gotFirstQuote.when(and(inRange(0x20,128), not(eq('\\')))).goTo(gotChar);
+            gotFirstQuote.when(and(inRange(0x20, 128), not(eq('\\')))).goTo(gotChar);
             escaped.when(inList("\"?abfnrtv\\")).goTo(gotChar);
 
             escaped.when(inList(OctalDigit)).goTo(octalEscape);
@@ -397,6 +397,62 @@ public class Lexemes {
             from.when(CharConstraint.Builder.inList(HexDigit)).goTo(current);
         }
         return current;
+    }
+
+
+    private static final Map<String, Lexeme> unLexables = new TreeMap<>();
+
+    private static Automaton failAutomaton(final Lexeme lexeme) {
+        return new Automaton() {
+
+            @Override
+            public boolean step(char c) {
+                return true;
+            }
+
+            @Override
+            public void reset() {
+
+            }
+
+            @Override
+            public int getMatchedLength() {
+                return 0;
+            }
+
+            @Override
+            public boolean isInFinalState() {
+                return false;
+            }
+
+            @Override
+            public Lexeme getTokenType() {
+                return lexeme;
+            }
+
+            @Override
+            public Object clone() throws CloneNotSupportedException {
+                return this;
+            }
+        };
+    }
+
+    /**
+     * returns a new lexeme that matches nothing, ie a lexeme that will never be encountered.
+     * This is useful when using artificial lexeme when dealing with context-aware grammars (for exemple the C typedef-name issue)
+     */
+    public static Lexeme artificial(String name) {
+        assert name != null;
+        return unLexables.computeIfAbsent(name, k -> {
+            final LexemeImpl l = new LexemeImpl() {
+                @Override
+                public String toString() {
+                    return name;
+                }
+            };
+            l.setAutomaton(failAutomaton(l));
+            return l;
+        });
     }
 
 }

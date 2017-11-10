@@ -2,7 +2,7 @@ package net.jr.lexer.impl;
 
 import net.jr.lexer.Lexeme;
 
-public interface Automaton {
+public interface Automaton extends Cloneable {
 
     boolean step(char c);
 
@@ -13,4 +13,6 @@ public interface Automaton {
     boolean isInFinalState();
 
     Lexeme getTokenType();
+
+    Object clone() throws CloneNotSupportedException;
 }

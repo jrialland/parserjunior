@@ -23,6 +23,11 @@ public class DefaultAutomaton implements Automaton {
         this.currentState = initialState;
     }
 
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return new DefaultAutomaton(tokenType, initialState);
+    }
+
     public Lexeme getTokenType() {
         return tokenType;
     }
