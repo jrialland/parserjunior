@@ -488,7 +488,7 @@ public class CGrammar extends Grammar {
         public Token onNewToken(Token token) {
             if (token.getTokenType() == Tokens.Identifier) {
                 String text = token.getText();
-                if (typeNames.contains(token.getText())) {
+                if (typeNames.contains(text)) {
                     token = new Token(Tokens.TypeName, token.getPosition(), text);
                 }
             }
