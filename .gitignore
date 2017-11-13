@@ -27,4 +27,5 @@ parserjunior-parent.iml
 hs_err_pid*
 
 # maven
+target/
 */target/
