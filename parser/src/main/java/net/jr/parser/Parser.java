@@ -2,6 +2,7 @@ package net.jr.parser;
 
 import net.jr.lexer.Lexer;
 import net.jr.parser.ast.AstNode;
+import net.jr.parser.ast.AstNodeFactory;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -23,6 +24,21 @@ public interface Parser {
      * @return The default lexer, i.e the one that is used by default when calling Parser{@link #parse(Reader)}
      */
     Lexer getDefaultLexer();
+
+    /**
+     * Sets a {@link ParserListener} that will be notified on different phases
+     * @param parserListener
+     */
+    void setParserListener(ParserListener parserListener);
+
+    ParserListener getParserListener();
+
+    /**
+     * The instanciation of the nodes may be delegated to a custom {@link AstNodeFactory}
+     */
+    void setAstNodeFactory(AstNodeFactory astNodeFactory);
+
+    AstNodeFactory getAstNodeFactory();
 
     /**
      * sugar for parse(getDefaultLexer(), new StringReader(txt))

@@ -7,8 +7,6 @@ ParserJunior
 
 TODO list :
 
-- lr0 -> lalr1 table
-- tests on faulty grammar (ie with conflicts)
-- tests on real grammars ( c /lua/ other?)
+- dealing with parsing errors
 - colorful documentation
 

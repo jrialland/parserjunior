@@ -3,7 +3,7 @@ package net.jr.grammar.c;
 
 import net.jr.parser.Parser;
 import net.jr.parser.ast.AstNode;
-import net.jr.parser.ast.Target;
+import net.jr.parser.ast.annotations.Target;
 import net.jr.parser.ast.VisitorHelper;
 import org.junit.Assert;
 import org.junit.BeforeClass;

@@ -4,7 +4,7 @@ import net.jr.common.Symbol;
 import net.jr.lexer.Lexeme;
 import net.jr.lexer.Lexemes;
 import net.jr.parser.ast.AstNode;
-import net.jr.parser.ast.Target;
+import net.jr.parser.ast.annotations.Target;
 import net.jr.parser.ast.VisitorHelper;
 import org.junit.Assert;
 import org.junit.Test;

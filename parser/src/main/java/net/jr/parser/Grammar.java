@@ -2,7 +2,8 @@ package net.jr.parser;
 
 
 import net.jr.common.Symbol;
-import net.jr.lexer.Lexeme;
+import net.jr.lexer.Lexemes;
+import net.jr.parser.ast.AstNode;
 import net.jr.parser.impl.ActionTable;
 import net.jr.parser.impl.ActionType;
 import net.jr.parser.impl.BaseRule;
@@ -22,14 +23,6 @@ public class Grammar {
     private static final Logger getLog() {
         return LOGGER;
     }
-
-    public static final Lexeme Empty = new Lexeme() {
-
-        @Override
-        public String toString() {
-            return "ε";
-        }
-    };
 
     private String name;
 
@@ -174,7 +167,7 @@ public class Grammar {
 
         //replace empty clause with the 'Empty' pseudo-terminal
         if (clause.length == 0) {
-            clause = new Symbol[]{Empty};
+            clause = new Symbol[]{Lexemes.empty()};
         }
 
         if (target.isTerminal()) {
@@ -247,7 +240,7 @@ public class Grammar {
         Set<Symbol> terminals = new HashSet<>();
         for (Rule r : rules) {
             for (Symbol s : r.getClause()) {
-                if (s != Empty && s.isTerminal()) {
+                if (s != Lexemes.empty() && s.isTerminal()) {
                     terminals.add(s);
                 }
             }
@@ -598,12 +591,54 @@ public class Grammar {
         list.add(tmp);
         list.addAll(Arrays.asList(symbols));
         addRule(tmp, list);
-        addRule(tmp, Empty);
+        addRule(tmp, Lexemes.empty());
         return tmp;
     }
 
     /**
-     * useful method for defining a list of things
+     * Useful method for defining a rule that is a list of items separated by symbols (typically a terminal)
+     *
+     *  It differs from {@link Grammar#zeroOrMore(Symbol...)} and {@link Grammar#oneOrMore(Symbol...)} by the fact
+     *  this it generates a rule that strips the symbol used as a separator from the generated node's children, and that it
+     *  will also "flatten" the list of children, making it more easy to handle.
+     *  <p>
+     *  The following rule :
+     *  <pre>
+     *      listOfInts → list(Lexemes.singleChar(','), Lexemes.cInteger())
+     *  </pre>
+     *  Applied to :
+     *  <pre>
+     *      "521, 17, 514, -5"
+     *  </pre>
+     *
+     *  </p>
+     *
+     *  <p>
+     *      Would generate the following node (json-like representation) :
+     *      <pre>
+     *      {
+     *          "symbol" : "listOfInts",
+     *          "children" : [
+     *              "symbol": "listOf(',', cInteger)",
+     *              "children": [
+     *                  {
+     *                      "symbol":"cInteger", children:[]
+     *                  },
+     *                  {
+     *                      "symbol":"cInteger", children:[]
+     *                  },
+     *                  {
+     *                      "symbol":"cInteger", children:[]
+     *                  },
+     *                  {
+     *                      "symbol":"cInteger", children:[]
+     *                  },
+     *              ]
+     *          ]
+     *      }
+     *      </pre>
+     *  </p>
+     *
      *
      * @param allowEmptyList is it ok to have an empty list ?
      * @param separator      the separator, (a good one may be "Lexemes.singleChar(',')")
@@ -612,11 +647,24 @@ public class Grammar {
      */
     public Forward list(boolean allowEmptyList, Symbol separator, Symbol typeOfItems) {
         Forward tmp = new Forward("listOf(" + typeOfItems + ")");
+
+        //a list may contain only one item
         addRule(tmp, typeOfItems);
-        addRule(tmp, tmp, separator, typeOfItems);
+
+        addRule(tmp, tmp, separator, typeOfItems).withAction(context -> {
+           AstNode targetNode = context.getAstNode();
+           List<AstNode> list = targetNode.getFirstChild().getChildren();
+           AstNode extraElement = targetNode.getLastChild();
+           targetNode.getChildren().clear();
+           targetNode.getChildren().addAll(list);
+           targetNode.getChildren().add(extraElement);
+        });
+
+        //may optionally may empty
         if (allowEmptyList) {
             addEmptyRule(tmp);
         }
+
         return tmp;
     }
 }

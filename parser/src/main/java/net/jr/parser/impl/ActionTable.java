@@ -191,6 +191,14 @@ public class ActionTable {
             return actionTable;
         }
 
+        /**
+         * Add all the reduce actions to the table.
+         *
+         * @param grammar
+         * @param table
+         * @param startRule
+         * @param itemSets
+         */
         void initializeReductions(Grammar grammar, ActionTable table, Rule startRule, Set<ItemSet> itemSets) {
 
             Grammar extendedGrammar = makeExtendedGrammar(startRule, itemSets);
@@ -328,6 +336,12 @@ public class ActionTable {
             }
         }
 
+        /**
+         * Compte the FOLLOW sets for all the symbols of a grammar
+         *
+         * @param grammar the grammar
+         * @return the FOLLOW sets for all the symbols of a grammar
+         */
         Map<Symbol, Set<? extends Symbol>> getFollowSets(Grammar grammar) {
 
 
@@ -356,6 +370,13 @@ public class ActionTable {
                     .collect(Collectors.toMap(FollowSet::getSubject, FollowSet::getResolution));
         }
 
+        /**
+         * computes FOLLOW(D).
+         *
+         * @param followSets map of all follow sets,
+         * @param grammar    The grammar
+         * @param D          the symbol we compute the set for
+         */
         void defineFollowSet(Map<Symbol, FollowSet> followSets, Grammar grammar, Symbol D) {
 
             FollowSet followSet = followSets.get(D);
@@ -373,7 +394,7 @@ public class ActionTable {
                         Symbol b = clause.get(i + 1);
                         //Everything in First(b) (except for ε) is added to Follow(D)
                         Set<Symbol> first = new HashSet<>(getFirst(grammar, b));
-                        boolean containedEmpty = first.remove(Grammar.Empty);
+                        boolean containedEmpty = first.remove(Lexemes.empty());
 
                         FirstSet firstSet = new FirstSet(b);
                         firstSet.setResolution(first);
@@ -393,6 +414,13 @@ public class ActionTable {
             }
         }
 
+        /**
+         * computes FIRST(symbol)
+         *
+         * @param grammar
+         * @param s
+         * @return
+         */
         Set<Symbol> getFirst(Grammar grammar, Symbol s) {
 
             Set<Symbol> set = new HashSet<>();
@@ -422,7 +450,7 @@ public class ActionTable {
                         for (Symbol s2 : r.getClause()) {
                             if (s != s2) {
                                 Set<Symbol> a = getFirst(grammar, s2);
-                                boolean containedEmpty = a.remove(Grammar.Empty);
+                                boolean containedEmpty = a.remove(Lexemes.empty());
                                 set.addAll(a);
                                 //if First(x) did not contain ε, we do not need to contine scanning
                                 if (!containedEmpty) {
@@ -434,7 +462,7 @@ public class ActionTable {
 
                         //every First(x) contained ε, so we have to add it to the set
                         if (!brk) {
-                            set.add(Grammar.Empty);
+                            set.add(Lexemes.empty());
                         }
                     }
                 }
@@ -450,6 +478,14 @@ public class ActionTable {
 
         }
 
+        /**
+         * Constructs 'extended' grammar, ie a more precise grammar than the original one, deduced from
+         * the item sets that have been computed in the previous step
+         *
+         * @param targetRule
+         * @param allItemSets
+         * @return
+         */
         Grammar makeExtendedGrammar(Rule targetRule, Set<ItemSet> allItemSets) {
 
             Map<List<?>, ExtendedSymbol> extSyms = new HashMap<>();
@@ -489,7 +525,13 @@ public class ActionTable {
             return eGrammar;
         }
 
-
+        /**
+         * map each state to the states that can be reached for a given symbol.
+         *
+         * @param grammar     a grammar
+         * @param allItemSets the itemSets for this grammar
+         * @return
+         */
         Map<Integer, Map<Symbol, Integer>> getTranslationTable(Grammar grammar, Set<ItemSet> allItemSets) {
             Map<Integer, Map<Symbol, Integer>> table = new TreeMap<>();
             for (ItemSet itemSet : allItemSets) {

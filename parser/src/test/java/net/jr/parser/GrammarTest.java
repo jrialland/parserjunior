@@ -6,6 +6,7 @@ import net.jr.lexer.Lexer;
 import net.jr.lexer.impl.Literal;
 import net.jr.lexer.impl.SingleChar;
 import net.jr.lexer.impl.Word;
+import net.jr.parser.ast.AstNode;
 import net.jr.parser.impl.LRParser;
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,7 +28,7 @@ public class GrammarTest {
     Symbol E = new Forward("E");
     Symbol V = new Forward("V");
 
-    Symbol B = new Forward("V");
+    Symbol B = new Forward("B");
 
     SingleChar x = new SingleChar('x');
     SingleChar eq = new SingleChar('=');
@@ -66,9 +67,7 @@ public class GrammarTest {
         Parser parser = grammar.createParser(grammar.getTargetSymbol());
         Lexer lexer = Lexer.forLexemes(grammar.getTerminals());
         lexer.setFilteredOut(Lexemes.whitespace());
-
         parser.parse(lexer, new StringReader("x = *x"));
-
     }
 
     @Test
@@ -161,6 +160,32 @@ public class GrammarTest {
         } catch (ParseError e) {
             //ok!
         }
+    }
+
+
+    @Test
+    public void testListIsFlat() {
+
+        Grammar g = new Grammar();
+
+        Forward listOfInts = new Forward("listOfInts");
+        g.addRule(listOfInts, g.list(true, Lexemes.singleChar(','), Lexemes.cInteger()));
+
+        AstNode list = g.createParser().parse("51,178,1158,155").getFirstChild();
+        Assert.assertEquals(4, list.getChildren().size());
+        Assert.assertEquals("51", list.getChildren().get(0).asToken().getText());
+        Assert.assertEquals("178", list.getChildren().get(1).asToken().getText());
+        Assert.assertEquals("1158", list.getChildren().get(2).asToken().getText());
+        Assert.assertEquals("155", list.getChildren().get(3).asToken().getText());
+    }
+
+    @Test
+    public void testEmptyList() {
+        Grammar g = new Grammar();
+        Forward listOfInts = new Forward("listOfInts");
+        g.addRule(listOfInts, g.list(true, Lexemes.singleChar(','), Lexemes.cInteger()));
+        AstNode emptyList = g.createParser().parse("").getFirstChild();
+        Assert.assertTrue(emptyList.getChildren().isEmpty());
     }
 
     @Test
@@ -273,4 +298,5 @@ public class GrammarTest {
             new IfElseTest().testParseNestedElse();
         }
     }
+
 }

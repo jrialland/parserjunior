@@ -11,6 +11,9 @@ import net.jr.parser.impl.LRParser;
 import java.util.Set;
 import java.util.TreeSet;
 
+/**
+ * ANSI C Grammar
+ */
 public class CGrammar extends Grammar {
 
     public static final class Tokens {

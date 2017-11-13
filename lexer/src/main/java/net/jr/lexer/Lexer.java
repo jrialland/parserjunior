@@ -3,6 +3,7 @@ package net.jr.lexer;
 import net.jr.common.Symbol;
 import net.jr.lexer.impl.Automaton;
 import net.jr.lexer.impl.LexemeImpl;
+import net.jr.lexer.impl.LexerStreamImpl;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -39,7 +40,6 @@ public class Lexer {
      * Creates a new {@link Lexer} that can recognize the passed Lexemes
      *
      * @param tokenTypes
-     * @param <L>
      * @return
      */
     public static Lexer forLexemes(Collection<? extends Symbol> tokenTypes) {
@@ -176,7 +176,7 @@ public class Lexer {
             throw new RuntimeException(e);
         }
         Function<Token, Token> listener = tokenListener == null ? t -> t : t -> tokenListener.onNewToken(t);
-        return new LexerStream(this, clonedAutomatons, listener, reader);
+        return new LexerStreamImpl(this, clonedAutomatons, listener, reader);
     }
 
 }

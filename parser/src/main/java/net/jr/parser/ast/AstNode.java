@@ -16,6 +16,22 @@ public interface AstNode {
 
     List<AstNode> getChildren();
 
+    default AstNode getFirstChild() {
+        List<AstNode> children = getChildren();
+        if(children.isEmpty()) {
+            return null;
+        }
+        return children.get(0);
+    }
+
+    default AstNode getLastChild() {
+        List<AstNode> children = getChildren();
+        if(children.isEmpty()) {
+            return null;
+        }
+        return children.get(children.size()-1);
+    }
+
     Token asToken();
 
     default List<AstNode> getChildrenOfType(Symbol s) {

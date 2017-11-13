@@ -45,13 +45,29 @@ public class Lexemes {
         }
     };
 
-    private static final Lexeme Eof = new Lexeme() {
+    private static final Map<String, Lexeme> Artificials = new TreeMap<>();
 
-        @Override
-        public String toString() {
-            return "ᵉᵒᶠ";
-        }
-    };
+    /**
+     * returns a new lexeme that matches nothing, ie a lexeme that will never be encountered.
+     * This is useful when using artificial lexeme when dealing with context-aware grammars (for exemple the C typedef-name issue)
+     */
+    public static Lexeme artificial(String name) {
+        assert name != null;
+        return Artificials.computeIfAbsent(name, k -> {
+            final LexemeImpl l = new LexemeImpl() {
+                @Override
+                public String toString() {
+                    return name;
+                }
+            };
+            l.setAutomaton(failAutomaton(l));
+            return l;
+        });
+    }
+
+    private static final Lexeme Eof = artificial("ᵉᵒᶠ");
+
+    private static final Lexeme Empty = artificial("ε");
 
     /*
      * @return The lexeme for a C identifier
@@ -79,12 +95,23 @@ public class Lexemes {
     }
 
     /**
-     * The "End of File" lexeme, with is always the last lexeme produced by a Lexer
+     * The "End of File" lexeme, with is always the last lexeme produced by a Lexer.
+     * This lexeme is 'artificial'.
      *
      * @return
      */
     public static final Lexeme eof() {
         return Eof;
+    }
+
+
+    /**
+     * The 'empty' Lexeme may be used when referencing the absence of any symbol in a grammar.
+     * This lexeme is 'artificial' and may therefore not be emitted by a practical lexer.
+     * @return
+     */
+    public static final Lexeme empty() {
+        return Empty;
     }
 
     /**
@@ -428,9 +455,6 @@ public class Lexemes {
         return current;
     }
 
-
-    private static final Map<String, Lexeme> artificials = new TreeMap<>();
-
     private static Automaton failAutomaton(final Lexeme lexeme) {
         return new Automaton() {
 
@@ -464,24 +488,6 @@ public class Lexemes {
                 return this;
             }
         };
-    }
-
-    /**
-     * returns a new lexeme that matches nothing, ie a lexeme that will never be encountered.
-     * This is useful when using artificial lexeme when dealing with context-aware grammars (for exemple the C typedef-name issue)
-     */
-    public static Lexeme artificial(String name) {
-        assert name != null;
-        return artificials.computeIfAbsent(name, k -> {
-            final LexemeImpl l = new LexemeImpl() {
-                @Override
-                public String toString() {
-                    return name;
-                }
-            };
-            l.setAutomaton(failAutomaton(l));
-            return l;
-        });
     }
 
 }

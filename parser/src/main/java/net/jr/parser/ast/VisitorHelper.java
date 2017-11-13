@@ -2,6 +2,9 @@ package net.jr.parser.ast;
 
 import net.jr.common.Symbol;
 import net.jr.parser.Forward;
+import net.jr.parser.ast.annotations.AfterEachNode;
+import net.jr.parser.ast.annotations.BeforeEachNode;
+import net.jr.parser.ast.annotations.Target;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -24,39 +27,68 @@ public class VisitorHelper {
         return symbol.getClass().getSimpleName();
     }
 
-    private static Map<String, List<Consumer<AstNode>>> createMapping(Object visitor) {
-        Map<String, List<Consumer<AstNode>>> map = new HashMap<>();
-        for (Method method : visitor.getClass().getMethods()) {
-            Target target = method.getAnnotation(Target.class);
-            if (target != null) {
-                List<Consumer<AstNode>> consumers = map.computeIfAbsent(target.value(), s -> new ArrayList<>());
-                consumers.add(astNode -> {
-                    try {
-                        method.setAccessible(true);
-                        method.invoke(visitor, astNode);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+    private static Consumer<AstNode> makeConsumer(Method method, Object visitor) {
+        return astNode -> {
+            try {
+                method.setAccessible(true);
+                method.invoke(visitor, astNode);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-        }
-        return map;
+        };
     }
 
-    private static void visitWithConsumers(AstNode node, Map<String, List<Consumer<AstNode>>> consumers) {
+    private static class Mapping {
+        Map<String, List<Consumer<AstNode>>> map = new HashMap<>();
+        List<Consumer<AstNode>> befores = new ArrayList<>();
+        List<Consumer<AstNode>> afters = new ArrayList<>();
+    }
+
+    private static Mapping createMapping(Object visitor) {
+
+        Mapping mapping = new Mapping();
+
+        for (Method method : visitor.getClass().getMethods()) {
+
+            if (method.getAnnotation(BeforeEachNode.class) != null) {
+                mapping.befores.add(makeConsumer(method, visitor));
+            }
+
+            if (method.getAnnotation(AfterEachNode.class) != null) {
+                mapping.afters.add(makeConsumer(method, visitor));
+            }
+
+            Target target = method.getAnnotation(Target.class);
+            if (target != null) {
+                List<Consumer<AstNode>> consumers = mapping.map.computeIfAbsent(target.value(), s -> new ArrayList<>());
+                consumers.add(makeConsumer(method, visitor));
+            }
+        }
+
+        return mapping;
+    }
+
+    private static void visitWithMapping(AstNode node, Mapping mapping) {
         for (AstNode child : node.getChildren()) {
-            visitWithConsumers(child, consumers);
+            visitWithMapping(child, mapping);
         }
         String symbolName = getSymbolName(node.getSymbol());
-        List<Consumer<AstNode>> set = consumers.get(symbolName);
+
+        //run 'beforeEachNode' methods
+        mapping.befores.forEach(c -> c.accept(node));
+
+        //run the consumers for this symbol name
+        List<Consumer<AstNode>> set = mapping.map.get(symbolName);
         if (set != null) {
             set.forEach(c -> c.accept(node));
         }
+
+        // run 'afterEachNode' methods
+        mapping.afters.forEach(c -> c.accept(node));
     }
 
     public static void visit(AstNode rootNode, Object visitor) {
-        Map<String, List<Consumer<AstNode>>> mapping = createMapping(visitor);
-        visitWithConsumers(rootNode, mapping);
+        visitWithMapping(rootNode, createMapping(visitor));
     }
 
 
