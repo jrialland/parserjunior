@@ -1,7 +1,9 @@
 package net.jr.common;
 
 
-public interface Symbol {
+import net.jr.marshalling.MarshallingCapable;
+
+public interface Symbol extends MarshallingCapable {
 
     boolean isTerminal();
     

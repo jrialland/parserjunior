@@ -1,10 +1,16 @@
 package net.jr.lexer.impl;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 public class Word extends LexemeImpl {
 
     private Automaton automaton;
 
     private String name;
+
+    private String possibleFirstChar, possibleNextChars;
 
     @Override
     public String toString() {
@@ -20,6 +26,8 @@ public class Word extends LexemeImpl {
     }
 
     public Word(String possibleFirstChar, String possibleNextChars, String name) {
+        this.possibleFirstChar = possibleFirstChar;
+        this.possibleNextChars = possibleNextChars;
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
         DefaultAutomaton.Builder.BuilderState ok = builder.newFinalState();
         builder.initialState().when(CharConstraint.Builder.inList(possibleFirstChar)).goTo(ok);
@@ -44,5 +52,20 @@ public class Word extends LexemeImpl {
     @Override
     public Automaton getAutomaton() {
         return automaton;
+    }
+
+    @Override
+    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+        dataOutputStream.writeUTF(possibleFirstChar);
+        dataOutputStream.writeUTF(possibleNextChars);
+        dataOutputStream.writeUTF(name);
+    }
+
+    @SuppressWarnings("unused")
+    public static Word unMarshall(DataInputStream dataInputStream) throws IOException {
+        String possibleFirstChar = dataInputStream.readUTF();
+        String possibleNextChars = dataInputStream.readUTF();
+        String name = dataInputStream.readUTF();
+        return new Word(possibleFirstChar, possibleNextChars, name);
     }
 }

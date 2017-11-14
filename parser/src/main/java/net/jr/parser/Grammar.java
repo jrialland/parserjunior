@@ -4,10 +4,7 @@ package net.jr.parser;
 import net.jr.common.Symbol;
 import net.jr.lexer.Lexemes;
 import net.jr.parser.ast.AstNode;
-import net.jr.parser.impl.ActionTable;
-import net.jr.parser.impl.ActionType;
-import net.jr.parser.impl.BaseRule;
-import net.jr.parser.impl.LRParser;
+import net.jr.parser.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -413,9 +410,9 @@ public class Grammar {
      */
     public Parser createParser(Symbol symbol) {
         Grammar grammar = getSubGrammar(symbol);
-        Rule targetRule = grammar.getRulesTargeting(grammar.getTargetSymbol()).iterator().next();
-        ActionTable actionTable = ActionTable.lalr1(grammar, targetRule);
-        return new LRParser(grammar, targetRule, actionTable);
+        ActionTable actionTable = ActionTableCaching.get(grammar);
+
+        return new LRParser(grammar, actionTable);
     }
 
     protected Grammar getSubGrammar(Symbol symbol) {

@@ -26,8 +26,6 @@ public class LRParser implements Parser {
 
     private Lexer defaultLexer;
 
-    private Rule targetRule;
-
     private ActionTable actionTable;
 
     private AstNodeFactory astNodeFactory = new DefaultAstNodeFactory();
@@ -64,12 +62,10 @@ public class LRParser implements Parser {
 
     /**
      * @param grammar     target grammar
-     * @param targetRule  the target rule for this parser
-     * @param actionTable The actionTable for the grammar, possibly computed using {@link ActionTable.LALR1Builder#build(Grammar, Rule)}
+     * @param actionTable The actionTable for the grammar, possibly computed using {@link ActionTable.LALR1Builder#build(Grammar)}
      */
-    public LRParser(Grammar grammar, Rule targetRule, ActionTable actionTable) {
+    public LRParser(Grammar grammar, ActionTable actionTable) {
         this.grammar = grammar;
-        this.targetRule = targetRule;
         this.actionTable = actionTable;
     }
 
@@ -79,6 +75,7 @@ public class LRParser implements Parser {
         Stack<Context> stack = new Stack<>();
 
         //start with the initial state
+        Rule targetRule = grammar.getRulesTargeting(grammar.getTargetSymbol()).iterator().next();
         stack.push(new Context(astNodeFactory.newNonLeafNode(targetRule), 0));
 
         //repeat until done

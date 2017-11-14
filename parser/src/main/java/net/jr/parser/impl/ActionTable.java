@@ -3,6 +3,8 @@ package net.jr.parser.impl;
 import net.jr.common.Symbol;
 import net.jr.lexer.Lexeme;
 import net.jr.lexer.Lexemes;
+import net.jr.marshalling.MarshallingCapable;
+import net.jr.marshalling.MarshallingUtil;
 import net.jr.parser.Grammar;
 import net.jr.parser.Rule;
 import net.jr.util.table.AsciiTableView;
@@ -10,6 +12,9 @@ import net.jr.util.table.TableModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,7 +27,7 @@ import java.util.stream.Collectors;
  * <li>accept, which is written as 'acc' and indicates that the parser accepts the string in the input stream.</li>
  * </ul>
  */
-public class ActionTable {
+public class ActionTable implements MarshallingCapable {
 
     private static Logger Logger = LoggerFactory.getLogger(ActionTable.class);
 
@@ -35,6 +40,22 @@ public class ActionTable {
     private List<Symbol> terminals;
 
     private List<Symbol> nonTerminals;
+
+    @Override
+    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+        MarshallingUtil.marshall(terminals, dataOutputStream);
+        MarshallingUtil.marshall(nonTerminals, dataOutputStream);
+        MarshallingUtil.marshall(data, dataOutputStream);
+    }
+
+    @SuppressWarnings("unused")
+    public static ActionTable unMarshall(DataInputStream dataInputStream) throws IOException {
+        ActionTable actionTable = new ActionTable();
+        actionTable.terminals = MarshallingUtil.unMarshallList(dataInputStream);
+        actionTable.nonTerminals = MarshallingUtil.unMarshallList(dataInputStream);
+        actionTable.data = MarshallingUtil.unMarshallMap(dataInputStream);
+        return actionTable;
+    }
 
     private ActionTable() {
     }
@@ -161,13 +182,19 @@ public class ActionTable {
         return new AsciiTableView(4, 100).tableToString(tm);
     }
 
-    public static ActionTable lalr1(Grammar grammar, Rule startRule) {
-        return new LALR1Builder().build(grammar, startRule);
+    public static ActionTable lalr1(Grammar grammar) {
+        return new LALR1Builder().build(grammar);
     }
 
     static class LALR1Builder {
 
-        public ActionTable build(Grammar grammar, Rule startRule) {
+        public ActionTable build(Grammar grammar) {
+
+            Set<Rule> targetRules = grammar.getRulesTargeting(grammar.getTargetSymbol());
+            if (targetRules.size() != 1) {
+                throw new IllegalStateException("Illegal target rule specification (required : only one rule for the target symbol)");
+            }
+            Rule startRule = targetRules.iterator().next();
 
             getLog().trace("Building action Table for : " + grammar.toString());
             getLog().trace("Starting Rule is : " + startRule);

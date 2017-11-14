@@ -24,10 +24,6 @@ class ParsingContextImpl implements ParsingContext {
         return parser;
     }
 
-    public void setParser(Parser parser) {
-        this.parser = parser;
-    }
-
     @Override
     public AstNode getAstNode() {
         return astNode;

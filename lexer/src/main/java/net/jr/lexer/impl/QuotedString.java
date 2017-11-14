@@ -6,7 +6,19 @@ public class QuotedString extends LexemeImpl {
 
     private Automaton automaton;
 
+    private char starChar;
+
+    private char endChar;
+
+    private char escapeChar;
+
+    private char[] forbiddenChars;
+
     public QuotedString(char startChar, char endChar, char escapeChar, char[] forbiddenChars) {
+        this.starChar = startChar;
+        this.endChar = endChar;
+        this.escapeChar = escapeChar;
+        this.forbiddenChars = forbiddenChars;
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
         DefaultAutomaton.Builder.BuilderState inString = builder.newNonFinalState();
         DefaultAutomaton.Builder.BuilderState escaping = builder.newNonFinalState();

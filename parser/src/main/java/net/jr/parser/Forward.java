@@ -3,6 +3,10 @@ package net.jr.parser;
 
 import net.jr.common.Symbol;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 /**
  * This is the base type for non-terminal symbols, that may be used to designate any non-terminal in a grammar.
  * The 'Forward' term is borrowed from the python pyparsing (http://pyparsing.wikispaces.com/) library
@@ -65,5 +69,16 @@ public class Forward implements Symbol {
         } else {
             return name.hashCode() ^ 41;
         }
+    }
+
+    @Override
+    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+        dataOutputStream.writeUTF(name);
+    }
+
+    @SuppressWarnings("unused")
+    public static Forward unMarshall(DataInputStream in) throws IOException {
+        String name = in.readUTF();
+        return new Forward(name);
     }
 }

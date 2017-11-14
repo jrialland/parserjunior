@@ -28,6 +28,10 @@ public class StringUtilTest {
         Assert.assertEquals("  .  ", StringUtil.center(".", 5));
         Assert.assertEquals(" ... ", StringUtil.center("...", 5));
         Assert.assertEquals(".....", StringUtil.center(".........", 5));
+
+        Assert.assertEquals("  .   ", StringUtil.center(".", 6));
+        Assert.assertEquals(" ...  ", StringUtil.center("...", 6));
+        Assert.assertEquals(" .... ", StringUtil.center("....", 6));
     }
 
 

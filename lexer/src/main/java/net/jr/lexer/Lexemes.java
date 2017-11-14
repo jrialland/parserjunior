@@ -108,6 +108,7 @@ public class Lexemes {
     /**
      * The 'empty' Lexeme may be used when referencing the absence of any symbol in a grammar.
      * This lexeme is 'artificial' and may therefore not be emitted by a practical lexer.
+     *
      * @return
      */
     public static final Lexeme empty() {
@@ -455,39 +456,8 @@ public class Lexemes {
         return current;
     }
 
-    private static Automaton failAutomaton(final Lexeme lexeme) {
-        return new Automaton() {
-
-            @Override
-            public boolean step(char c) {
-                return true;
-            }
-
-            @Override
-            public void reset() {
-
-            }
-
-            @Override
-            public int getMatchedLength() {
-                return 0;
-            }
-
-            @Override
-            public boolean isInFinalState() {
-                return false;
-            }
-
-            @Override
-            public Lexeme getTokenType() {
-                return lexeme;
-            }
-
-            @Override
-            public Object clone() throws CloneNotSupportedException {
-                return this;
-            }
-        };
+    static Automaton failAutomaton(final Lexeme lexeme) {
+        return FailAutomaton.get(lexeme);
     }
 
 }
