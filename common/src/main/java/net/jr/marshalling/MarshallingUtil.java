@@ -1,13 +1,15 @@
 package net.jr.marshalling;
 
+import net.jr.converters.Converter;
 import net.jr.types.TypeUtil;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class MarshallingUtil {
 
@@ -18,6 +20,8 @@ public class MarshallingUtil {
     private static final char SET = 's';
 
     private static final char MAP = 'm';
+
+    private static final char STRING = 'z';
 
     private interface Marshaller {
         void marshall(Object obj, DataOutputStream dataOutputStream) throws IOException;
@@ -32,6 +36,12 @@ public class MarshallingUtil {
     private static final Map<Character, UnMarshaller> unMarshallers = new TreeMap<>();
 
     static {
+
+        marshallers.put(NULL, (obj, out) -> {
+            out.writeChar(NULL);
+        });
+
+        unMarshallers.put(NULL, in -> null);
 
         marshallers.put(TypeUtil.ARRAY, (obj, out) -> {
             out.writeChar(TypeUtil.ARRAY);
@@ -117,15 +127,33 @@ public class MarshallingUtil {
             m.marshall(out);
         });
 
+        marshallers.put(STRING, (obj, out) -> {
+            out.writeChar(TypeUtil.OBJECT);
+            out.writeUTF("Ljava/lang/String;");
+            out.writeUTF(obj.toString());
+        });
+
         unMarshallers.put(TypeUtil.OBJECT, (in) -> {
-            Class<?> clazz = TypeUtil.forBytecodeTypename(in.readUTF());
-            try {
-                Method method = clazz.getMethod("unMarshall", DataInputStream.class);
-                method.setAccessible(true);
-                return method.invoke(null, in);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            String className = in.readUTF();
+            if (className.equals("Ljava/lang/String;")) {
+                return in.readUTF();
+            } else {
+                try {
+                    Class clazz = TypeUtil.forBytecodeTypename(className);
+                    Method method = clazz.getMethod("unMarshall", DataInputStream.class);
+                    method.setAccessible(true);
+                    if (!Modifier.isStatic(method.getModifiers())) {
+                        throw new IllegalStateException(String.format("The %s::%s method must be static", clazz.getName(), method.getName()));
+                    }
+                    if (!method.getReturnType().equals(clazz)) {
+                        throw new IllegalStateException(String.format("The return type for the %s::%s method must be '%s'", clazz.getName(), method.getName(), clazz.getName()));
+                    }
+                    return method.invoke(null, in);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
+
         });
 
         marshallers.put(TypeUtil.BYTE, (obj, out) -> {
@@ -193,6 +221,11 @@ public class MarshallingUtil {
             type = NULL;
         }
 
+        //STRING
+        else if (obj instanceof CharSequence) {
+            type = STRING;
+        }
+
         //ARRAY
         else if (obj.getClass().isArray()) {
             type = TypeUtil.ARRAY;
@@ -201,6 +234,11 @@ public class MarshallingUtil {
         //LIST
         else if (obj instanceof List) {
             type = LIST;
+        }
+
+        //SET
+        else if (obj instanceof Set) {
+            type = SET;
         }
 
         //MAP
@@ -225,7 +263,7 @@ public class MarshallingUtil {
 
         //INT
         else if (obj instanceof Integer) {
-            type = TypeUtil.SHORT;
+            type = TypeUtil.INT;
         }
 
         //LONG
@@ -255,7 +293,7 @@ public class MarshallingUtil {
 
         final Marshaller marshaller;
         if (type == -1 || (marshaller = marshallers.get((char) type)) == null) {
-            throw new UnsupportedOperationException(String.format("Unmarshallable type '%s'", obj.getClass().getName()));
+            throw new UnsupportedOperationException(String.format("Unmarshallable '%s'", obj == null ? "null" : obj.getClass().getName()));
         } else {
             marshaller.marshall(obj, dataOutputStream);
         }
@@ -268,6 +306,71 @@ public class MarshallingUtil {
             throw new IllegalStateException(String.format("For type code '%s'", type));
         } else {
             return (T) unMarshaller.unMarshall(dataInputStream);
+        }
+    }
+
+    public static byte[] toByteArray(Object obj) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            DataOutputStream dataOutputStream = new DataOutputStream(baos);
+            marshall(obj, dataOutputStream);
+            dataOutputStream.flush();
+            return baos.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <T> T fromByteArray(byte[] data) {
+        try {
+            return unmarshall(new DataInputStream(new ByteArrayInputStream(data)));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <A> Converter<A, byte[]> converter(Class<A> targetType, boolean compress) {
+        if (compress) {
+            return new Converter<A, byte[]>() {
+                @Override
+                public byte[] convert(A a) {
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    try {
+                        GZIPOutputStream gzipOutputStream = new GZIPOutputStream(baos);
+                        DataOutputStream dataOutputStream = new DataOutputStream(gzipOutputStream);
+                        marshall(a, dataOutputStream);
+                        dataOutputStream.flush();
+                        gzipOutputStream.finish();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return baos.toByteArray();
+                }
+
+                @Override
+                public A convertBack(byte[] bytes) {
+                    try {
+                        ByteArrayInputStream baIn = new ByteArrayInputStream(bytes);
+                        GZIPInputStream gzipInputStream = new GZIPInputStream(baIn);
+                        DataInputStream dataInputStream = new DataInputStream(gzipInputStream);
+                        return unmarshall(dataInputStream);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+        } else {
+            return new Converter<A, byte[]>() {
+                @Override
+                public byte[] convert(A a) {
+                    return toByteArray(a);
+                }
+
+                @Override
+                public A convertBack(byte[] bytes) {
+                    return fromByteArray(bytes);
+                }
+            };
         }
     }
 }

@@ -1,6 +1,10 @@
 package net.jr.lexer.impl;
 
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 public class SingleChar extends LexemeImpl {
 
     private char character;
@@ -37,5 +41,15 @@ public class SingleChar extends LexemeImpl {
     @Override
     public int getPriority() {
         return 0;
+    }
+
+    @Override
+    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+        dataOutputStream.writeChar(character);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static SingleChar unMarshall(DataInputStream dataInputStream) throws IOException {
+        return new SingleChar(dataInputStream.readChar());
     }
 }

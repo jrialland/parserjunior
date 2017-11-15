@@ -41,6 +41,10 @@ public class ActionTable implements MarshallingCapable {
 
     private List<Symbol> nonTerminals;
 
+    public int getStatesCount() {
+        return data.size();
+    }
+
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
         MarshallingUtil.marshall(terminals, dataOutputStream);
@@ -51,9 +55,9 @@ public class ActionTable implements MarshallingCapable {
     @SuppressWarnings("unused")
     public static ActionTable unMarshall(DataInputStream dataInputStream) throws IOException {
         ActionTable actionTable = new ActionTable();
-        actionTable.terminals = MarshallingUtil.unMarshallList(dataInputStream);
-        actionTable.nonTerminals = MarshallingUtil.unMarshallList(dataInputStream);
-        actionTable.data = MarshallingUtil.unMarshallMap(dataInputStream);
+        actionTable.terminals = MarshallingUtil.unmarshall(dataInputStream);
+        actionTable.nonTerminals = MarshallingUtil.unmarshall(dataInputStream);
+        actionTable.data = MarshallingUtil.unmarshall(dataInputStream);
         return actionTable;
     }
 
@@ -92,6 +96,9 @@ public class ActionTable implements MarshallingCapable {
 
     int getNextState(int currentState, Symbol symbol) {
         Action gotoAction = _getAction(currentState, symbol);
+        if(gotoAction == null) {
+            throw new IllegalStateException(String.format("No GOTO Action for state '%d', Symbol '%s'", currentState, symbol));
+        }
         return gotoAction.getActionParameter();
     }
 

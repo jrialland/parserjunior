@@ -7,6 +7,8 @@ import net.jr.lexer.impl.Literal;
 import net.jr.lexer.impl.SingleChar;
 import net.jr.lexer.impl.Word;
 import net.jr.parser.ast.AstNode;
+import net.jr.parser.impl.ActionTable;
+import net.jr.parser.impl.ActionTableCaching;
 import net.jr.parser.impl.LRParser;
 import org.junit.Assert;
 import org.junit.Before;
@@ -70,9 +72,7 @@ public class GrammarTest {
         parser.parse(lexer, new StringReader("x = *x"));
     }
 
-    @Test
-    public void testParse2() {
-
+    private Grammar makeGrammar2() {
         Grammar g = new Grammar();
 
         // (0)
@@ -93,10 +93,25 @@ public class GrammarTest {
         // (5) B → 1
         g.addRule(B, one);
 
+        return g;
+    }
+
+    @Test
+    public void testParse2() {
+        Grammar g = makeGrammar2();
         Parser parser = g.createParser(S);
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
-
         ((LRParser) parser).parse("1+1");
+    }
+
+    @Test
+    public void testHashCodeStability() {
+
+        int h = makeGrammar2().hashCode();
+        for(int i=0; i<100; i++) {
+            Assert.assertEquals(h, makeGrammar2().hashCode());
+        }
+
     }
 
     @Test
@@ -161,7 +176,6 @@ public class GrammarTest {
             //ok!
         }
     }
-
 
     @Test
     public void testListIsFlat() {
@@ -293,7 +307,17 @@ public class GrammarTest {
     }
 
     @Test
-    public void testStability() {
+    public void testStabilityNoCache() {
+        ActionTableCaching.setEnabled(false);
+        for (int i = 0; i < 100; i++) {
+            new IfElseTest().testParseNestedElse();
+        }
+        ActionTableCaching.setEnabled(true);
+    }
+
+    @Test
+    public void testStabilityWithCache() {
+        ActionTableCaching.setEnabled(true);
         for (int i = 0; i < 100; i++) {
             new IfElseTest().testParseNestedElse();
         }

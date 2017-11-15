@@ -45,6 +45,23 @@ public class Word extends LexemeImpl {
     }
 
     @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || !obj.getClass().equals(SingleChar.class)) {
+            return false;
+        }
+        if (!obj.getClass().equals(Word.class)) {
+            return false;
+        }
+        final Word o = (Word) obj;
+        return name.equals(o.name);
+    }
+
+    @Override
     public int getPriority() {
         return 1;
     }
@@ -56,16 +73,17 @@ public class Word extends LexemeImpl {
 
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
+        dataOutputStream.writeUTF(name);
         dataOutputStream.writeUTF(possibleFirstChar);
         dataOutputStream.writeUTF(possibleNextChars);
-        dataOutputStream.writeUTF(name);
     }
 
     @SuppressWarnings("unused")
     public static Word unMarshall(DataInputStream dataInputStream) throws IOException {
+        boolean isSimple = dataInputStream.readBoolean();
+        String name = dataInputStream.readUTF();
         String possibleFirstChar = dataInputStream.readUTF();
         String possibleNextChars = dataInputStream.readUTF();
-        String name = dataInputStream.readUTF();
         return new Word(possibleFirstChar, possibleNextChars, name);
     }
 }

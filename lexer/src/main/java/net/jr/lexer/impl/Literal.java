@@ -1,5 +1,9 @@
 package net.jr.lexer.impl;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 import static net.jr.lexer.impl.CharConstraint.Builder.eq;
 
 /**
@@ -33,6 +37,23 @@ public class Literal extends LexemeImpl {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (!obj.getClass().equals(Literal.class)) {
+            return false;
+        }
+        final Literal o = (Literal) obj;
+        return value.equals(o.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return 23 + value.hashCode();
+    }
+
+    @Override
     public String toString() {
         return "'" + value + "'";
     }
@@ -40,5 +61,14 @@ public class Literal extends LexemeImpl {
     @Override
     public int getPriority() {
         return 2;
+    }
+
+    @Override
+    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+        dataOutputStream.writeUTF(value);
+    }
+
+    public static Literal unMarshall(DataInputStream in) throws IOException {
+        return new Literal(in.readUTF());
     }
 }

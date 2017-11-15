@@ -1,9 +1,13 @@
 package net.jr.parser.impl;
 
 import net.jr.common.Symbol;
+import net.jr.marshalling.MarshallingUtil;
 import net.jr.parser.Rule;
 import net.jr.util.StringUtil;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.Set;
 
 /**
@@ -65,5 +69,20 @@ public class ExtendedSymbol implements Symbol {
     @Override
     public String toString() {
         return StringUtil.toSubscript(getFrom()) + getSymbol().toString() + StringUtil.toSubscript(getTo());
+    }
+
+    @Override
+    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+        dataOutputStream.writeInt(from);
+        symbol.marshall(dataOutputStream);
+        dataOutputStream.writeInt(to);
+    }
+
+    @SuppressWarnings("unused")
+    public static ExtendedSymbol unMarshall(DataInputStream in) throws IOException {
+        int from = in.readInt();
+        Symbol symbol = MarshallingUtil.unmarshall(in);
+        int to = in.readInt();
+        return new ExtendedSymbol(from, symbol, to);
     }
 }

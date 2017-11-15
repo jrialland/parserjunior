@@ -5,10 +5,13 @@ import net.jr.common.Symbol;
 import net.jr.lexer.Lexemes;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.impl.*;
+import net.jr.util.Base58Util;
+import net.jr.util.HexUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.StringWriter;
+import java.security.MessageDigest;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -28,6 +31,12 @@ public class Grammar {
     private Map<Symbol, Integer> precedenceLevels = new HashMap<>();
 
     private Symbol targetSymbol;
+
+    private int counter = 0;
+
+    private String makeName(String prefix) {
+        return prefix + "_" + Base58Util.encode(Integer.toString(counter++).getBytes());
+    }
 
     public Grammar() {
         this(null);
@@ -411,7 +420,7 @@ public class Grammar {
     public Parser createParser(Symbol symbol) {
         Grammar grammar = getSubGrammar(symbol);
         ActionTable actionTable = ActionTableCaching.get(grammar);
-
+        System.out.println(actionTable);
         return new LRParser(grammar, actionTable);
     }
 
@@ -561,7 +570,7 @@ public class Grammar {
      */
     public Forward oneOrMore(Symbol... symbols) {
         Forward tmp = new Forward();
-        tmp.setName("oneOrMore" + tmp.hashCode());
+        tmp.setName(makeName("oneOrMore"));
         addRule(tmp, symbols);
         List<Symbol> list = new ArrayList<>();
         list.add(tmp);
@@ -582,7 +591,7 @@ public class Grammar {
      */
     public Forward zeroOrMore(Symbol... symbols) {
         Forward tmp = new Forward();
-        tmp.setName("zeroOrMore" + tmp.hashCode());
+        tmp.setName(makeName("zeroOrMore"));
         addRule(tmp, symbols);
         List<Symbol> list = new ArrayList<>();
         list.add(tmp);
@@ -594,25 +603,25 @@ public class Grammar {
 
     /**
      * Useful method for defining a rule that is a list of items separated by symbols (typically a terminal)
-     *
-     *  It differs from {@link Grammar#zeroOrMore(Symbol...)} and {@link Grammar#oneOrMore(Symbol...)} by the fact
-     *  this it generates a rule that strips the symbol used as a separator from the generated node's children, and that it
-     *  will also "flatten" the list of children, making it more easy to handle.
-     *  <p>
-     *  The following rule :
-     *  <pre>
+     * <p>
+     * It differs from {@link Grammar#zeroOrMore(Symbol...)} and {@link Grammar#oneOrMore(Symbol...)} by the fact
+     * this it generates a rule that strips the symbol used as a separator from the generated node's children, and that it
+     * will also "flatten" the list of children, making it more easy to handle.
+     * <p>
+     * The following rule :
+     * <pre>
      *      listOfInts → list(Lexemes.singleChar(','), Lexemes.cInteger())
      *  </pre>
-     *  Applied to :
-     *  <pre>
+     * Applied to :
+     * <pre>
      *      "521, 17, 514, -5"
      *  </pre>
-     *
-     *  </p>
-     *
-     *  <p>
-     *      Would generate the following node (json-like representation) :
-     *      <pre>
+     * <p>
+     * </p>
+     * <p>
+     * <p>
+     * Would generate the following node (json-like representation) :
+     * <pre>
      *      {
      *          "symbol" : "listOfInts",
      *          "children" : [
@@ -634,8 +643,7 @@ public class Grammar {
      *          ]
      *      }
      *      </pre>
-     *  </p>
-     *
+     * </p>
      *
      * @param allowEmptyList is it ok to have an empty list ?
      * @param separator      the separator, (a good one may be "Lexemes.singleChar(',')")
@@ -649,12 +657,12 @@ public class Grammar {
         addRule(tmp, typeOfItems);
 
         addRule(tmp, tmp, separator, typeOfItems).withAction(context -> {
-           AstNode targetNode = context.getAstNode();
-           List<AstNode> list = targetNode.getFirstChild().getChildren();
-           AstNode extraElement = targetNode.getLastChild();
-           targetNode.getChildren().clear();
-           targetNode.getChildren().addAll(list);
-           targetNode.getChildren().add(extraElement);
+            AstNode targetNode = context.getAstNode();
+            List<AstNode> list = targetNode.getFirstChild().getChildren();
+            AstNode extraElement = targetNode.getLastChild();
+            targetNode.getChildren().clear();
+            targetNode.getChildren().addAll(list);
+            targetNode.getChildren().add(extraElement);
         });
 
         //may optionally may empty
@@ -663,6 +671,50 @@ public class Grammar {
         }
 
         return tmp;
+    }
+
+    private static final String ruleToString(Rule rule) {
+        StringWriter sw = new StringWriter();
+        sw.append(rule.getTarget().toString());
+        for (Symbol s : rule.getClause()) {
+            sw.append(" ");
+            sw.append(s.toString());
+        }
+        return sw.toString();
+    }
+
+    public String getFingerprint() {
+        List<String> ruleNames = getRules().stream().map(rule -> ruleToString(rule)).collect(Collectors.toList());
+        Collections.sort(ruleNames);
+        try {
+            MessageDigest md = MessageDigest.getInstance("md5");
+            for (String ruleName : ruleNames) {
+                md.update(ruleName.getBytes());
+            }
+            String hex = HexUtil.bytesToHex(md.digest());
+            return hex;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return getFingerprint().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+
+        if (!obj.getClass().equals(Grammar.class)) {
+            return false;
+        }
+
+        final Grammar o = (Grammar) obj;
+        return getFingerprint().equals(o.getFingerprint());
     }
 }
 
