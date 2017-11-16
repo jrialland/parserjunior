@@ -51,14 +51,14 @@ public class Word extends LexemeImpl {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !obj.getClass().equals(SingleChar.class)) {
+        if (obj == null) {
             return false;
         }
         if (!obj.getClass().equals(Word.class)) {
             return false;
         }
         final Word o = (Word) obj;
-        return name.equals(o.name);
+        return possibleFirstChar.equals(o.possibleFirstChar) && possibleNextChars.equals(o.possibleNextChars);
     }
 
     @Override

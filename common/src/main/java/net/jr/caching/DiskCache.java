@@ -5,9 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
@@ -88,6 +86,33 @@ public class DiskCache implements Cache<String, byte[]> {
                     }
                 }
             }
+        }
+    }
+
+    @Override
+    public void evict(String key) {
+        Path tmpFile = Paths.get(tmpDir.toString(), key);
+        try {
+            if (Files.isRegularFile(tmpFile)) {
+                Files.delete(Paths.get(tmpDir.toString(), key));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void evictAll() {
+        try {
+            Files.walkFileTree(tmpDir, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

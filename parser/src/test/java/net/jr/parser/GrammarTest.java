@@ -14,6 +14,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 import java.io.StringReader;
 import java.util.Stack;
@@ -22,7 +23,7 @@ public class GrammarTest {
 
     @BeforeClass
     public static void setupClass() {
-        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
     }
 
     Symbol S = new Forward("S");
@@ -66,7 +67,7 @@ public class GrammarTest {
 
     @Test
     public void testParse() {
-        Parser parser = grammar.createParser(grammar.getTargetSymbol());
+        Parser parser = grammar.createParser(grammar.getTargetSymbol(), false);
         Lexer lexer = Lexer.forLexemes(grammar.getTerminals());
         lexer.setFilteredOut(Lexemes.whitespace());
         parser.parse(lexer, new StringReader("x = *x"));
@@ -99,7 +100,7 @@ public class GrammarTest {
     @Test
     public void testParse2() {
         Grammar g = makeGrammar2();
-        Parser parser = g.createParser(S);
+        Parser parser = g.createParser(S, false);
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
         ((LRParser) parser).parse("1+1");
     }
@@ -121,7 +122,7 @@ public class GrammarTest {
         g.addRule(V, new SingleChar('0'));
         g.addRule(V, new SingleChar('1'));
 
-        Parser parser = g.createParser(V);
+        Parser parser = g.createParser(V, false);
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
 
         parser.parse(lexer, new StringReader("0"));
@@ -140,7 +141,7 @@ public class GrammarTest {
         g.addRule(I, I, new SingleChar(','), ident);
         g.addEmptyRule(I);
 
-        Parser parser = g.createParser();
+        Parser parser = g.createParser(false);
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
         lexer.setFilteredOut(Lexemes.whitespace());
 
@@ -159,7 +160,7 @@ public class GrammarTest {
         Symbol L = new Forward("list");
         g.addRule(L, new SingleChar('('), g.list(true, new SingleChar(','), Lexemes.cIdentifier()), new SingleChar(')'));
 
-        Parser parser = g.createParser(L);
+        Parser parser = g.createParser(L, false);
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
         lexer.setFilteredOut(Lexemes.whitespace());
 
@@ -185,7 +186,7 @@ public class GrammarTest {
         Forward listOfInts = new Forward("listOfInts");
         g.addRule(listOfInts, g.list(true, Lexemes.singleChar(','), Lexemes.cInteger()));
 
-        AstNode list = g.createParser().parse("51,178,1158,155").getFirstChild();
+        AstNode list = g.createParser(false).parse("51,178,1158,155").getFirstChild();
         Assert.assertEquals(4, list.getChildren().size());
         Assert.assertEquals("51", list.getChildren().get(0).asToken().getText());
         Assert.assertEquals("178", list.getChildren().get(1).asToken().getText());
@@ -198,7 +199,7 @@ public class GrammarTest {
         Grammar g = new Grammar();
         Forward listOfInts = new Forward("listOfInts");
         g.addRule(listOfInts, g.list(true, Lexemes.singleChar(','), Lexemes.cInteger()));
-        AstNode emptyList = g.createParser().parse("").getFirstChild();
+        AstNode emptyList = g.createParser(false).parse("").getFirstChild();
         Assert.assertTrue(emptyList.getChildren().isEmpty());
     }
 
@@ -209,7 +210,7 @@ public class GrammarTest {
         Symbol L = new Forward("onomatopoeias");
         g.addRule(L, new Literal(">>"), g.zeroOrMore(Lexemes.cIdentifier(), new SingleChar('!')));
 
-        Parser parser = g.createParser(L);
+        Parser parser = g.createParser(L, false);
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
         lexer.setFilteredOut(Lexemes.whitespace());
 
@@ -226,7 +227,7 @@ public class GrammarTest {
         Symbol S = new Forward("S");
         g.addRule(S, g.oneOrMore(new Word("nahnah")), new Word("batman"));
 
-        Parser parser = g.createParser(S);
+        Parser parser = g.createParser(S, false);
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
         lexer.setFilteredOut(Lexemes.whitespace());
 
@@ -297,7 +298,7 @@ public class GrammarTest {
                     }
                 });
 
-        Parser parser = g.createParser(E);
+        Parser parser = g.createParser(E, false);
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
         lexer.setFilteredOut(Lexemes.whitespace());
 
@@ -319,6 +320,7 @@ public class GrammarTest {
     public void testStabilityWithCache() {
         ActionTableCaching.setEnabled(true);
         for (int i = 0; i < 100; i++) {
+            LoggerFactory.getLogger(GrammarTest.class).trace("--------------------------" + i);
             new IfElseTest().testParseNestedElse();
         }
     }

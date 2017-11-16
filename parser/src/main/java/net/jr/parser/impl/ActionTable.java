@@ -96,7 +96,7 @@ public class ActionTable implements MarshallingCapable {
 
     int getNextState(int currentState, Symbol symbol) {
         Action gotoAction = _getAction(currentState, symbol);
-        if(gotoAction == null) {
+        if (gotoAction == null) {
             throw new IllegalStateException(String.format("No GOTO Action for state '%d', Symbol '%s'", currentState, symbol));
         }
         return gotoAction.getActionParameter();
@@ -207,8 +207,8 @@ public class ActionTable implements MarshallingCapable {
             getLog().trace("Starting Rule is : " + startRule);
 
             //Syntax Analysis Goal: Item Sets
-            ItemSet i0 = getFirstItemSet(grammar, startRule);
-            Set<ItemSet> allItemSets = getAllItemSets(grammar, i0);
+
+            Set<ItemSet> allItemSets = getAllItemSets(grammar);
 
             //Syntax Analysis Goal: Translation Table
             Map<Integer, Map<Symbol, Integer>> translationTable = getTranslationTable(grammar, allItemSets);
@@ -427,7 +427,7 @@ public class ActionTable implements MarshallingCapable {
                     if (clause.get(i).equals(D)) {
                         Symbol b = clause.get(i + 1);
                         //Everything in First(b) (except for ε) is added to Follow(D)
-                        Set<Symbol> first = new HashSet<>(getFirst(grammar, b));
+                        Set<Symbol> first = new HashSet<>(getFirstSet(grammar, b));
                         boolean containedEmpty = first.remove(Lexemes.empty());
 
                         FirstSet firstSet = new FirstSet(b);
@@ -453,9 +453,9 @@ public class ActionTable implements MarshallingCapable {
          *
          * @param grammar
          * @param s
-         * @return
+         * @return FIRST(symbol)
          */
-        Set<Symbol> getFirst(Grammar grammar, Symbol s) {
+        Set<Symbol> getFirstSet(Grammar grammar, Symbol s) {
 
             Set<Symbol> set = new HashSet<>();
 
@@ -482,8 +482,8 @@ public class ActionTable implements MarshallingCapable {
                         //if not, we scan the symbol,
                         boolean brk = false;
                         for (Symbol s2 : r.getClause()) {
-                            if (s != s2) {
-                                Set<Symbol> a = getFirst(grammar, s2);
+                            if (!s.equals(s2)) {
+                                Set<Symbol> a = getFirstSet(grammar, s2);
                                 boolean containedEmpty = a.remove(Lexemes.empty());
                                 set.addAll(a);
                                 //if First(x) did not contain ε, we do not need to contine scanning
@@ -521,37 +521,47 @@ public class ActionTable implements MarshallingCapable {
          * @return
          */
         Grammar makeExtendedGrammar(Rule targetRule, Set<ItemSet> allItemSets) {
-
-            Map<List<?>, ExtendedSymbol> extSyms = new HashMap<>();
+            Set<ExtendedSymbol> extendedSymbols = new HashSet<>();
             Grammar eGrammar = new Grammar();
-            int idCounter = 0;
+
+            int[] counter = new int[]{0};
+
             for (ItemSet itemSet : allItemSets) {
                 int initialState = itemSet.getId();
-                List<Rule> rules = itemSet.allItems().filter(item -> item.getPointer() == 0).map(item -> item.getRule()).collect(Collectors.toList());
-                for (Rule rule : rules) {
+                itemSet.allItems()
+                        .filter(item -> item.getPointer() == 0)
+                        .map(item -> item.getRule())
+                        .forEach(rule -> {
 
-                    ItemSet currentItem = itemSet;
-                    List<ExtendedSymbol> eClause = new ArrayList<>();
-                    for (Symbol s : rule.getClause()) {
-                        final int start = currentItem.getId();
-                        currentItem = currentItem.getTransitionFor(s);
-                        final int end = currentItem.getId();
-                        List<?> key = Arrays.asList(start, s, end);
-                        ExtendedSymbol extSym = extSyms.computeIfAbsent(key, k -> new ExtendedSymbol(start, s, end));
-                        eClause.add(extSym);
-                    }
-                    final int finalState;
-                    ItemSet transition = itemSet.getTransitionFor(rule.getTarget());
-                    if (transition == null) {
-                        finalState = -1;
-                    } else {
-                        finalState = transition.getId();
-                    }
+                            ItemSet currentItem = itemSet;
+                            List<ExtendedSymbol> eClause = new ArrayList<>();
 
-                    List<?> key = Arrays.asList(initialState, rule.getTarget(), finalState);
-                    ExtendedSymbol eTarget = extSyms.computeIfAbsent(key, k -> new ExtendedSymbol(initialState, rule.getTarget(), finalState));
-                    eGrammar.addRule(new ExtendedRule(idCounter++, rule, eTarget, eClause.toArray(new ExtendedSymbol[]{})));
-                }
+                            for (Symbol s : rule.getClause()) {
+                                final int start = currentItem.getId();
+                                currentItem = currentItem.getTransitionFor(s);
+                                final int end = currentItem.getId();
+                                ExtendedSymbol extSym = new ExtendedSymbol(start, s, end);
+                                if(!extendedSymbols.contains(extSym)) {
+                                    extendedSymbols.add(extSym);
+                                }
+                                eClause.add(extSym);
+                            }
+
+                            final int finalState;
+
+                            ItemSet transition = itemSet.getTransitionFor(rule.getTarget());
+                            if (transition == null) {
+                                finalState = -1;
+                            } else {
+                                finalState = transition.getId();
+                            }
+
+                            ExtendedSymbol eTarget = new ExtendedSymbol(initialState, rule.getTarget(), finalState);
+                            if(!extendedSymbols.contains(eTarget)) {
+                                extendedSymbols.add(eTarget);
+                            }
+                            eGrammar.addRule(new ExtendedRule(counter[0]++, rule, eTarget, eClause.toArray(new ExtendedSymbol[]{})));
+                        });
             }
 
             ExtendedRule eTargetRule = eGrammar.getRules().stream().map(r -> (ExtendedRule) r).filter(r -> ((ExtendedSymbol) r.getTarget()).getSymbol().equals(targetRule.getTarget())).findFirst().get();
@@ -587,10 +597,11 @@ public class ActionTable implements MarshallingCapable {
          * generate all the other sets so we can get all LR(0) transitions
          *
          * @param grammar
-         * @param i0
          * @return
          */
-        Set<ItemSet> getAllItemSets(Grammar grammar, ItemSet i0) {
+        Set<ItemSet> getAllItemSets(Grammar grammar) {
+            ItemSet i0 = getFirstItemSet(grammar);
+
             Set<ItemSet> set = new HashSet<>();
             set.add(i0);
 
@@ -630,7 +641,8 @@ public class ActionTable implements MarshallingCapable {
         /**
          * The first item set, I0 begins with the starting rule.
          */
-        ItemSet getFirstItemSet(Grammar grammar, Rule startingRule) {
+        ItemSet getFirstItemSet(Grammar grammar) {
+            Rule startingRule = grammar.getRulesTargeting(grammar.getTargetSymbol()).iterator().next();
             Item firstItem = new Item(startingRule, 0);
             Set<Item> kernel = new HashSet<>();
             kernel.add(firstItem);

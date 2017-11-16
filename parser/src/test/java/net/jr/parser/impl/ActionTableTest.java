@@ -1,19 +1,24 @@
 package net.jr.parser.impl;
 
 import net.jr.common.Symbol;
+import net.jr.lexer.Lexemes;
 import net.jr.lexer.impl.SingleChar;
 import net.jr.parser.Forward;
 import net.jr.parser.Grammar;
 import net.jr.parser.ast.AstNode;
+import net.jr.parser.ast.annotations.Target;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ActionTableTest {
+
+    public static void setupClass() {
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
+    }
 
     Symbol S = new Forward("S");
     Symbol N = new Forward("N");
@@ -45,17 +50,49 @@ public class ActionTableTest {
         grammar.addRule(V, star, E);
     }
 
+    private void assertContainsItem(Set<Item> set, String repr) {
+        Assert.assertEquals(1, set.stream().filter(i -> i.toString().equals(repr)).count());
+    }
+
+    @Test
+    public void testI0() {
+        ActionTable.LALR1Builder builder = new ActionTable.LALR1Builder();
+        ItemSet i0 = builder.getFirstItemSet(grammar);
+
+        Assert.assertEquals(1, i0.getKernel().size());
+        assertContainsItem(i0.getKernel(), "S → • N");
+
+        Set<Item> closure = i0.getClosure();
+        Assert.assertEquals(5, closure.size());
+
+        assertContainsItem(closure, "N → • V '=' E");
+        assertContainsItem(closure, "N → • E");
+        assertContainsItem(closure, "E → • V");
+        assertContainsItem(closure, "V → • 'x'");
+        assertContainsItem(closure, "V → • '*' E");
+    }
+
+    @Test
+    public void testAllItemSets() {
+        ActionTable.LALR1Builder builder = new ActionTable.LALR1Builder();
+        List<ItemSet> itemSets = new ArrayList<>(builder.getAllItemSets(grammar));
+        itemSets.sort(Comparator.comparing(ItemSet::toString));
+        for(ItemSet itemSet : itemSets) {
+            System.out.println(itemSet);
+        }
+    }
+
     @Test
     public void testFirstSets() {
         ActionTable.LALR1Builder builder = new ActionTable.LALR1Builder();
-        assertOnFirst(builder.getFirst(grammar, V));
-        assertOnFirst(builder.getFirst(grammar, E));
-        assertOnFirst(builder.getFirst(grammar, N));
-        assertOnFirst(builder.getFirst(grammar, S));
-        Set<ItemSet> itemSets = builder.getAllItemSets(grammar, builder.getFirstItemSet(grammar, grammar.getRuleById(0)));
+        assertOnFirst(builder.getFirstSet(grammar, V));
+        assertOnFirst(builder.getFirstSet(grammar, E));
+        assertOnFirst(builder.getFirstSet(grammar, N));
+        assertOnFirst(builder.getFirstSet(grammar, S));
+        Set<ItemSet> itemSets = builder.getAllItemSets(grammar);
         Grammar extended = builder.makeExtendedGrammar(grammar.getRuleById(0), itemSets);
         for (Symbol nonTerminal : extended.getNonTerminals()) {
-            assertOnFirst(builder.getFirst(extended, nonTerminal));
+            assertOnFirst(builder.getFirstSet(extended, nonTerminal));
         }
     }
 
@@ -69,7 +106,7 @@ public class ActionTableTest {
     @Test
     public void testExtendedGrammar() {
         ActionTable.LALR1Builder builder = new ActionTable.LALR1Builder();
-        Set<ItemSet> itemSets = builder.getAllItemSets(grammar, builder.getFirstItemSet(grammar, grammar.getRuleById(0)));
+        Set<ItemSet> itemSets = builder.getAllItemSets(grammar);
         Grammar extended = builder.makeExtendedGrammar(grammar.getRuleById(0), itemSets);
         ExtendedSymbol es = (ExtendedSymbol) extended.getTargetSymbol();
         Assert.assertEquals(S, es.getSymbol());
@@ -79,11 +116,35 @@ public class ActionTableTest {
     }
 
     @Test
+    public void testExtendedGrammar2() {
+
+        Grammar g = new Grammar();
+        Symbol L = new Forward("list");
+        Symbol I = new Forward("inList");
+        Symbol ident = Lexemes.cIdentifier();
+
+        g.addRule(L, new SingleChar('('), I, new SingleChar(')'));
+        g.addRule(I, ident);
+        g.addRule(I, I, new SingleChar(','), ident);
+        g.addEmptyRule(I);
+
+        List<ItemSet> itemSets = new ArrayList<>(new ActionTable.LALR1Builder().getAllItemSets(g));
+        itemSets.sort(Comparator.comparing(ItemSet::toString));
+        for(ItemSet itemSet : itemSets) {
+            System.out.println(itemSet);
+        }
+
+        //ActionTable.LALR1Builder builder = new ActionTable.LALR1Builder();
+        //Set<ItemSet> itemSets = builder.getAllItemSets(g);
+        //Grammar extended = builder.makeExtendedGrammar(g.getRuleById(0), itemSets);
+        //ExtendedSymbol es = (ExtendedSymbol) extended.getTargetSymbol();
+
+    }
+    @Test
     public void testFollowSets() {
 
         ActionTable.LALR1Builder builder = new ActionTable.LALR1Builder();
-        Set<ItemSet> itemSets = builder.getAllItemSets(grammar, builder.getFirstItemSet(grammar, grammar.getRuleById(0)));
-
+        Set<ItemSet> itemSets = builder.getAllItemSets(grammar);
         Grammar extended = builder.makeExtendedGrammar(grammar.getRuleById(0), itemSets);
 
         ExtendedSymbol eS = extended.getNonTerminals().stream().map(s -> (ExtendedSymbol) s).filter(s -> s.getSymbol().equals(S)).findAny().get();

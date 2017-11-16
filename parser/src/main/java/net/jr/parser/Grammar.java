@@ -26,7 +26,7 @@ public class Grammar {
 
     private String name;
 
-    private Set<Rule> rules = new HashSet<>();
+    private List<Rule> rules = new ArrayList<>();
 
     private Map<Symbol, Integer> precedenceLevels = new HashMap<>();
 
@@ -46,8 +46,9 @@ public class Grammar {
         this.name = name;
     }
 
-    public Set<Rule> getRules() {
-        return rules;
+    public List<Rule> getRules() {
+        //return Collections.unmodifiableList(rules);
+        return new ArrayList<>(rules);
     }
 
     public interface ComponentsSpecifier {
@@ -291,7 +292,7 @@ public class Grammar {
     /**
      * Set the target rule, i.e. the rule that has to be accepted by the parser.
      *
-     * @param rule
+     * @param rule the rule
      */
     public void setTargetRule(Rule rule) {
 
@@ -311,14 +312,15 @@ public class Grammar {
             throw new IllegalArgumentException("Unknown rule :" + rule);
         }
 
-        List<Rule> lRules = new ArrayList<>(rules);
+        List<Rule> lRules = new ArrayList<>(new HashSet<>(rules));
         lRules.remove(rule);
+        lRules.sort(Comparator.comparing(Rule::toString));
         lRules.add(0, rule);
         int i = 0;
         for (Rule r : lRules) {
             r.setId(i++);
         }
-        rules = new HashSet<>(lRules);
+        rules = lRules;
     }
 
     /**
@@ -384,8 +386,8 @@ public class Grammar {
      *
      * @return a parser
      */
-    public Parser createParser() {
-        return createParser(getTargetSymbol());
+    public Parser createParser(boolean useActionTableCache) {
+        return createParser(getTargetSymbol(), useActionTableCache);
     }
 
     private void fixPrecedenceLevels() {
@@ -415,12 +417,13 @@ public class Grammar {
      * useful for tests.
      *
      * @param symbol
+     * @param useActionTableCache
      * @return
      */
-    public Parser createParser(Symbol symbol) {
+    public Parser createParser(Symbol symbol, boolean useActionTableCache) {
         Grammar grammar = getSubGrammar(symbol);
-        ActionTable actionTable = ActionTableCaching.get(grammar);
-        System.out.println(actionTable);
+        ActionTable actionTable = useActionTableCache ? ActionTableCaching.get(grammar) : ActionTable.lalr1(grammar);
+        getLog().trace("\n" + actionTable.toString());
         return new LRParser(grammar, actionTable);
     }
 

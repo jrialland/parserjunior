@@ -3,6 +3,9 @@ package net.jr.util;
 import java.math.BigInteger;
 import java.util.Arrays;
 
+/**
+ * Base58 conversion, using the same alphabet as bitcoin adresses
+ */
 public class Base58Util {
 
     private static final char[] ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
@@ -38,7 +41,7 @@ public class Base58Util {
         char[] encoded = new char[input.length * 2]; // upper bound
         int outputStart = encoded.length;
         for (int inputStart = zeros; inputStart < input.length; ) {
-            encoded[--outputStart] = ALPHABET[divmod(input, inputStart, 256, 58)];
+            encoded[--outputStart] = ALPHABET[divmod(input, inputStart, 256, ALPHABET.length)];
             if (input[inputStart] == 0) {
                 ++inputStart; // optimization - skip leading zeros
             }
@@ -83,7 +86,7 @@ public class Base58Util {
         byte[] decoded = new byte[input.length()];
         int outputStart = decoded.length;
         for (int inputStart = zeros; inputStart < input58.length; ) {
-            decoded[--outputStart] = divmod(input58, inputStart, 58, 256);
+            decoded[--outputStart] = divmod(input58, inputStart, ALPHABET.length, 256);
             if (input58[inputStart] == 0) {
                 ++inputStart; // optimization - skip leading zeros
             }

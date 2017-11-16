@@ -38,6 +38,10 @@ public class ItemSet {
         return kernel;
     }
 
+    public Set<Item> getClosure() {
+        return members;
+    }
+
     public void addTransition(Symbol symbol, ItemSet targetItemsSet) {
         ItemSet oldItemSet = transitions.put(symbol, targetItemsSet);
         if (oldItemSet != null) {

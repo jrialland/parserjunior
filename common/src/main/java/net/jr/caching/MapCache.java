@@ -42,4 +42,14 @@ public class MapCache<K, V> implements Cache<K, V> {
         entry.lastUpdate = System.currentTimeMillis();
         entries.put(key, entry);
     }
+
+    @Override
+    public void evict(K key) {
+        entries.remove(key);
+    }
+
+    @Override
+    public void evictAll() {
+        entries.clear();
+    }
 }

@@ -12,6 +12,10 @@ public interface Cache<K, T> {
 
     void put(K key, T data);
 
+    void evict(K key);
+
+    void evictAll();
+
     class Builder<K, V> {
 
         private int ttl = 10;
@@ -58,6 +62,18 @@ public interface Cache<K, T> {
                         cache.put(key, data);
                         fallback.put(key, data);
                     }
+
+                    @Override
+                    public void evict(K key) {
+                        cache.evict(key);
+                        fallback.evict(key);
+                    }
+
+                    @Override
+                    public void evictAll() {
+                        cache.evictAll();
+                        fallback.evictAll();
+                    }
                 };
             };
             return this;
@@ -88,6 +104,16 @@ public interface Cache<K, T> {
                     @Override
                     public void put(K key, V data) {
                         c.put(key, data);
+                    }
+
+                    @Override
+                    public void evictAll() {
+                        c.evictAll();
+                    }
+
+                    @Override
+                    public void evict(K key) {
+                        c.evict(key);
                     }
                 };
             };
@@ -122,6 +148,17 @@ public interface Cache<K, T> {
                         K mappedKey = mappingFnct.apply(key);
                         cache.put(mappedKey, data);
                     }
+
+                    @Override
+                    public void evict(X key) {
+                        K mappedKey = mappingFnct.apply(key);
+                        cache.evict(mappedKey);
+                    }
+
+                    @Override
+                    public void evictAll() {
+                        cache.evictAll();
+                    }
                 };
             };
             return builder;
@@ -146,6 +183,16 @@ public interface Cache<K, T> {
                     @Override
                     public void put(K key, X data) {
                         cache.put(key, converter.convert(data));
+                    }
+
+                    @Override
+                    public void evict(K key) {
+                        cache.evict(key);
+                    }
+
+                    @Override
+                    public void evictAll() {
+                        cache.evictAll();
                     }
                 };
             };
