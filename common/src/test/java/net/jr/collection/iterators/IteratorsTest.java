@@ -12,7 +12,7 @@ public class IteratorsTest {
     @Test
     public void testPushbackIterator() {
         List<String> list = new ArrayList<>(Arrays.asList("A", "C"));
-        PushbackIterator pbit = Iterators.pushbackIterator(list.iterator());
+        PushbackIterator<String> pbit = Iterators.pushbackIterator(list.iterator());
         Assert.assertEquals("A", pbit.next());
         pbit.pushback("B");
         Assert.assertTrue(pbit.hasNext());

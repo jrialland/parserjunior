@@ -10,7 +10,7 @@ import java.util.*;
 
 public class MarshallingTest {
 
-
+    @SuppressWarnings("unchecked")
     protected <X> X doTest(Object obj) {
         byte[] marshalled = MarshallingUtil.toByteArray(obj);
         Object obj2 = MarshallingUtil.fromByteArray(marshalled);
@@ -48,7 +48,7 @@ public class MarshallingTest {
 
     @Test
     public void testMap() {
-        Map<Character, String> map = new HashMap();
+        Map<Character, String> map = new HashMap<>();
         map.put('A', "apple");
         map.put('B', "banana");
         map.put('C', "carrot");
@@ -137,6 +137,11 @@ public class MarshallingTest {
 
             TestObject o = (TestObject) obj;
             return o.a == a && o.s.equals(s);
+        }
+
+        @Override
+        public int hashCode() {
+            return a + s.hashCode();
         }
 
         @Override
