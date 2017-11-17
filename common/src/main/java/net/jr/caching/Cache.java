@@ -1,6 +1,8 @@
 package net.jr.caching;
 
 import net.jr.converters.Converter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -18,6 +20,12 @@ public interface Cache<K, T> {
 
     class Builder<K, V> {
 
+        private static final Logger LOGGER = LoggerFactory.getLogger(Cache.class);
+
+        private static final Logger getLog() {
+            return LOGGER;
+        }
+
         private int ttl = 10;
 
         private TimeUnit timeUnit = TimeUnit.MINUTES;
@@ -29,12 +37,12 @@ public interface Cache<K, T> {
 
         public static <K, V> Builder<K, V> inMemory(Class<K> keyType, Class<V> valueType) {
             Builder<K, V> builder = new Builder<>();
-            builder.callable = () -> new MapCache(builder.ttl, builder.timeUnit);
+            builder.callable = () -> new MapCache<>(builder.ttl, builder.timeUnit);
             return builder;
         }
 
         public static Builder<String, byte[]> onDisk(String name) {
-            Builder builder = new Builder();
+            Builder<String, byte[]> builder = new Builder<>();
             builder.callable = () -> new DiskCache(name, builder.ttl, builder.timeUnit);
             return builder;
         }
@@ -44,6 +52,7 @@ public interface Cache<K, T> {
             callable = () -> {
                 final Cache<K, V> cache = wrapped.call();
                 final Cache<K, V> fallback = builder.callable.call();
+
                 return new Cache<K, V>() {
                     @Override
                     public V get(K key) {
@@ -52,6 +61,13 @@ public interface Cache<K, T> {
                             data = fallback.get(key);
                             if (data != null) {
                                 cache.put(key, data);
+                            }
+                        }
+                        if(getLog().isDebugEnabled()) {
+                            if (data == null) {
+                                getLog().trace("Cache Miss");
+                            } else {
+                                getLog().trace("Cache Hit");
                             }
                         }
                         return data;

@@ -7,6 +7,8 @@ import org.apache.commons.lang3.StringEscapeUtils;
  */
 public class LexicalError extends RuntimeException {
 
+    private static final long serialVersionUID = 511461615156L;
+
     private int offendingChar;
 
     private int position;

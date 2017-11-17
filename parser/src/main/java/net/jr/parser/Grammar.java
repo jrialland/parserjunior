@@ -352,7 +352,7 @@ public class Grammar {
     @Override
     public String toString() {
 
-        List<Rule> lRules = new ArrayList(rules);
+        List<Rule> lRules = new ArrayList<>(rules);
         Collections.sort(lRules, Comparator.comparing(Rule::getId));
 
         StringWriter sw = new StringWriter();
@@ -377,7 +377,11 @@ public class Grammar {
      */
     public Rule getRuleById(int id) {
         Optional<Rule> opt = rules.stream().filter(r -> r.getId() == id).findAny();
-        return opt.isPresent() ? opt.get() : null;
+        if (opt.isPresent()) {
+            return opt.get();
+        } else {
+            throw new IllegalArgumentException(String.format("No rule for id : %d", id));
+        }
     }
 
     /**
@@ -422,7 +426,9 @@ public class Grammar {
     public Parser createParser(Symbol symbol, boolean useActionTableCache) {
         Grammar grammar = getSubGrammar(symbol);
         ActionTable actionTable = useActionTableCache ? ActionTableCaching.get(grammar) : ActionTable.lalr1(grammar);
-        getLog().trace("\n" + actionTable.toString());
+        if (getLog().isTraceEnabled()) {
+            getLog().trace("\n" + actionTable.toString());
+        }
         return new LRParser(grammar, actionTable);
     }
 
@@ -523,7 +529,7 @@ public class Grammar {
         }
     }
 
-    public Forward rule(Symbol ...symbols) {
+    public Forward rule(Symbol... symbols) {
         Forward tmp = new Forward("(" + String.join(" ", Arrays.asList(symbols).stream().map(Symbol::toString).collect(Collectors.toList()) + ")"));
         addRule(tmp, symbols);
         return tmp;

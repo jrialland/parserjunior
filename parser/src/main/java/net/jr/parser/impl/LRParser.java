@@ -99,13 +99,13 @@ public class LRParser implements Parser {
             Action decision = actionTable.getAction(currentState, token.getTokenType());
 
             if (decision == null) {
-                Set<Lexeme> expected = actionTable.getExpectedLexemes(currentState);
+                Set<Symbol> expected = actionTable.getExpectedTerminals(currentState);
                 //if ε is part of the expected symbols
                 if (expected.contains(Lexemes.empty())) {
                     decision = actionTable.getAction(currentState, Lexemes.empty());
                     lexerStream.pushback(token);
                 } else {
-                    throw new ParseError(token, actionTable.getExpectedLexemes(currentState));
+                    throw new ParseError(token, actionTable.getExpectedTerminals(currentState));
                 }
             }
 
@@ -132,7 +132,7 @@ public class LRParser implements Parser {
     }
 
     private void fail(Token token, LexerStream lexerStream, Context context) {
-        ParseError parseError = new ParseError(token, actionTable.getExpectedLexemes(context.getState()));
+        ParseError parseError = new ParseError(token, actionTable.getExpectedTerminals(context.getState()));
         if(parserListener != null) {
             parserListener.onParseError(parseError, new ParsingContextImpl(this, lexerStream, context.getAstNode()));
         } else {

@@ -1,6 +1,6 @@
 package net.jr.parser;
 
-import net.jr.lexer.Lexeme;
+import net.jr.common.Symbol;
 import net.jr.lexer.Token;
 
 import java.io.StringWriter;
@@ -11,11 +11,13 @@ import java.util.Set;
  */
 public class ParseError extends RuntimeException {
 
+    private static final long serialVersionUID = 9898978115L;
+
     private Token token;
 
-    private Set<Lexeme> expected;
+    private Set<Symbol> expected;
 
-    private static String getDefaultMessage(Token token, Set<Lexeme> expected) {
+    private static String getDefaultMessage(Token token, Set<Symbol> expected) {
         StringWriter sw = new StringWriter();
         sw.append("Parse error");
         sw.append(" : ");
@@ -55,7 +57,7 @@ public class ParseError extends RuntimeException {
      * @param unexpectedToken
      * @param expected        The lexemes that were expected according to parser's current state
      */
-    public ParseError(Token unexpectedToken, Set<Lexeme> expected) {
+    public ParseError(Token unexpectedToken, Set<Symbol> expected) {
         super(getDefaultMessage(unexpectedToken, expected));
         this.token = unexpectedToken;
         this.expected = expected;
@@ -71,11 +73,11 @@ public class ParseError extends RuntimeException {
     }
 
     /**
-     * What we were expecting to see
+     * What terminal symbols we were expecting to see
      *
      * @return
      */
-    public Set<Lexeme> getExpected() {
+    public Set<Symbol> getExpected() {
         return expected;
     }
 }

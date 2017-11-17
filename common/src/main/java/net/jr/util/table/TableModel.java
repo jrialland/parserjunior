@@ -21,6 +21,14 @@ public class TableModel<DataType> {
 
         @Override
         public boolean equals(Object o) {
+            if(o == null) {
+                return false;
+            }
+            if(! o.getClass().isAssignableFrom(TableModel.class)) {
+                return false;
+            }
+
+            @SuppressWarnings("unchecked")
             final Coord c = (Coord)o;
             return x == c.x && y == c.y;
         }

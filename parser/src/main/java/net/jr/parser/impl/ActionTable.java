@@ -115,11 +115,11 @@ public class ActionTable implements MarshallingCapable {
         return row == null ? null : row.get(s);
     }
 
-    Set<Lexeme> getExpectedLexemes(int state) {
+    Set<Symbol> getExpectedTerminals(int state) {
         Map<Symbol, Action> row = data.get(state);
         return row.keySet().stream()
                 .filter(s -> s.isTerminal())
-                .map(s -> (Lexeme) s).collect(Collectors.toSet());
+                .collect(Collectors.toSet());
     }
 
     private int getColumnFor(Symbol symbol) {
@@ -566,6 +566,11 @@ public class ActionTable implements MarshallingCapable {
 
             ExtendedRule eTargetRule = eGrammar.getRules().stream().map(r -> (ExtendedRule) r).filter(r -> ((ExtendedSymbol) r.getTarget()).getSymbol().equals(targetRule.getTarget())).findFirst().get();
             eGrammar.setTargetRule(eTargetRule);
+
+            if(getLog().isDebugEnabled()) {
+                getLog().debug(String.format("Extended grammar has %d rules", eGrammar.getRules().size()));
+            }
+
             return eGrammar;
         }
 

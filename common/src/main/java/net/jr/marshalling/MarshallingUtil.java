@@ -103,7 +103,7 @@ public class MarshallingUtil {
             Map<?, ?> map = (Map) obj;
             out.writeChar(MAP);
             out.writeInt(map.size());
-            for (Map.Entry entry : map.entrySet()) {
+            for (Map.Entry<?,?> entry : map.entrySet()) {
                 marshall(entry.getKey(), out);
                 marshall(entry.getValue(), out);
             }
@@ -139,14 +139,11 @@ public class MarshallingUtil {
                 return in.readUTF();
             } else {
                 try {
-                    Class clazz = TypeUtil.forBytecodeTypename(className);
+                    Class<?> clazz = TypeUtil.forBytecodeTypename(className);
                     Method method = clazz.getMethod("unMarshall", DataInputStream.class);
                     method.setAccessible(true);
                     if (!Modifier.isStatic(method.getModifiers())) {
                         throw new IllegalStateException(String.format("The %s::%s method must be static", clazz.getName(), method.getName()));
-                    }
-                    if (!method.getReturnType().equals(clazz)) {
-                        throw new IllegalStateException(String.format("The return type for the %s::%s method must be '%s'", clazz.getName(), method.getName(), clazz.getName()));
                     }
                     return method.invoke(null, in);
                 } catch (Exception e) {
@@ -299,6 +296,7 @@ public class MarshallingUtil {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T unmarshall(DataInputStream dataInputStream) throws IOException {
         char type = dataInputStream.readChar();
         UnMarshaller unMarshaller = unMarshallers.get(type);

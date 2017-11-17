@@ -43,7 +43,7 @@ public class DiskCache implements Cache<String, byte[]> {
 
     private boolean isOutdated(Path path) throws IOException {
         long age = System.currentTimeMillis() - getLastModified(path);
-        return age < ageLimit;
+        return age > ageLimit;
     }
 
     @Override
@@ -53,8 +53,10 @@ public class DiskCache implements Cache<String, byte[]> {
             try {
                 if (isOutdated(tmpFile)) {
                     Files.delete(tmpFile);
+                    getLog().trace("DiskCache Miss : " + key);
                     return null;
                 } else {
+                    getLog().trace("DiskCache Hit : " + key);
                     byte[] data = Files.readAllBytes(tmpFile);
                     Files.setLastModifiedTime(tmpFile, FileTime.from(Instant.now()));
                     return data;
@@ -64,6 +66,7 @@ public class DiskCache implements Cache<String, byte[]> {
                 return null;
             }
         } else {
+            getLog().trace("DiskCache Miss : " + key);
             return null;
         }
     }
@@ -75,6 +78,7 @@ public class DiskCache implements Cache<String, byte[]> {
         if (tmpDir != null) {
             Path tmpFile = Paths.get(tmpDir.toString(), key);
             try {
+                getLog().trace("DiskCache Put : " + key);
                 Files.copy(new ByteArrayInputStream(data), tmpFile);
             } catch (Exception e) {
                 getLog().error("Could not write item", e);
@@ -94,6 +98,7 @@ public class DiskCache implements Cache<String, byte[]> {
         Path tmpFile = Paths.get(tmpDir.toString(), key);
         try {
             if (Files.isRegularFile(tmpFile)) {
+                getLog().trace("DiskCache Evict : " + key);
                 Files.delete(Paths.get(tmpDir.toString(), key));
             }
         } catch (IOException e) {
@@ -103,6 +108,7 @@ public class DiskCache implements Cache<String, byte[]> {
 
     @Override
     public void evictAll() {
+        getLog().trace("DiskCache EvictAll");
         try {
             Files.walkFileTree(tmpDir, new SimpleFileVisitor<Path>() {
                 @Override

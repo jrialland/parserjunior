@@ -32,8 +32,13 @@ public class Lexer {
      * @param <L>
      * @return
      */
+    @SafeVarargs
     public static <L extends Symbol> Lexer forLexemes(L... tokenTypes) {
-        return new Lexer(Arrays.asList(tokenTypes));
+        List<Symbol> list = new ArrayList<>(tokenTypes.length);
+        for (L tokenType : tokenTypes) {
+            list.add(tokenType);
+        }
+        return new Lexer(list);
     }
 
     /**
@@ -42,13 +47,16 @@ public class Lexer {
      * @param tokenTypes
      * @return
      */
-    public static Lexer forLexemes(Collection<? extends Symbol> tokenTypes) {
+    public static <L extends Symbol> Lexer forLexemes(Collection<L> tokenTypes) {
         return new Lexer(tokenTypes);
     }
 
     private <L extends Symbol> Lexer(Collection<L> tokenTypes) {
         automatons = new ArrayList<>(tokenTypes.size());
         for (Symbol tokenType : tokenTypes) {
+            if (!tokenType.isTerminal()) {
+                throw new IllegalArgumentException("Not a terminal : " + tokenType);
+            }
             if (!tokenType.equals(Lexemes.eof())) {
                 Automaton a = ((LexemeImpl) tokenType).getAutomaton();
                 automatons.add(a);

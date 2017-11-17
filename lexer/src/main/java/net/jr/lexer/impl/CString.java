@@ -1,5 +1,9 @@
 package net.jr.lexer.impl;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 public class CString extends QuotedString {
 
     public CString() {
@@ -13,15 +17,24 @@ public class CString extends QuotedString {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj == null) {
+        if (obj == null) {
             return false;
         }
-        if(this==obj) {
+        if (this == obj) {
             return true;
         }
-        if(!CString.class.isAssignableFrom(obj.getClass())) {
+        if (!CString.class.isAssignableFrom(obj.getClass())) {
             return false;
         }
         return super.equals(obj);
+    }
+
+    @Override
+    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+
+    }
+
+    public static CString unMarshall(DataInputStream in) throws IOException {
+        return new CString();
     }
 }

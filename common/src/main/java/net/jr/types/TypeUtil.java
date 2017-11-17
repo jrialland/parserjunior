@@ -85,7 +85,7 @@ public class TypeUtil {
     }
 
     public static Class<?> forBytecodeTypename(String typename) {
-        Class clazz = null;
+        Class<?> clazz = null;
 
         if (typename == null || typename.isEmpty()) {
             throw new IllegalArgumentException("Empty type name");

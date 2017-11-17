@@ -6,7 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.StringWriter;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -85,13 +88,13 @@ public abstract class LazySet {
      * @param sets
      * @return
      */
-    private static int simplify(Collection<? extends LazySet> sets) {
-        final EvtSupport bus = new EvtSupport();
+    private static <L extends LazySet> int simplify(Collection<L> sets) {
+        final EvtSupport<LazySet> bus = new EvtSupport<>();
 
-        for (LazySet ls : sets) {
+        for (L ls : sets) {
             if (!ls.isResolved()) {
                 //the list that has to be resolved in order to consider ls resolved
-                Set<LazySet> toResolve = ls.composition.stream().filter(s -> !s.isResolved()).collect(Collectors.toSet());
+                Set<LazySet> toResolve = ls.getComposition().stream().filter(s -> !s.isResolved()).collect(Collectors.toSet());
 
                 bus.addListener(lazySet -> {
                     //remove from the list
@@ -145,7 +148,7 @@ public abstract class LazySet {
         this.resolution = resolution;
     }
 
-    private void setResolved() {
+    protected void setResolved() {
         resolution = new HashSet<>();
         for (LazySet ls : composition) {
             resolution.addAll(ls.getResolution());

@@ -23,14 +23,6 @@ public class CGrammarTest {
     }
 
     @Test
-    public void testPrintln() {
-        CGrammar grammar = new CGrammar();
-        for (Rule rule : grammar.getRules()){
-            System.out.println(rule.toString());
-        }
-    }
-
-    @Test
     public void testSimple() {
         CGrammar grammar = new CGrammar();
         Parser parser = grammar.createParser(useCache);

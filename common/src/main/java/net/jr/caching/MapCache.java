@@ -1,10 +1,20 @@
 package net.jr.caching;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class MapCache<K, V> implements Cache<K, V> {
+
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MapCache.class);
+
+    private static final Logger getLog() {
+        return LOGGER;
+    }
 
     private class CacheEntry {
         V data;
@@ -12,6 +22,8 @@ public class MapCache<K, V> implements Cache<K, V> {
     }
 
     private long maxAge;
+
+    private int maxItems;
 
     private Map<K, CacheEntry> entries = new HashMap<>();
 
@@ -32,11 +44,17 @@ public class MapCache<K, V> implements Cache<K, V> {
                 data = entry.data;
             }
         }
+        if (data == null) {
+            getLog().trace("MapCache Miss");
+        } else {
+            getLog().trace("MapCache Hit");
+        }
         return data;
     }
 
     @Override
     public void put(K key, V data) {
+        getLog().trace("MapCache Put");
         CacheEntry entry = new CacheEntry();
         entry.data = data;
         entry.lastUpdate = System.currentTimeMillis();
@@ -45,11 +63,13 @@ public class MapCache<K, V> implements Cache<K, V> {
 
     @Override
     public void evict(K key) {
+        getLog().trace("MapCache Evict");
         entries.remove(key);
     }
 
     @Override
     public void evictAll() {
+        getLog().trace("MapCache EvictAll");
         entries.clear();
     }
 }

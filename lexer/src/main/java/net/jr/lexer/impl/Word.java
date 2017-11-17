@@ -80,7 +80,6 @@ public class Word extends LexemeImpl {
 
     @SuppressWarnings("unused")
     public static Word unMarshall(DataInputStream dataInputStream) throws IOException {
-        boolean isSimple = dataInputStream.readBoolean();
         String name = dataInputStream.readUTF();
         String possibleFirstChar = dataInputStream.readUTF();
         String possibleNextChars = dataInputStream.readUTF();
