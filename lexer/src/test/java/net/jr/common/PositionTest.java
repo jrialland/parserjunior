@@ -1,5 +1,6 @@
 package net.jr.common;
 
+import net.jr.marshalling.MarshallingUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -19,5 +20,13 @@ public class PositionTest {
         Assert.assertFalse(p.equals(null));
         Assert.assertFalse(p.equals(new Object()));
         Assert.assertTrue(p.equals(p2));
+    }
+
+    @Test
+    public void testMarshall() {
+        Position p = new Position(54, 151);
+        byte[] bytes = MarshallingUtil.toByteArray(p, false);
+        Position p2 = MarshallingUtil.fromByteArray(bytes, false);
+        Assert.assertEquals(p, p2);
     }
 }

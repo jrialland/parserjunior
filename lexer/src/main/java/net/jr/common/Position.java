@@ -1,6 +1,12 @@
 package net.jr.common;
 
-public class Position {
+import net.jr.marshalling.MarshallingCapable;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
+public class Position implements MarshallingCapable {
 
     private int line;
 
@@ -20,11 +26,11 @@ public class Position {
     }
 
     public Position nextLine() {
-        return new Position(line+1, 1);
+        return new Position(line + 1, 1);
     }
 
     public Position nextColumn() {
-        return new Position(line, column+1);
+        return new Position(line, column + 1);
     }
 
     @Override
@@ -44,5 +50,18 @@ public class Position {
         }
         final Position oPosition = (Position) obj;
         return oPosition.line == line && oPosition.column == column;
+    }
+
+    @Override
+    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+        dataOutputStream.writeInt(line);
+        dataOutputStream.writeInt(column);
+    }
+
+    @SuppressWarnings("unused")
+    public static Position unMarshall(DataInputStream in) throws IOException {
+        int line = in.readInt();
+        int column = in.readInt();
+        return new Position(line, column);
     }
 }

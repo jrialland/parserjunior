@@ -13,7 +13,6 @@
     <name>ParserJunior - Parser</name>
     <packaging>jar</packaging>
 
-
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
