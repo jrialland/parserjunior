@@ -20,14 +20,6 @@ public class ActionTableCaching {
 
     private static boolean enabled = true;
 
-    public static void setEnabled(boolean enabled) {
-        ActionTableCaching.enabled = enabled;
-    }
-
-    public static boolean isEnabled() {
-        return enabled;
-    }
-
     static {
 
         Cache.Builder<String, byte[]> onDisk = Cache.Builder.onDisk(ActionTableCaching.class.getName())
@@ -43,6 +35,15 @@ public class ActionTableCaching {
                 .build();
 
     }
+
+    public static void setEnabled(boolean enabled) {
+        ActionTableCaching.enabled = enabled;
+    }
+
+    public static boolean isEnabled() {
+        return enabled;
+    }
+
 
     public static ActionTable get(Grammar grammar) {
         if (enabled) {

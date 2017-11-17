@@ -10,6 +10,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipOutputStream;
 
 public class MarshallingUtil {
 
@@ -103,7 +104,7 @@ public class MarshallingUtil {
             Map<?, ?> map = (Map) obj;
             out.writeChar(MAP);
             out.writeInt(map.size());
-            for (Map.Entry<?,?> entry : map.entrySet()) {
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
                 marshall(entry.getKey(), out);
                 marshall(entry.getValue(), out);
             }
@@ -307,68 +308,49 @@ public class MarshallingUtil {
         }
     }
 
-    public static byte[] toByteArray(Object obj) {
+    public static byte[] toByteArray(Object obj, boolean compress) {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            DataOutputStream dataOutputStream = new DataOutputStream(baos);
+            OutputStream out = baos;
+            GZIPOutputStream gzOut = null;
+            if (compress) {
+                out = gzOut = new GZIPOutputStream(baos);
+            }
+            DataOutputStream dataOutputStream = new DataOutputStream(out);
             marshall(obj, dataOutputStream);
             dataOutputStream.flush();
+            if (compress) {
+                gzOut.finish();
+            }
             return baos.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static <T> T fromByteArray(byte[] data) {
+    public static <T> T fromByteArray(byte[] data, boolean decompress) {
         try {
-            return unmarshall(new DataInputStream(new ByteArrayInputStream(data)));
+            InputStream in = new ByteArrayInputStream(data);
+            if (decompress) {
+                in = new GZIPInputStream(in);
+            }
+            return unmarshall(new DataInputStream(in));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     public static <A> Converter<A, byte[]> converter(Class<A> targetType, boolean compress) {
-        if (compress) {
-            return new Converter<A, byte[]>() {
-                @Override
-                public byte[] convert(A a) {
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    try {
-                        GZIPOutputStream gzipOutputStream = new GZIPOutputStream(baos);
-                        DataOutputStream dataOutputStream = new DataOutputStream(gzipOutputStream);
-                        marshall(a, dataOutputStream);
-                        dataOutputStream.flush();
-                        gzipOutputStream.finish();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    return baos.toByteArray();
-                }
+        return new Converter<A, byte[]>() {
+            @Override
+            public byte[] convert(A a) {
+                return MarshallingUtil.toByteArray(a, compress);
+            }
 
-                @Override
-                public A convertBack(byte[] bytes) {
-                    try {
-                        ByteArrayInputStream baIn = new ByteArrayInputStream(bytes);
-                        GZIPInputStream gzipInputStream = new GZIPInputStream(baIn);
-                        DataInputStream dataInputStream = new DataInputStream(gzipInputStream);
-                        return unmarshall(dataInputStream);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            };
-        } else {
-            return new Converter<A, byte[]>() {
-                @Override
-                public byte[] convert(A a) {
-                    return toByteArray(a);
-                }
-
-                @Override
-                public A convertBack(byte[] bytes) {
-                    return fromByteArray(bytes);
-                }
-            };
-        }
+            @Override
+            public A convertBack(byte[] bytes) {
+                return MarshallingUtil.fromByteArray(bytes, compress);
+            }
+        };
     }
 }

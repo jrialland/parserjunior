@@ -12,8 +12,14 @@ public class MarshallingTest {
 
     @SuppressWarnings("unchecked")
     protected <X> X doTest(Object obj) {
-        byte[] marshalled = MarshallingUtil.toByteArray(obj);
-        Object obj2 = MarshallingUtil.fromByteArray(marshalled);
+        doTest(obj, true);
+        return doTest(obj, false);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <X> X doTest(Object obj, boolean compress) {
+        byte[] marshalled = MarshallingUtil.toByteArray(obj, compress);
+        Object obj2 = MarshallingUtil.fromByteArray(marshalled, compress);
         if (obj == null) {
             Assert.assertNull(obj2);
         } else if (obj.getClass().isArray()) {
