@@ -115,7 +115,7 @@ public class LexerStreamImpl implements LexerStream {
                 if (bestMatch != null) {
                     emitForAutomaton(bestMatch, callback);
                 } else {
-                    throw new LexicalError(r, lastMatchBegin + lastMatchSize);
+                    throw new LexicalError(r, position);
                 }
             }
 
@@ -159,7 +159,7 @@ public class LexerStreamImpl implements LexerStream {
                     reader.unread(r);
                     resetAutomatons();
                 } else {
-                    throw new LexicalError(r, lastMatchBegin + lastMatchSize);
+                    throw new LexicalError(r, position);
                 }
             }
         }

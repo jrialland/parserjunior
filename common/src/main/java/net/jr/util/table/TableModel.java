@@ -24,7 +24,7 @@ public class TableModel<DataType> {
             if (o == null) {
                 return false;
             }
-            if (!o.getClass().isAssignableFrom(TableModel.class)) {
+            if (!o.getClass().isAssignableFrom(Coord.class)) {
                 return false;
             }
 

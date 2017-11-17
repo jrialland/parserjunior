@@ -1,6 +1,7 @@
 package net.jr.lexer;
 
 
+import net.jr.common.Position;
 import net.jr.lexer.impl.Literal;
 import net.jr.lexer.impl.MultilineComment;
 import net.jr.lexer.impl.SingleChar;
@@ -141,7 +142,7 @@ public class LexerTest {
             lexer.tokenize("mostly lowercase words EXCEPT this one");
             Assert.fail();
         } catch (LexicalError l) {
-            Assert.assertEquals(23, l.getPosition());
+            Assert.assertEquals(new Position(1, 24), l.getPosition());
         }
     }
 
@@ -152,7 +153,7 @@ public class LexerTest {
             lexer.tokenize("mostly lowercase words except this ONE!");
             Assert.fail();
         } catch (LexicalError l) {
-            Assert.assertEquals(35, l.getPosition());
+            Assert.assertEquals(new Position(1, 36), l.getPosition());
         }
     }
 

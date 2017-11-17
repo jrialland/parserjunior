@@ -1,6 +1,8 @@
 package net.jr.grammar.c;
 
 
+import net.jr.lexer.LexicalError;
+import net.jr.parser.ParseError;
 import net.jr.parser.Parser;
 import net.jr.parser.Rule;
 import net.jr.parser.ast.AstNode;
@@ -62,6 +64,15 @@ public class CGrammarTest {
         Assert.assertTrue(called.get());
     }
 
+    @Test(expected = LexicalError.class)
+    public void testLexicalError() {
+        new CGrammar().createParser(useCache).parse("int aç(void);");
+    }
+
+    @Test(expected = ParseError.class)
+    public void testParseError() {
+        new CGrammar().createParser(useCache).parse("int main(void) pefkpezofk;");
+    }
 }
 
 
