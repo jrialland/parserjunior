@@ -1,6 +1,5 @@
 package net.jr.util;
 
-import java.math.BigInteger;
 import java.util.Arrays;
 
 /**
@@ -97,31 +96,6 @@ public class Base58Util {
         }
         // Return decoded data (including original number of leading zeros).
         return Arrays.copyOfRange(decoded, outputStart - zeros, decoded.length);
-    }
-
-    public static BigInteger decodeToBigInteger(String input) {
-        return new BigInteger(1, decode(input));
-    }
-
-    /**
-     * Decodes the given base58 string into the original data bytes, using the checksum in the
-     * last 4 bytes of the decoded data to verify that the rest are correct. The checksum is
-     * removed from the returned data.
-     *
-     * @param input the base58-encoded string to decode (which should include the checksum)
-     * @return the original data bytes less the last 4 bytes (the checksum).
-     * @throws IllegalArgumentException if the input is not base 58 or the checksum does not validate.
-     */
-    public static byte[] decodeChecked(String input) {
-        byte[] decoded = decode(input);
-        if (decoded.length < 4)
-            throw new IllegalArgumentException("Input is too short");
-        byte[] data = Arrays.copyOfRange(decoded, 0, decoded.length - 4);
-        byte[] checksum = Arrays.copyOfRange(decoded, decoded.length - 4, decoded.length);
-        byte[] actualChecksum = Arrays.copyOfRange(HashUtil.sha256Twice(data), 0, 4);
-        if (!Arrays.equals(checksum, actualChecksum))
-            throw new IllegalArgumentException("Checksum does not validate");
-        return data;
     }
 
     /**

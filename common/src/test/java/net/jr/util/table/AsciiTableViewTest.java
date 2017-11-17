@@ -1,4 +1,4 @@
-package net.jr.util;
+package net.jr.util.table;
 
 import net.jr.util.table.AsciiTableView;
 import net.jr.util.table.TableModel;

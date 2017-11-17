@@ -16,20 +16,19 @@ public class TableModel<DataType> {
 
         @Override
         public int hashCode() {
-            return x+y;
+            return x + y;
         }
 
         @Override
         public boolean equals(Object o) {
-            if(o == null) {
+            if (o == null) {
                 return false;
             }
-            if(! o.getClass().isAssignableFrom(TableModel.class)) {
+            if (!o.getClass().isAssignableFrom(TableModel.class)) {
                 return false;
             }
 
-            @SuppressWarnings("unchecked")
-            final Coord c = (Coord)o;
+            @SuppressWarnings("unchecked") final Coord c = (Coord) o;
             return x == c.x && y == c.y;
         }
     }
@@ -46,7 +45,7 @@ public class TableModel<DataType> {
 
 
         public boolean contains(int x, int y) {
-            return x>=minx && x<=maxx && y>=miny && y<=maxy;
+            return x >= minx && x <= maxx && y >= miny && y <= maxy;
         }
     }
 
@@ -55,6 +54,13 @@ public class TableModel<DataType> {
         private String cssKey;
         private String cssValue;
         private boolean remove = false;
+
+        public StyleRule(Rectangle zone, String cssKey, String cssValue) {
+            this.zone = zone;
+            this.cssKey = cssKey;
+            this.cssValue = cssValue;
+            this.remove = false;
+        }
     }
 
     private List<StyleRule> styleRules = new ArrayList<>();
@@ -62,24 +68,23 @@ public class TableModel<DataType> {
     Map<Coord, DataType> tableData = new HashMap<>();
 
     public void setData(int x, int y, DataType data) {
-        tableData.put(new Coord(x,y), data);
+        tableData.put(new Coord(x, y), data);
     }
 
     public DataType getData(int x, int y) {
-        return tableData.get(new Coord(x,y));
+        return tableData.get(new Coord(x, y));
     }
 
     private StyleRule makeRule(int x1, int y1, int x2, int y2, String rule) {
-        StyleRule sr = new StyleRule();
-        sr.zone = new Rectangle(Math.min(x1,x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2));
-        rule = rule.trim().replaceFirst(";*$","");
+        Rectangle zone = new Rectangle(Math.min(x1, x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2));
+        rule = rule.trim().replaceFirst(";*$", "");
         String[] parts = rule.split(":");
-        if(parts.length != 2) {
-            throw new IllegalArgumentException("Could not parse '"+rule+"'");
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Could not parse '" + rule + "'");
         }
-        sr.cssKey = parts[0].trim().toLowerCase();
-        sr.cssValue = parts[1].trim();
-        return sr;
+        String cssKey = parts[0].trim().toLowerCase();
+        String cssValue = parts[1].trim();
+        return new StyleRule(zone, cssKey, cssValue);
     }
 
     public void addStyleHint(int x1, int y1, int x2, int y2, String rule) {
@@ -87,38 +92,38 @@ public class TableModel<DataType> {
     }
 
     public void removeStyleHint(int x1, int y1, int x2, int y2, String rule) {
-        StyleRule sr = new StyleRule();
+        StyleRule sr = makeRule(x1, y1, x2, y2, rule);
         sr.remove = true;
         styleRules.add(sr);
     }
 
     public String getStyle(int x, int y) {
         Map<String, String> rules = new TreeMap<>();
-        for(StyleRule sr : styleRules) {
-            if(sr.zone.contains(x, y)) {
-                if(sr.remove) {
+        for (StyleRule sr : styleRules) {
+            if (sr.zone.contains(x, y)) {
+                if (sr.remove) {
                     rules.remove(sr.cssKey);
                 } else {
                     rules.put(sr.cssKey, sr.cssValue);
                 }
             }
         }
-        return String.join(";\n", rules.entrySet().stream().map(e -> e.getKey()+":"+e.getValue()).collect(Collectors.toList()));
+        return String.join(";\n", rules.entrySet().stream().map(e -> e.getKey() + ":" + e.getValue()).collect(Collectors.toList()));
     }
 
     public int getMaxX() {
         Optional<Integer> oMax = tableData.keySet().stream().map(c -> c.x).max(Integer::compareTo);
-        return oMax.isPresent()?oMax.get():0;
+        return oMax.isPresent() ? oMax.get() : 0;
     }
 
 
     public int getMaxY() {
         Optional<Integer> oMax = tableData.keySet().stream().map(c -> c.y).max(Integer::compareTo);
-        return oMax.isPresent()?oMax.get():0;
+        return oMax.isPresent() ? oMax.get() : 0;
     }
 
     public void addStyleOnRow(int rowIndex, String rule) {
-        addStyleHint(0, rowIndex, Integer.MAX_VALUE, rowIndex,rule);
+        addStyleHint(0, rowIndex, Integer.MAX_VALUE, rowIndex, rule);
     }
 
     public void removeStyleFromRow(int rowIndex, String rule) {
@@ -127,11 +132,11 @@ public class TableModel<DataType> {
     }
 
     public void addStyleOnColumn(int columnIndex, String rule) {
-        addStyleHint(columnIndex, 0 ,columnIndex, Integer.MAX_VALUE, rule);
+        addStyleHint(columnIndex, 0, columnIndex, Integer.MAX_VALUE, rule);
     }
 
     public void removeStyleFromColumn(int columnIndex, String rule) {
-        removeStyleHint(columnIndex, 0 ,columnIndex, Integer.MAX_VALUE, rule);
+        removeStyleHint(columnIndex, 0, columnIndex, Integer.MAX_VALUE, rule);
     }
 
     private Coord moveBy(Coord c, int dx, int dy) {

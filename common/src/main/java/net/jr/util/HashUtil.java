@@ -6,7 +6,7 @@ import java.security.MessageDigest;
 
 public class HashUtil {
 
-    private static final String ALG_MD5 = "MD-5";
+    private static final String ALG_MD5 = "MD5";
 
     private static final String ALG_SHA1 = "SHA-1";
 
@@ -59,7 +59,7 @@ public class HashUtil {
 
     private static byte[] hash(String alg, InputStream data) {
         try {
-            MessageDigest md = MessageDigest.getInstance("md5");
+            MessageDigest md = MessageDigest.getInstance(alg);
             byte[] buff = new byte[1024];
             int c = 0;
             while ((c = data.read(buff)) > -1) {

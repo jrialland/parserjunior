@@ -4,18 +4,28 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Random;
 
 public class IOUtilTest {
 
+    @Test
+    public void testReadFile() throws IOException {
+        Path tmpFile = Files.createTempFile("test", "txt");
+        Files.write(tmpFile, "Hello".getBytes());
+        String r = IOUtil.readFile(tmpFile.toString());
+        Assert.assertEquals("Hello", r);
+        Files.delete(tmpFile);
+    }
 
     @Test
     public void testReadFully() {
         String test = "This is a test";
         String result = IOUtil.readFully(new StringReader(test));
         Assert.assertEquals(test, result);
-        byte[] bytes =  IOUtil.readFully(new ByteArrayInputStream(test.getBytes()));
+        byte[] bytes = IOUtil.readFully(new ByteArrayInputStream(test.getBytes()));
         Assert.assertTrue(Arrays.equals(test.getBytes(), bytes));
     }
 
@@ -28,7 +38,7 @@ public class IOUtilTest {
     }
 
     @Test
-    public void testCopy()  throws IOException{
+    public void testCopy() throws IOException {
         byte[] data = new byte[8192];
         new Random().nextBytes(data);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
