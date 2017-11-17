@@ -2,6 +2,7 @@ package net.jr.lexer;
 
 
 import net.jr.lexer.impl.Literal;
+import net.jr.lexer.impl.MultilineComment;
 import net.jr.lexer.impl.SingleChar;
 import net.jr.lexer.impl.Word;
 import org.junit.Assert;
@@ -103,7 +104,7 @@ public class LexerTest {
 
         lexer.setTokenListener(token -> {
             boolean whitespace = token.getTokenType().equals(Lexemes.whitespace());
-            if(whitespace) {
+            if (whitespace) {
                 Assert.fail();
             }
             integerList.add(Integer.parseInt(token.getText()));
@@ -171,10 +172,10 @@ public class LexerTest {
 
     @Test
     public void testIterator() {
-        int i=0;
+        int i = 0;
         Token token = null;
         Iterator<Token> iterator = Lexer.forLexemes(getMixedTokenTypes()).iterator(new StringReader("if(a==b)then{c==thenabc}"));
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             token = iterator.next();
             i++;
             //System.out.println(nextToken);
@@ -185,7 +186,7 @@ public class LexerTest {
 
     @Test
     public void testIteratorWithFilteredOut() {
-        int i=0;
+        int i = 0;
         Token token = null;
 
         Set<Lexeme> tokenTypes = getMixedTokenTypes();
@@ -196,7 +197,7 @@ public class LexerTest {
         Iterator<Token> iterator = lexer
                 .iterator(new StringReader("if (a == b) then \t { c == thenabc}"));
 
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             token = iterator.next();
             i++;
         }
@@ -245,7 +246,7 @@ public class LexerTest {
 
     private static List<Token> asList(Iterator<Token> it) {
         List<Token> list = new ArrayList<>();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             list.add(it.next());
         }
         return list;
@@ -257,13 +258,13 @@ public class LexerTest {
         Lexer lexer = Lexer.forLexemes(new SingleChar('('), new SingleChar(')'));
         List<Token> tokens = lexer.tokenize(txt);
 
-        int i=0;
-        for(Token token : tokens) {
-            if(i<txt.length()) {
+        int i = 0;
+        for (Token token : tokens) {
+            if (i < txt.length()) {
                 Assert.assertEquals(txt.toCharArray()[i++], token.getText().charAt(0));
             }
         }
-        Assert.assertTrue(tokens.get(tokens.size()-1).getTokenType().equals(Lexemes.eof()));
+        Assert.assertTrue(tokens.get(tokens.size() - 1).getTokenType().equals(Lexemes.eof()));
     }
 
     @Test
@@ -350,4 +351,16 @@ public class LexerTest {
         Assert.assertFalse(l.equals(Lexemes.literal("int")));
     }
 
+    @Test
+    public void testMultilineComment() {
+        Lexer l = Lexer.forLexemes(Lexemes.multilineComment("/*", "*/"), Lexemes.cIdentifier());
+        l.setFilteredOut(Lexemes.singleChar(' '));
+        List<Token> tokens = l.tokenize("This /* is a\n test */ works");
+        Assert.assertEquals(4, tokens.size());
+        Assert.assertEquals(MultilineComment.class, tokens.get(1).getTokenType().getClass());
+        Assert.assertEquals("/* is a\n test */", tokens.get(1).getText());
+        Assert.assertEquals("This", tokens.get(0).getText());
+        Assert.assertEquals("works", tokens.get(2).getText());
+        Assert.assertEquals(Lexemes.eof(), tokens.get(3).getTokenType());
+    }
 }

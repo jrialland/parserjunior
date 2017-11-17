@@ -70,7 +70,7 @@ public class QuotedString extends LexemeImpl {
 
     @Override
     public int hashCode() {
-        return starChar + endChar * 10 + escapeChar * 100 + forbiddenChars.hashCode();
+        return starChar + endChar * 10 + escapeChar * 100 + (forbiddenChars == null ? 0 : new String(forbiddenChars).hashCode());
     }
 
 
