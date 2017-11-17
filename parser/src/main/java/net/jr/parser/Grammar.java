@@ -47,8 +47,7 @@ public class Grammar {
     }
 
     public List<Rule> getRules() {
-        //return Collections.unmodifiableList(rules);
-        return new ArrayList<>(rules);
+        return Collections.unmodifiableList(rules);
     }
 
     public interface ComponentsSpecifier {
@@ -497,7 +496,6 @@ public class Grammar {
      */
     public ActionType getConflictResolutionHint(Rule rule, Symbol symbol) {
         ActionType decision = null;
-
         int rulePrecedence = ((BaseRule) rule).getPrecedenceLevel();
         int tokenPrecedence = getPrecedenceLevel(symbol);
 
@@ -523,6 +521,12 @@ public class Grammar {
         for (Symbol symbol : symbols) {
             precedenceLevels.put(symbol, level);
         }
+    }
+
+    public Forward rule(Symbol ...symbols) {
+        Forward tmp = new Forward("(" + String.join(" ", Arrays.asList(symbols).stream().map(Symbol::toString).collect(Collectors.toList()) + ")"));
+        addRule(tmp, symbols);
+        return tmp;
     }
 
     /**

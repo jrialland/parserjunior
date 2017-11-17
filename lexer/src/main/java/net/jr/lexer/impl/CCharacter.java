@@ -60,6 +60,11 @@ public class CCharacter extends LexemeImpl {
     }
 
     @Override
+    public String toString() {
+        return "CCharacter";
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;
@@ -67,7 +72,6 @@ public class CCharacter extends LexemeImpl {
         if (!obj.getClass().equals(CCharacter.class)) {
             return false;
         }
-
         return true;
     }
 

@@ -22,6 +22,11 @@ public class OneOf extends LexemeImpl {
     }
 
     @Override
+    public String toString() {
+        return String.format("OneOf('%s')", chars);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;

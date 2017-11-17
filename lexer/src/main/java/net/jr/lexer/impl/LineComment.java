@@ -26,6 +26,11 @@ public class LineComment extends LexemeImpl {
     }
 
     @Override
+    public String toString() {
+        return String.format("LineComment('%s')", commentStart);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;

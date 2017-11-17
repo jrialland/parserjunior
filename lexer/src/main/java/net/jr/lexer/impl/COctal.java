@@ -24,6 +24,11 @@ public class COctal extends LexemeImpl {
     }
 
     @Override
+    public String toString() {
+        return "COctal";
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;

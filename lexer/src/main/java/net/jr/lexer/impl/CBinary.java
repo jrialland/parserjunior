@@ -23,6 +23,11 @@ public class CBinary extends LexemeImpl {
     }
 
     @Override
+    public String toString() {
+        return "CBinary";
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;
@@ -30,7 +35,6 @@ public class CBinary extends LexemeImpl {
         if (!obj.getClass().equals(CBinary.class)) {
             return false;
         }
-
         return true;
     }
 

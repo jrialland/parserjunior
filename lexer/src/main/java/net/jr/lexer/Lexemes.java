@@ -36,12 +36,7 @@ public class Lexemes {
 
     private static final Lexeme lowercaseWord = new Word(LowercaseLetters);
 
-    private static final Lexeme cString = new QuotedString('\"', '\"', '\\', new char[]{'\r', '\n'}) {
-        @Override
-        public String toString() {
-            return "CString";
-        }
-    };
+    private static final Lexeme cString = new CString();
 
     private static final Map<String, Lexeme> Artificials = new TreeMap<>();
 

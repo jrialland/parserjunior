@@ -32,6 +32,11 @@ public class CHexNumber extends LexemeImpl {
     }
 
     @Override
+    public String toString() {
+        return "CHexNumber";
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;
@@ -39,7 +44,6 @@ public class CHexNumber extends LexemeImpl {
         if (!obj.getClass().equals(CHexNumber.class)) {
             return false;
         }
-
         return true;
     }
 

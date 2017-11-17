@@ -20,6 +20,11 @@ public class NewLine extends LexemeImpl {
     }
 
     @Override
+    public String toString() {
+        return "NewLine";
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;

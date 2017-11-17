@@ -52,7 +52,7 @@ public class QuotedString extends LexemeImpl {
         if (obj == null) {
             return false;
         }
-        if (!obj.getClass().equals(QuotedString.class)) {
+        if (!QuotedString.class.isAssignableFrom(obj.getClass())) {
             return false;
         }
         final QuotedString o = (QuotedString) obj;

@@ -26,7 +26,6 @@ public class Artificial extends LexemeImpl {
         if (!obj.getClass().equals(Artificial.class)) {
             return false;
         }
-
         final Artificial o = (Artificial) obj;
         return name.equals(o.name);
     }

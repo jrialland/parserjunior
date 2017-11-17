@@ -52,6 +52,11 @@ public class CFloatingPoint extends LexemeImpl {
     }
 
     @Override
+    public String toString() {
+        return "CFloatingPoint";
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;
@@ -59,7 +64,6 @@ public class CFloatingPoint extends LexemeImpl {
         if (!obj.getClass().equals(CFloatingPoint.class)) {
             return false;
         }
-
         return true;
     }
 

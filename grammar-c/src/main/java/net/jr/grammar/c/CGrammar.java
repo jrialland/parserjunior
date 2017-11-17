@@ -451,8 +451,8 @@ public class CGrammar extends Grammar {
     }
 
     @Override
-    public Parser createParser(Symbol targetSymbol) {
-        LRParser parser = (LRParser) super.createParser(targetSymbol);
+    public Parser createParser(Symbol targetSymbol, boolean useCache) {
+        LRParser parser = (LRParser) super.createParser(targetSymbol, useCache);
         parser.setDefaultLexer(lexer);
         return parser;
     }

@@ -36,6 +36,11 @@ public class MultilineComment extends LexemeImpl {
     }
 
     @Override
+    public String toString() {
+        return String.format("MultilineComment('%s','%s')", commentStart, commentEnd);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;
