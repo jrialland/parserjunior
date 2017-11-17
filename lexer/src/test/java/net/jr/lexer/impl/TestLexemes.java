@@ -1,6 +1,7 @@
 package net.jr.lexer.impl;
 
 import net.jr.lexer.Lexeme;
+import net.jr.marshalling.MarshallingUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,7 +34,7 @@ public class TestLexemes {
 
     @Test
     public void testEquals() {
-        types.entrySet().forEach((entry -> {
+        types.entrySet().forEach(entry -> {
 
             try {
 
@@ -47,12 +48,12 @@ public class TestLexemes {
             } catch (Exception e) {
                 throw new RuntimeException(entry.getKey().getName(), e);
             }
-        }));
+        });
     }
 
     @Test
     public void testHashCode() {
-        types.entrySet().forEach((entry -> {
+        types.entrySet().forEach(entry -> {
             try {
                 Lexeme l = entry.getValue().call();
                 Lexeme l2 = entry.getValue().call();
@@ -61,6 +62,23 @@ public class TestLexemes {
             } catch (Exception e) {
                 throw new RuntimeException(entry.getKey().getName(), e);
             }
-        }));
+        });
+    }
+
+    @Test
+    public void testMarshall() {
+        types.entrySet().forEach(entry -> {
+            try {
+                Lexeme l = entry.getValue().call();
+                byte[] bytes = MarshallingUtil.toByteArray(l, true);
+                Assert.assertFalse(bytes.length == 0);
+                Lexeme l2 = MarshallingUtil.fromByteArray(bytes, true);
+                Assert.assertEquals(l, l2);
+            } catch (Exception e) {
+                throw new RuntimeException(entry.getKey().getName(), e);
+            }
+        });
+
+
     }
 }

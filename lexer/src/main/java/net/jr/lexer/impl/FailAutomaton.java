@@ -57,7 +57,7 @@ public class FailAutomaton implements Automaton, MarshallingCapable {
 
     @SuppressWarnings("unused")
     public static Automaton unMarshall(DataInputStream in) throws IOException {
-        Lexeme l = MarshallingUtil.unmarshall(in);
+        Lexeme l = MarshallingUtil.unMarshall(in);
         return get(l);
     }
 

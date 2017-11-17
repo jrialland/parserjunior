@@ -81,7 +81,7 @@ public class ExtendedSymbol implements Symbol {
     @SuppressWarnings("unused")
     public static ExtendedSymbol unMarshall(DataInputStream in) throws IOException {
         int from = in.readInt();
-        Symbol symbol = MarshallingUtil.unmarshall(in);
+        Symbol symbol = MarshallingUtil.unMarshall(in);
         int to = in.readInt();
         return new ExtendedSymbol(from, symbol, to);
     }

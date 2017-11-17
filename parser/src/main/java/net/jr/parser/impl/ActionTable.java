@@ -1,7 +1,6 @@
 package net.jr.parser.impl;
 
 import net.jr.common.Symbol;
-import net.jr.lexer.Lexeme;
 import net.jr.lexer.Lexemes;
 import net.jr.marshalling.MarshallingCapable;
 import net.jr.marshalling.MarshallingUtil;
@@ -55,9 +54,9 @@ public class ActionTable implements MarshallingCapable {
     @SuppressWarnings("unused")
     public static ActionTable unMarshall(DataInputStream dataInputStream) throws IOException {
         ActionTable actionTable = new ActionTable();
-        actionTable.terminals = MarshallingUtil.unmarshall(dataInputStream);
-        actionTable.nonTerminals = MarshallingUtil.unmarshall(dataInputStream);
-        actionTable.data = MarshallingUtil.unmarshall(dataInputStream);
+        actionTable.terminals = MarshallingUtil.unMarshall(dataInputStream);
+        actionTable.nonTerminals = MarshallingUtil.unMarshall(dataInputStream);
+        actionTable.data = MarshallingUtil.unMarshall(dataInputStream);
         return actionTable;
     }
 

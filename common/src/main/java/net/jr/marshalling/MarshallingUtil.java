@@ -10,7 +10,6 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipOutputStream;
 
 public class MarshallingUtil {
 
@@ -59,7 +58,7 @@ public class MarshallingUtil {
             Class<?> componentType = TypeUtil.forBytecodeTypename(in.readUTF());
             Object array = Array.newInstance(componentType, len);
             for (int i = 0; i < len; i++) {
-                Array.set(array, i, unmarshall(in));
+                Array.set(array, i, unMarshall(in));
             }
             return array;
         });
@@ -77,7 +76,7 @@ public class MarshallingUtil {
             int size = in.readInt();
             List<?> list = new ArrayList<>();
             for (int i = 0; i < size; i++) {
-                list.add(unmarshall(in));
+                list.add(unMarshall(in));
             }
             return list;
         });
@@ -95,7 +94,7 @@ public class MarshallingUtil {
             int size = in.readInt();
             Set<?> set = new HashSet<>();
             for (int i = 0; i < size; i++) {
-                set.add(unmarshall(in));
+                set.add(unMarshall(in));
             }
             return set;
         });
@@ -114,8 +113,8 @@ public class MarshallingUtil {
             int size = in.readInt();
             Map<Object, Object> map = new HashMap<>();
             for (int i = 0; i < size; i++) {
-                Object k = unmarshall(in);
-                Object v = unmarshall(in);
+                Object k = unMarshall(in);
+                Object v = unMarshall(in);
                 map.put(k, v);
             }
             return map;
@@ -298,7 +297,7 @@ public class MarshallingUtil {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T unmarshall(DataInputStream dataInputStream) throws IOException {
+    public static <T> T unMarshall(DataInputStream dataInputStream) throws IOException {
         char type = dataInputStream.readChar();
         UnMarshaller unMarshaller = unMarshallers.get(type);
         if (unMarshaller == null) {
@@ -334,7 +333,7 @@ public class MarshallingUtil {
             if (decompress) {
                 in = new GZIPInputStream(in);
             }
-            return unmarshall(new DataInputStream(in));
+            return unMarshall(new DataInputStream(in));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
