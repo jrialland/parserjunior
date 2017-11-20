@@ -6,7 +6,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import static net.jr.lexer.impl.CharConstraint.Builder.eq;
 import static net.jr.lexer.impl.CharConstraint.Builder.inList;
 
 public class COctal extends LexemeImpl {
@@ -16,9 +15,9 @@ public class COctal extends LexemeImpl {
         DefaultAutomaton.Builder.BuilderState init = builder.initialState();
         DefaultAutomaton.Builder.BuilderState got0 = builder.initialState();
         DefaultAutomaton.Builder.BuilderState finalState = builder.newFinalState();
-        init.when(eq('0')).goTo(got0);
-        got0.when(inList(Lexemes.OctalDigit)).goTo(finalState);
-        finalState.when(inList(Lexemes.OctalDigit)).goTo(finalState);
+        init.when(CharConstraint.Builder.eq('0')).goTo(got0);
+        got0.when(CharConstraint.Builder.inList(Lexemes.OctalDigit)).goTo(finalState);
+        finalState.when(CharConstraint.Builder.inList(Lexemes.OctalDigit)).goTo(finalState);
         CInteger.addIntegerSuffix(builder, finalState);
         setAutomaton(builder.build());
     }

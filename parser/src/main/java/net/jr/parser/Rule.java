@@ -14,6 +14,8 @@ public abstract class Rule {
 
     private int id;
 
+    public abstract String getName();
+
     public int getId() {
         return id;
     }

@@ -1,7 +1,7 @@
 package net.jr.grammar.c;
 
 import net.jr.common.Symbol;
-import net.jr.lexer.*;
+import net.jr.lexer.expr.*;
 import net.jr.parser.Forward;
 import net.jr.parser.Grammar;
 import net.jr.parser.Parser;
@@ -453,7 +453,7 @@ public class CGrammar extends Grammar {
     @Override
     public Parser createParser(Symbol targetSymbol, boolean useCache) {
         LRParser parser = (LRParser) super.createParser(targetSymbol, useCache);
-        parser.setDefaultLexer(lexer);
+        parser.setLexer(lexer);
         return parser;
     }
 

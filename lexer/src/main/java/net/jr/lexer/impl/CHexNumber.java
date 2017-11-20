@@ -6,9 +6,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import static net.jr.lexer.impl.CharConstraint.Builder.eq;
-import static net.jr.lexer.impl.CharConstraint.Builder.inList;
-
 public class CHexNumber extends LexemeImpl {
 
     public CHexNumber() {
@@ -17,16 +14,16 @@ public class CHexNumber extends LexemeImpl {
         DefaultAutomaton.Builder.BuilderState nextState;
 
         nextState = builder.newNonFinalState();
-        currentState.when(eq('0')).goTo(nextState);
+        currentState.when(CharConstraint.Builder.eq('0')).goTo(nextState);
         currentState = nextState;
 
         nextState = builder.newNonFinalState();
-        currentState.when(eq('x')).goTo(nextState);
+        currentState.when(CharConstraint.Builder.eq('x')).goTo(nextState);
         currentState = nextState;
 
         DefaultAutomaton.Builder.BuilderState finalState = builder.newFinalState();
-        currentState.when(inList(Lexemes.HexDigit)).goTo(finalState);
-        finalState.when(inList(Lexemes.HexDigit)).goTo(finalState);
+        currentState.when(CharConstraint.Builder.inList(Lexemes.HexDigit)).goTo(finalState);
+        finalState.when(CharConstraint.Builder.inList(Lexemes.HexDigit)).goTo(finalState);
         CInteger.addIntegerSuffix(builder, finalState);
         setAutomaton(builder.build());
     }

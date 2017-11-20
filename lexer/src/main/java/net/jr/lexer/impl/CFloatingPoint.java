@@ -6,8 +6,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import static net.jr.lexer.impl.CharConstraint.Builder.*;
-
 public class CFloatingPoint extends LexemeImpl {
 
 
@@ -21,19 +19,19 @@ public class CFloatingPoint extends LexemeImpl {
         DefaultAutomaton.Builder.BuilderState nonFinalDot = builder.newNonFinalState();
 
         // [0-9]+ DOT [0-9]*
-        initialState.when(inList(Lexemes.Numbers)).goTo(beforeDot);
-        beforeDot.when(inList(Lexemes.Numbers)).goTo(beforeDot);
-        beforeDot.when(eq('.')).goTo(finalState);
-        finalState.when(inList(Lexemes.Numbers)).goTo(finalState);
+        initialState.when(CharConstraint.Builder.inList(Lexemes.Numbers)).goTo(beforeDot);
+        beforeDot.when(CharConstraint.Builder.inList(Lexemes.Numbers)).goTo(beforeDot);
+        beforeDot.when(CharConstraint.Builder.eq('.')).goTo(finalState);
+        finalState.when(CharConstraint.Builder.inList(Lexemes.Numbers)).goTo(finalState);
 
         // DOT [0-9]+
-        initialState.when(eq('.')).goTo(nonFinalDot);
-        nonFinalDot.when(inList(Lexemes.Numbers)).goTo(finalState);
+        initialState.when(CharConstraint.Builder.eq('.')).goTo(nonFinalDot);
+        nonFinalDot.when(CharConstraint.Builder.inList(Lexemes.Numbers)).goTo(finalState);
 
         gotExponent = addExponent(builder, finalState);
-        gotExponent.when(inList("lfLF")).goTo(builder.newFinalState());
+        gotExponent.when(CharConstraint.Builder.inList("lfLF")).goTo(builder.newFinalState());
 
-        finalState.when(inList("lfLF")).goTo(gotSuffix);
+        finalState.when(CharConstraint.Builder.inList("lfLF")).goTo(gotSuffix);
         addExponent(builder, gotSuffix);
 
         setAutomaton(builder.build());
@@ -43,11 +41,11 @@ public class CFloatingPoint extends LexemeImpl {
         DefaultAutomaton.Builder.BuilderState gotExp = builder.newNonFinalState();
         DefaultAutomaton.Builder.BuilderState gotSign = builder.newNonFinalState();
         DefaultAutomaton.Builder.BuilderState finalState = builder.newFinalState();
-        state.when(or(eq('E'), eq('e'))).goTo(gotExp);
-        gotExp.when(inList(Lexemes.NumbersExceptZero)).goTo(finalState);
-        gotExp.when(or(eq('+'), eq('-'))).goTo(gotSign);
-        gotSign.when(inList(Lexemes.NumbersExceptZero)).goTo(finalState);
-        finalState.when(inList(Lexemes.Numbers)).goTo(finalState);
+        state.when(CharConstraint.Builder.or(CharConstraint.Builder.eq('E'), CharConstraint.Builder.eq('e'))).goTo(gotExp);
+        gotExp.when(CharConstraint.Builder.inList(Lexemes.NumbersExceptZero)).goTo(finalState);
+        gotExp.when(CharConstraint.Builder.or(CharConstraint.Builder.eq('+'), CharConstraint.Builder.eq('-'))).goTo(gotSign);
+        gotSign.when(CharConstraint.Builder.inList(Lexemes.NumbersExceptZero)).goTo(finalState);
+        finalState.when(CharConstraint.Builder.inList(Lexemes.Numbers)).goTo(finalState);
         return finalState;
     }
 

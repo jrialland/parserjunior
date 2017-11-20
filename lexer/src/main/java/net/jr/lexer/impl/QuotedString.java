@@ -73,6 +73,10 @@ public class QuotedString extends LexemeImpl {
         return starChar + endChar * 10 + escapeChar * 100 + (forbiddenChars == null ? 0 : new String(forbiddenChars).hashCode());
     }
 
+    @Override
+    public String toString() {
+        return "QuotedString";
+    }
 
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {

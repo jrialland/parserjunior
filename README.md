@@ -7,6 +7,5 @@ ParserJunior
 
 TODO list :
 
-- dealing with parsing errors
 - colorful documentation
 

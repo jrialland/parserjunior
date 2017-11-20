@@ -2,8 +2,8 @@ package net.jr.lexer;
 
 import net.jr.common.Symbol;
 import net.jr.lexer.impl.Automaton;
-import net.jr.lexer.impl.LexemeImpl;
 import net.jr.lexer.impl.LexerStreamImpl;
+import net.jr.lexer.impl.LexemeImpl;
 
 import java.io.IOException;
 import java.io.Reader;

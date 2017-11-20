@@ -6,13 +6,11 @@ import net.jr.lexer.impl.SingleChar;
 import net.jr.parser.Forward;
 import net.jr.parser.Grammar;
 import net.jr.parser.ast.AstNode;
-import net.jr.parser.ast.annotations.Target;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ActionTableTest {
 
@@ -77,7 +75,7 @@ public class ActionTableTest {
         ActionTable.LALR1Builder builder = new ActionTable.LALR1Builder();
         List<ItemSet> itemSets = new ArrayList<>(builder.getAllItemSets(grammar));
         itemSets.sort(Comparator.comparing(ItemSet::toString));
-        for(ItemSet itemSet : itemSets) {
+        for (ItemSet itemSet : itemSets) {
             System.out.println(itemSet);
         }
     }
@@ -130,7 +128,7 @@ public class ActionTableTest {
 
         List<ItemSet> itemSets = new ArrayList<>(new ActionTable.LALR1Builder().getAllItemSets(g));
         itemSets.sort(Comparator.comparing(ItemSet::toString));
-        for(ItemSet itemSet : itemSets) {
+        for (ItemSet itemSet : itemSets) {
             System.out.println(itemSet);
         }
 
@@ -140,6 +138,7 @@ public class ActionTableTest {
         //ExtendedSymbol es = (ExtendedSymbol) extended.getTargetSymbol();
 
     }
+
     @Test
     public void testFollowSets() {
 
@@ -152,7 +151,7 @@ public class ActionTableTest {
 
         Map<Symbol, Set<? extends Symbol>> followSets = builder.getFollowSets(extended);
         for (Map.Entry<Symbol, Set<? extends Symbol>> entry : followSets.entrySet()) {
-           //System.out.println(entry.getKey() + "    " + entry.getValue());
+            //System.out.println(entry.getKey() + "    " + entry.getValue());
         }
     }
 
@@ -168,13 +167,13 @@ public class ActionTableTest {
         System.out.println(actionTable);
         System.out.println(actionTable2);
 
-        for(Symbol terminal : grammar.getTerminals()) {
-            for(int state =0; state < actionTable.getStatesCount(); state++) {
+        for (Symbol terminal : grammar.getTerminals()) {
+            for (int state = 0; state < actionTable.getStatesCount(); state++) {
 
                 Action a1 = actionTable.getAction(state, terminal);
                 Action a2 = actionTable2.getAction(state, terminal);
 
-                if(a1 == null) {
+                if (a1 == null) {
                     Assert.assertNull(a2);
                 } else {
                     Assert.assertEquals(a1, a2);
@@ -182,13 +181,13 @@ public class ActionTableTest {
             }
         }
 
-        for(Symbol nonTerminal : grammar.getNonTerminals()) {
-            for(int state =0; state < actionTable.getStatesCount(); state++) {
+        for (Symbol nonTerminal : grammar.getNonTerminals()) {
+            for (int state = 0; state < actionTable.getStatesCount(); state++) {
 
                 Action a1 = actionTable.getAction(state, nonTerminal);
                 Action a2 = actionTable2.getAction(state, nonTerminal);
 
-                if(a1 == null) {
+                if (a1 == null) {
                     Assert.assertNull(a2);
                 } else {
                     Assert.assertEquals(a1, a2);

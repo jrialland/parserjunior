@@ -7,7 +7,6 @@ import net.jr.lexer.impl.Literal;
 import net.jr.lexer.impl.SingleChar;
 import net.jr.lexer.impl.Word;
 import net.jr.parser.ast.AstNode;
-import net.jr.parser.impl.ActionTable;
 import net.jr.parser.impl.ActionTableCaching;
 import net.jr.parser.impl.LRParser;
 import org.junit.Assert;
@@ -68,9 +67,8 @@ public class GrammarTest {
     @Test
     public void testParse() {
         Parser parser = grammar.createParser(grammar.getTargetSymbol(), false);
-        Lexer lexer = Lexer.forLexemes(grammar.getTerminals());
-        lexer.setFilteredOut(Lexemes.whitespace());
-        parser.parse(lexer, new StringReader("x = *x"));
+        parser.getLexer().setFilteredOut(Lexemes.whitespace());
+        parser.parse(new StringReader("x = *x"));
     }
 
     private Grammar makeGrammar2() {
@@ -109,7 +107,7 @@ public class GrammarTest {
     public void testHashCodeStability() {
 
         int h = makeGrammar2().hashCode();
-        for(int i=0; i<100; i++) {
+        for (int i = 0; i < 100; i++) {
             Assert.assertEquals(h, makeGrammar2().hashCode());
         }
 
@@ -123,10 +121,8 @@ public class GrammarTest {
         g.addRule(V, new SingleChar('1'));
 
         Parser parser = g.createParser(V, false);
-        Lexer lexer = Lexer.forLexemes(g.getTerminals());
-
-        parser.parse(lexer, new StringReader("0"));
-        parser.parse(lexer, new StringReader("1"));
+        parser.parse(new StringReader("0"));
+        parser.parse(new StringReader("1"));
     }
 
     @Test
@@ -144,12 +140,13 @@ public class GrammarTest {
         Parser parser = g.createParser(false);
         Lexer lexer = Lexer.forLexemes(g.getTerminals());
         lexer.setFilteredOut(Lexemes.whitespace());
+        parser.setLexer(lexer);
 
         //empty list is ok
-        parser.parse(lexer, new StringReader("()"));
+        parser.parse(new StringReader("()"));
 
         //list of identifiers
-        parser.parse(lexer, new StringReader("(list, of, identifiers)"));
+        parser.parse(new StringReader("(list, of, identifiers)"));
 
 
     }
@@ -161,17 +158,17 @@ public class GrammarTest {
         g.addRule(L, new SingleChar('('), g.list(true, new SingleChar(','), Lexemes.cIdentifier()), new SingleChar(')'));
 
         Parser parser = g.createParser(L, false);
-        Lexer lexer = Lexer.forLexemes(g.getTerminals());
-        lexer.setFilteredOut(Lexemes.whitespace());
+
+        parser.getLexer().setFilteredOut(Lexemes.whitespace());
 
         //empty list are ok
-        parser.parse(lexer, new StringReader("()"));
+        parser.parse(new StringReader("()"));
 
         //list of identifiers
-        parser.parse(lexer, new StringReader("(list, of, identifiers)"));
+        parser.parse(new StringReader("(list, of, identifiers)"));
 
         try {
-            parser.parse(lexer, new StringReader("(list"));
+            parser.parse(new StringReader("(list"));
             Assert.fail();
         } catch (ParseError e) {
             //ok!
@@ -211,13 +208,12 @@ public class GrammarTest {
         g.addRule(L, new Literal(">>"), g.zeroOrMore(Lexemes.cIdentifier(), new SingleChar('!')));
 
         Parser parser = g.createParser(L, false);
-        Lexer lexer = Lexer.forLexemes(g.getTerminals());
-        lexer.setFilteredOut(Lexemes.whitespace());
+        parser.getLexer().setFilteredOut(Lexemes.whitespace());
 
-        parser.parse(lexer, new StringReader(">>"));
+        parser.parse(new StringReader(">>"));
 
         //list of identifiers
-        parser.parse(lexer, new StringReader(">>oh! eh! yeah!"));
+        parser.parse(new StringReader(">>oh! eh! yeah!"));
 
     }
 
@@ -228,14 +224,13 @@ public class GrammarTest {
         g.addRule(S, g.oneOrMore(new Word("nahnah")), new Word("batman"));
 
         Parser parser = g.createParser(S, false);
-        Lexer lexer = Lexer.forLexemes(g.getTerminals());
-        lexer.setFilteredOut(Lexemes.whitespace());
+        parser.getLexer().setFilteredOut(Lexemes.whitespace());
 
-        parser.parse(lexer, new StringReader("nahnah nahnah nahnah nahnah nahnah batman"));
-        parser.parse(lexer, new StringReader("nahnah batman"));
+        parser.parse(new StringReader("nahnah nahnah nahnah nahnah nahnah batman"));
+        parser.parse(new StringReader("nahnah batman"));
 
         try {
-            parser.parse(lexer, new StringReader("batman"));
+            parser.parse(new StringReader("batman"));
             Assert.fail();
         } catch (ParseError pe) {
             //ok!
@@ -299,10 +294,9 @@ public class GrammarTest {
                 });
 
         Parser parser = g.createParser(E, false);
-        Lexer lexer = Lexer.forLexemes(g.getTerminals());
-        lexer.setFilteredOut(Lexemes.whitespace());
+        parser.getLexer().setFilteredOut(Lexemes.whitespace());
 
-        parser.parse(lexer, new StringReader(expression));
+        parser.parse(new StringReader(expression));
 
         return calculatorStack.pop();
     }
@@ -323,6 +317,12 @@ public class GrammarTest {
             LoggerFactory.getLogger(GrammarTest.class).trace("--------------------------" + i);
             new IfElseTest().testParseNestedElse();
         }
+    }
+
+    @Test
+    public void testCreateParser() {
+        grammar.createParser();
+        grammar.createParser(N);
     }
 
 }

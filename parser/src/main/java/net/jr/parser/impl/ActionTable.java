@@ -64,14 +64,18 @@ public class ActionTable implements MarshallingCapable {
     }
 
     private void onInitialized() {
+
         Set<Symbol> allSymbols = data.values().stream().map(m -> m.keySet()).reduce(new HashSet<>(), (acc, s) -> {
             acc.addAll(s);
             return acc;
         });
+
         terminals = allSymbols.stream().filter(s -> s.isTerminal()).collect(Collectors.toList());
         terminals.sort(Comparator.comparing(Symbol::toString));
+
         nonTerminals = allSymbols.stream().filter(s -> !s.isTerminal()).collect(Collectors.toList());
         nonTerminals.sort(Comparator.comparing(Symbol::toString));
+
     }
 
     private void setAction(int state, Symbol symbol, Action action, boolean allowReplace) {
@@ -200,14 +204,17 @@ public class ActionTable implements MarshallingCapable {
             if (targetRules.size() != 1) {
                 throw new IllegalStateException("Illegal target rule specification (required : only one rule for the target symbol)");
             }
+
             Rule startRule = targetRules.iterator().next();
 
             getLog().trace("Building action Table for : " + grammar.toString());
             getLog().trace("Starting Rule is : " + startRule);
 
             //Syntax Analysis Goal: Item Sets
-
             Set<ItemSet> allItemSets = getAllItemSets(grammar);
+            if(getLog().isTraceEnabled()) {
+                getLog().trace(String.format("Action table will have %d states", allItemSets.size()));
+            }
 
             //Syntax Analysis Goal: Translation Table
             Map<Integer, Map<Symbol, Integer>> translationTable = getTranslationTable(grammar, allItemSets);
@@ -216,7 +223,9 @@ public class ActionTable implements MarshallingCapable {
             ActionTable actionTable = new ActionTable();
 
             initializeShiftsAndGotos(actionTable, translationTable);
+
             initializeReductions(grammar, actionTable, startRule, allItemSets);
+
             initializeAccept(actionTable, startRule, allItemSets);
 
             actionTable.onInitialized();
@@ -566,8 +575,8 @@ public class ActionTable implements MarshallingCapable {
             ExtendedRule eTargetRule = eGrammar.getRules().stream().map(r -> (ExtendedRule) r).filter(r -> ((ExtendedSymbol) r.getTarget()).getSymbol().equals(targetRule.getTarget())).findFirst().get();
             eGrammar.setTargetRule(eTargetRule);
 
-            if(getLog().isDebugEnabled()) {
-                getLog().debug(String.format("Extended grammar has %d rules", eGrammar.getRules().size()));
+            if(getLog().isTraceEnabled()) {
+                getLog().trace(String.format("Extended grammar has %d rules", eGrammar.getRules().size()));
             }
 
             return eGrammar;

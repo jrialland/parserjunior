@@ -17,7 +17,7 @@ public class OneOf extends LexemeImpl {
         this.chars = chars;
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
         DefaultAutomaton.Builder.BuilderState initialState = builder.initialState();
-        initialState.when(inList(chars)).goTo(builder.newFinalState());
+        initialState.when(CharConstraint.Builder.inList(chars)).goTo(builder.newFinalState());
         setAutomaton(builder.build());
     }
 

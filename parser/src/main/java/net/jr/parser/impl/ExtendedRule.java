@@ -48,4 +48,9 @@ public class ExtendedRule extends Rule {
     public Rule getBaseRule() {
         return baseRule;
     }
+
+    @Override
+    public String getName() {
+        return baseRule.getName();
+    }
 }

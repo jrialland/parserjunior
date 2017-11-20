@@ -6,8 +6,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import static net.jr.lexer.impl.CharConstraint.Builder.*;
-
 public class CCharacter extends LexemeImpl {
 
     public CCharacter() {
@@ -24,28 +22,28 @@ public class CCharacter extends LexemeImpl {
         DefaultAutomaton.Builder.BuilderState gotHexQuad2;
         DefaultAutomaton.Builder.BuilderState done = builder.newFinalState();
 
-        init.when(eq('\'')).goTo(gotFirstQuote);
-        gotFirstQuote.when(eq('\\')).goTo(escaped);
-        gotFirstQuote.when(and(inRange(0x20, 128), not(eq('\\')))).goTo(gotChar);
-        escaped.when(inList("\"?abfnrtv\\")).goTo(gotChar);
+        init.when(CharConstraint.Builder.eq('\'')).goTo(gotFirstQuote);
+        gotFirstQuote.when(CharConstraint.Builder.eq('\\')).goTo(escaped);
+        gotFirstQuote.when(CharConstraint.Builder.and(CharConstraint.Builder.inRange(0x20, 128), CharConstraint.Builder.not(CharConstraint.Builder.eq('\\')))).goTo(gotChar);
+        escaped.when(CharConstraint.Builder.inList("\"?abfnrtv\\")).goTo(gotChar);
 
-        escaped.when(inList(Lexemes.OctalDigit)).goTo(octalEscape);
-        octalEscape.when(inList(Lexemes.OctalDigit)).goTo(octalEscape2);
-        octalEscape.when(eq('\'')).goTo(done);
-        octalEscape2.when(inList(Lexemes.OctalDigit)).goTo(gotChar);
-        octalEscape2.when(eq('\'')).goTo(done);
+        escaped.when(CharConstraint.Builder.inList(Lexemes.OctalDigit)).goTo(octalEscape);
+        octalEscape.when(CharConstraint.Builder.inList(Lexemes.OctalDigit)).goTo(octalEscape2);
+        octalEscape.when(CharConstraint.Builder.eq('\'')).goTo(done);
+        octalEscape2.when(CharConstraint.Builder.inList(Lexemes.OctalDigit)).goTo(gotChar);
+        octalEscape2.when(CharConstraint.Builder.eq('\'')).goTo(done);
 
-        escaped.when(eq('x')).goTo(hexEscape);
-        escaped.when(inList(Lexemes.HexDigit)).goTo(hexEscape);
-        hexEscape.when(eq('\'')).goTo(done);
+        escaped.when(CharConstraint.Builder.eq('x')).goTo(hexEscape);
+        escaped.when(CharConstraint.Builder.inList(Lexemes.HexDigit)).goTo(hexEscape);
+        hexEscape.when(CharConstraint.Builder.eq('\'')).goTo(done);
 
-        escaped.when(or(eq('u'), eq('U'))).goTo(universalEscape);
+        escaped.when(CharConstraint.Builder.or(CharConstraint.Builder.eq('u'), CharConstraint.Builder.eq('U'))).goTo(universalEscape);
         gotHexQuad = addHexQuad(builder, universalEscape);
-        gotHexQuad.when(eq('\'')).goTo(done);
+        gotHexQuad.when(CharConstraint.Builder.eq('\'')).goTo(done);
         gotHexQuad2 = addHexQuad(builder, gotHexQuad);
-        gotHexQuad2.when(eq('\'')).goTo(done);
+        gotHexQuad2.when(CharConstraint.Builder.eq('\'')).goTo(done);
 
-        gotChar.when(eq('\'')).goTo(done);
+        gotChar.when(CharConstraint.Builder.eq('\'')).goTo(done);
         setAutomaton(builder.build());
     }
 

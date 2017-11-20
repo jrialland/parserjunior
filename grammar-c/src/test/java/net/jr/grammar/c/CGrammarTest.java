@@ -1,10 +1,9 @@
 package net.jr.grammar.c;
 
 
-import net.jr.lexer.LexicalError;
+import net.jr.lexer.expr.LexicalError;
 import net.jr.parser.ParseError;
 import net.jr.parser.Parser;
-import net.jr.parser.Rule;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.ast.VisitorHelper;
 import net.jr.parser.ast.annotations.Target;

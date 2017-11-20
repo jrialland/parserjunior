@@ -1,7 +1,8 @@
-package net.jr.lexer;
+package net.jr.lexer.expr;
 
 
 import net.jr.common.Position;
+import net.jr.lexer.*;
 import net.jr.lexer.impl.Literal;
 import net.jr.lexer.impl.MultilineComment;
 import net.jr.lexer.impl.SingleChar;

@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 
 public interface AstNode {
 
+    Rule getRule();
+
     Symbol getSymbol();
 
     List<AstNode> getChildren();

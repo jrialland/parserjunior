@@ -295,20 +295,24 @@ public class Grammar {
      */
     public void setTargetRule(Rule rule) {
 
+        if (!rules.contains(rule)) {
+            throw new IllegalArgumentException("Unknown rule :" + rule);
+        }
+
         Symbol t = rule.getTarget();
+
+        //The target symbol must appear only once on the left side
         int rulesCount = getRulesTargeting(t).size();
         if (rulesCount != 1) {
             throw new IllegalStateException("The rule %s cannot be used as target rule");
-        } else {
-            targetSymbol = t;
         }
 
-        if (rule.equals(getRuleById(0))) {
+        //update target symbol for this grammar
+        targetSymbol = t;
+
+        //the rule has already the id 0
+        if (rule.getId() == 0) {
             return;
-        }
-
-        if (!rules.contains(rule)) {
-            throw new IllegalArgumentException("Unknown rule :" + rule);
         }
 
         List<Rule> lRules = new ArrayList<>(new HashSet<>(rules));
@@ -384,15 +388,6 @@ public class Grammar {
         }
     }
 
-    /**
-     * Generates a parser that can parse target symbol (the one returned by {@link Grammar#getTargetSymbol()}  for this grammar.
-     *
-     * @return a parser
-     */
-    public Parser createParser(boolean useActionTableCache) {
-        return createParser(getTargetSymbol(), useActionTableCache);
-    }
-
     private void fixPrecedenceLevels() {
         Map<Rule, Integer> mRules = new HashMap<>();
         for (Rule rule : rules) {
@@ -413,6 +408,33 @@ public class Grammar {
             getLog().debug(String.format("Precedence Level %d : %s", entry.getValue(), entry.getKey()));
             ((BaseRule) entry.getKey()).setPrecedenceLevel(entry.getValue());
         }
+    }
+
+    /**
+     * Just a syntactic 'sugar' for createParser(true);
+     *
+     * @return
+     */
+    public final Parser createParser() {
+        return createParser(true);
+    }
+
+    /**
+     * Just a syntactic 'sugar' for createParser(symbol, true);
+     *
+     * @return
+     */
+    public final Parser createParser(Symbol symbol) {
+        return createParser(symbol, true);
+    }
+
+    /**
+     * Generates a parser that can parse target symbol (the one returned by {@link Grammar#getTargetSymbol()}  for this grammar.
+     *
+     * @return a parser
+     */
+    public final Parser createParser(boolean useActionTableCache) {
+        return createParser(getTargetSymbol(), useActionTableCache);
     }
 
     /**

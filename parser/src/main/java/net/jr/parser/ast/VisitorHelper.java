@@ -2,6 +2,7 @@ package net.jr.parser.ast;
 
 import net.jr.common.Symbol;
 import net.jr.parser.Forward;
+import net.jr.parser.Rule;
 import net.jr.parser.ast.annotations.AfterEachNode;
 import net.jr.parser.ast.annotations.BeforeEachNode;
 import net.jr.parser.ast.annotations.Target;
@@ -15,16 +16,24 @@ import java.util.function.Consumer;
 
 public class VisitorHelper {
 
-    private static String getSymbolName(Symbol symbol) {
-
+    private static String getNameForSymbol(Symbol symbol) {
         if (symbol instanceof Forward) {
             String name = ((Forward) symbol).getName();
             if (name != null) {
                 return name;
             }
         }
-
         return symbol.getClass().getSimpleName();
+    }
+
+    private static String getName(AstNode node) {
+        Rule rule = node.getRule();
+        if (rule != null) {
+            String ruleName = rule.getName();
+            return ruleName == null ? getNameForSymbol(rule.getTarget()) : ruleName;
+        } else {
+            return getNameForSymbol(node.getSymbol());
+        }
     }
 
     private static Consumer<AstNode> makeConsumer(Method method, Object visitor) {
@@ -72,13 +81,13 @@ public class VisitorHelper {
         for (AstNode child : node.getChildren()) {
             visitWithMapping(child, mapping);
         }
-        String symbolName = getSymbolName(node.getSymbol());
+        String name = getName(node);
 
         //run 'beforeEachNode' methods
         mapping.befores.forEach(c -> c.accept(node));
 
         //run the consumers for this symbol name
-        List<Consumer<AstNode>> set = mapping.map.get(symbolName);
+        List<Consumer<AstNode>> set = mapping.map.get(name);
         if (set != null) {
             set.forEach(c -> c.accept(node));
         }

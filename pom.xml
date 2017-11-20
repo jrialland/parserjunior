@@ -176,6 +176,7 @@
         <module>common</module>
         <module>lexer</module>
         <module>parser</module>
+        <module>lexer-regex</module>
         <module>grammar-c</module>
     </modules>
 

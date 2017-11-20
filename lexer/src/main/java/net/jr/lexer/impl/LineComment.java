@@ -4,9 +4,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import static net.jr.lexer.impl.CharConstraint.Builder.eq;
-import static net.jr.lexer.impl.CharConstraint.Builder.not;
-
 public class LineComment extends LexemeImpl {
 
     private String commentStart;
@@ -17,11 +14,11 @@ public class LineComment extends LexemeImpl {
         DefaultAutomaton.Builder.BuilderState currentState = builder.initialState();
         for (char c : commentStart.toCharArray()) {
             DefaultAutomaton.Builder.BuilderState next = builder.newNonFinalState();
-            currentState.when(eq(c)).goTo(next);
+            currentState.when(CharConstraint.Builder.eq(c)).goTo(next);
             currentState = next;
         }
-        currentState.when(not(eq('\n'))).goTo(currentState);
-        currentState.when(eq('\n')).goTo(builder.newFinalState());
+        currentState.when(CharConstraint.Builder.not(CharConstraint.Builder.eq('\n'))).goTo(currentState);
+        currentState.when(CharConstraint.Builder.eq('\n')).goTo(builder.newFinalState());
         setAutomaton(builder.build());
     }
 

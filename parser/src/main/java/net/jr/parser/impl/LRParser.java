@@ -1,7 +1,10 @@
 package net.jr.parser.impl;
 
 import net.jr.common.Symbol;
-import net.jr.lexer.*;
+import net.jr.lexer.Lexemes;
+import net.jr.lexer.Lexer;
+import net.jr.lexer.LexerStream;
+import net.jr.lexer.Token;
 import net.jr.parser.*;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.ast.AstNodeFactory;
@@ -65,13 +68,18 @@ public class LRParser implements Parser {
      * @param actionTable The actionTable for the grammar, possibly computed using {@link ActionTable.LALR1Builder#build(Grammar)}
      */
     public LRParser(Grammar grammar, ActionTable actionTable) {
+        this(grammar, Lexer.forLexemes(grammar.getTerminals()), actionTable);
+    }
+
+    public LRParser(Grammar grammar, Lexer lexer, ActionTable actionTable) {
         this.grammar = grammar;
+        this.defaultLexer = lexer;
         this.actionTable = actionTable;
     }
 
-    public AstNode parse(Lexer lexer, Reader reader) {
+    public AstNode parse(Reader reader) {
 
-        final LexerStream lexerStream = lexer.iterator(reader);
+        final LexerStream lexerStream = getLexer().iterator(reader);
         Stack<Context> stack = new Stack<>();
 
         //start with the initial state
@@ -133,7 +141,7 @@ public class LRParser implements Parser {
 
     private void fail(Token token, LexerStream lexerStream, Context context) {
         ParseError parseError = new ParseError(token, actionTable.getExpectedTerminals(context.getState()));
-        if(parserListener != null) {
+        if (parserListener != null) {
             parserListener.onParseError(parseError, new ParsingContextImpl(this, lexerStream, context.getAstNode()));
         } else {
             throw parseError;
@@ -182,6 +190,11 @@ public class LRParser implements Parser {
         }
 
         @Override
+        public Rule getRule() {
+            return null;
+        }
+
+        @Override
         public String repr() {
             return token.getText();
         }
@@ -199,6 +212,11 @@ public class LRParser implements Parser {
 
         public List<AstNode> getChildren() {
             return children;
+        }
+
+        @Override
+        public Rule getRule() {
+            return rule;
         }
 
         @Override
@@ -246,7 +264,7 @@ public class LRParser implements Parser {
         List<AstNode> children = astNode.getChildren();
         for (int i = 0; i < rule.getClause().length; i++) {
             AstNode popped = stack.pop().getAstNode();
-            if(!isEofNode(popped)) {
+            if (!isEofNode(popped)) {
                 children.add(popped);
             }
         }
@@ -281,17 +299,17 @@ public class LRParser implements Parser {
     }
 
     @Override
-    public Lexer getDefaultLexer() {
+    public Lexer getLexer() {
         if (defaultLexer == null) {
             defaultLexer = Lexer.forLexemes(getGrammar().getTerminals());
         }
         return defaultLexer;
     }
 
-    public void setDefaultLexer(Lexer defaultLexer) {
-        this.defaultLexer = defaultLexer;
+    @Override
+    public void setLexer(Lexer lexer) {
+        this.defaultLexer = lexer;
     }
-
 
     @Override
     public void setParserListener(ParserListener parserListener) {

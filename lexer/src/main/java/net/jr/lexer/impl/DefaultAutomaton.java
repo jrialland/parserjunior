@@ -28,6 +28,10 @@ public class DefaultAutomaton implements Automaton {
         return new DefaultAutomaton(tokenType, initialState);
     }
 
+    public void setTokenType(Lexeme tokenType) {
+        this.tokenType = tokenType;
+    }
+
     public Lexeme getTokenType() {
         return tokenType;
     }

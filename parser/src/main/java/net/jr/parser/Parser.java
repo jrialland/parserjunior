@@ -14,16 +14,11 @@ import java.io.StringReader;
 public interface Parser {
 
     /**
-     * @param lexer  a custom lexer that know how recognize words
-     * @param reader
-     * @return
-     */
-    AstNode parse(Lexer lexer, Reader reader);
-
-    /**
      * @return The default lexer, i.e the one that is used by default when calling Parser{@link #parse(Reader)}
      */
-    Lexer getDefaultLexer();
+    Lexer getLexer();
+
+    void setLexer(Lexer lexer);
 
     /**
      * Sets a {@link ParserListener} that will be notified on different phases
@@ -41,22 +36,20 @@ public interface Parser {
     AstNodeFactory getAstNodeFactory();
 
     /**
-     * sugar for parse(getDefaultLexer(), new StringReader(txt))
+     * sugar for parse(getLexer(), new StringReader(txt))
      *
      * @param txt
      * @return
      */
     default AstNode parse(String txt) {
-        return parse(getDefaultLexer(), new StringReader(txt));
+        return parse(new StringReader(txt));
     }
 
     /**
-     * sugar for parse(getDefaultLexer(), reader))
+     * sugar for parse(getLexer(), reader))
      *
      * @param reader
      * @return
      */
-    default AstNode parse(Reader reader) {
-        return parse(getDefaultLexer(), reader);
-    }
+    AstNode parse(Reader reader);
 }

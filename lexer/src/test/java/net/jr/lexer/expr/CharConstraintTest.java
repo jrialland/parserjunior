@@ -1,4 +1,4 @@
-package net.jr.lexer;
+package net.jr.lexer.expr;
 
 import net.jr.lexer.impl.CharConstraint;
 import org.junit.Assert;
