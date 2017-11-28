@@ -6,6 +6,8 @@ import net.jr.parser.Rule;
 import net.jr.parser.ast.annotations.AfterEachNode;
 import net.jr.parser.ast.annotations.BeforeEachNode;
 import net.jr.parser.ast.annotations.Target;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -15,6 +17,12 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class VisitorHelper {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(VisitorHelper.class);
+
+    private static final Logger getLog() {
+        return LOGGER;
+    }
 
     private static String getNameForSymbol(Symbol symbol) {
         if (symbol instanceof Forward) {
@@ -78,10 +86,14 @@ public class VisitorHelper {
     }
 
     private static void visitWithMapping(AstNode node, Mapping mapping) {
+
         for (AstNode child : node.getChildren()) {
             visitWithMapping(child, mapping);
         }
+
         String name = getName(node);
+
+        getLog().debug(String.format("%s \t %s" ,name, node.toString()));
 
         //run 'beforeEachNode' methods
         mapping.befores.forEach(c -> c.accept(node));

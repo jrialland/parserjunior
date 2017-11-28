@@ -44,7 +44,6 @@ public class ActionTableCaching {
         return enabled;
     }
 
-
     public static ActionTable get(Grammar grammar) {
         if (enabled) {
             try {

@@ -21,7 +21,7 @@ public class RegexLexeme extends LexemeImpl {
 
     private int priority = 1;
 
-    private Automaton automaton;
+    private RegexAutomaton automaton;
 
     public RegexLexeme(String expression) {
         this(expression, 1);
@@ -35,6 +35,7 @@ public class RegexLexeme extends LexemeImpl {
         RegexVisitor visitor = new RegexVisitor(this);
         VisitorHelper.visit(astNode, visitor);
         this.automaton = visitor.getAutomaton();
+        this.automaton.setTokenType(this);
     }
 
     @Override
