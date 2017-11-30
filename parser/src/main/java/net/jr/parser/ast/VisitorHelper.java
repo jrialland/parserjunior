@@ -93,7 +93,14 @@ public class VisitorHelper {
 
         String name = getName(node);
 
-        getLog().debug(String.format("%s \t %s" ,name, node.toString()));
+        if(getLog().isDebugEnabled()) {
+            String nodeToString = node.toString();
+            if(nodeToString.equals(name)) {
+                getLog().debug(nodeToString);
+            } else {
+                getLog().debug(String.format("%s \t %s" ,name, node.toString()));
+            }
+        }
 
         //run 'beforeEachNode' methods
         mapping.befores.forEach(c -> c.accept(node));

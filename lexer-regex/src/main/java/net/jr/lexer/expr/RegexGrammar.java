@@ -39,17 +39,9 @@ public class RegexGrammar extends Grammar {
 
         public static final Lexeme RightBrace = Lexemes.singleChar(')');
 
-        public static final Lexeme LeftCurlyBrace = Lexemes.singleChar('{');
-
-        public static final Lexeme RightCurlyBrace = Lexemes.singleChar('}');
-
-        public static final Lexeme Number = Lexemes.cInteger();
-
         public static final Lexeme Dot = Lexemes.singleChar('.');
 
         public static final Lexeme Plus = Lexemes.singleChar('+');
-
-        public static final Lexeme Comma = Lexemes.singleChar(',');
 
         public static final Lexeme Pipe = Lexemes.singleChar('|');
 
@@ -57,13 +49,15 @@ public class RegexGrammar extends Grammar {
 
         public static final Lexeme Star = Lexemes.singleChar('*');
 
-        public static final Lexeme ThreePoints = new Literal("...");
+        public static final Lexeme ThreePoints = new Literal("..");
 
         public static final Lexeme Char = Lexemes.cCharacter();
 
         public static final Lexeme SingleQuotedString = new QuotedString('\'', '\'', '\\', "\n\r".toCharArray());
 
     }
+
+    public static final Forward OneOrMoreExpr = new Forward("OneOrMoreExpr");
 
     public static final Forward Regex = new Forward("Regex");
 
@@ -77,9 +71,11 @@ public class RegexGrammar extends Grammar {
 
     public RegexGrammar() {
 
-        setTargetRule(addRule(Regex, oneOrMore(Expr)).withName("Regex").get());
+        addRule(OneOrMoreExpr, oneOrMore(Expr));
 
-        addRule(Expr, Tokens.LeftBrace, Expr, Tokens.RightBrace).withName("Group");
+        setTargetRule(addRule(Regex, OneOrMoreExpr).withName("Regex").get());
+
+        addRule(Expr, Tokens.LeftBrace, OneOrMoreExpr, Tokens.RightBrace).withName("Group");
 
         addRule(Expr, Sequence).withName("CharSequence");
 
@@ -97,19 +93,6 @@ public class RegexGrammar extends Grammar {
 
         addRule(Expr, Expr, Tokens.Pipe, Expr).withName("Or");
 
-        addRule(Expr, Expr, Tokens.LeftCurlyBrace, Tokens.Number, Tokens.RightCurlyBrace).withName("Repetition");
-
-        addRule(Expr, Expr, Tokens.LeftCurlyBrace, Tokens.Number, Tokens.Comma, Tokens.Number, Tokens.RightCurlyBrace)
-                .withName("RepetitionWithBounds")
-                .withAction(parsingContext -> {
-                    List<AstNode> bounds = parsingContext.getAstNode().getChildrenOfType(Tokens.Number);
-                    int lowerBound = Integer.parseInt(bounds.get(0).asToken().getText());
-                    int upperBound = Integer.parseInt(bounds.get(1).asToken().getText());
-                    if (lowerBound >= upperBound) {
-                        throw new IllegalStateException("Lower bound must be smaller than upper bound");
-                    }
-                });
-
         target(CharacterRange)
                 .def(Tokens.Char, Tokens.ThreePoints, Tokens.Char);
 
@@ -117,6 +100,7 @@ public class RegexGrammar extends Grammar {
                 .def(Tokens.SingleQuotedString);
 
         lexer = Lexer.forLexemes(getTerminals());
+        lexer.setFilteredOut(Lexemes.whitespace());
         lexer.setTokenListener(token -> {
             if (token.getTokenType().equals(Tokens.SingleQuotedString) && token.getText().length() == 3) {
                 return new Token(Tokens.Char, token.getPosition(), token.getText());

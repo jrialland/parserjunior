@@ -79,12 +79,13 @@ public class RegexAutomaton implements Automaton {
         Map<String, Node> nodes = new TreeMap<>();
         Stack<Node> s = new Stack<>();
         s.push(startNode);
+
         while(!s.isEmpty()) {
             Node n = s.pop();
-            nodes.put(Integer.toString(i++), n);
-            for(Transition t : n.getOutgoingTransitions()) {
-                Node target = t.getTarget();
-                if(!nodes.containsValue(target)) {
+            if(!nodes.containsValue(n)) {
+                nodes.put(Integer.toString(i++), n);
+                for (Transition t : n.getOutgoingTransitions()) {
+                    Node target = t.getTarget();
                     s.push(target);
                 }
             }
@@ -99,17 +100,17 @@ public class RegexAutomaton implements Automaton {
         PrintWriter pw = new PrintWriter(sw);
 
         pw.println("digraph " + getClass().getSimpleName() +" {");
-        //pw.println("rankdir=LR;");
-        //pw.println("size=8,5;");
+        pw.println("rankdir=LR;");
+        pw.println("size=\"8,5\";");
         for(Map.Entry<String, Node> entry : nodes.entrySet()) {
             String nodeName = entry.getKey();
             Node node = entry.getValue();
             if(node.isFinalState()) {
-                pw.println(String.format("%s [peripheries=2];", nodeName));
+                pw.println(String.format("%s [ peripheries = 2 ];", nodeName));
             }
             for(Transition t : entry.getValue().getOutgoingTransitions()) {
                 String targetName = rev.get(t.getTarget());
-                pw.println(String.format("%s -> %s [ label = \"%s\" ]; ", nodeName, targetName, t.getCharConstraint().toString()));
+                pw.println(String.format("%s -> %s [ label = \"%s\" ];", nodeName, targetName, t.getCharConstraint().toString()));
             }
         }
 

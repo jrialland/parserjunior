@@ -36,7 +36,7 @@ public class RegexLexemeTest {
 
     @Test
     public void testRange() {
-        RegexLexeme rangeLexeme = new RegexLexeme("'a'...'f'");
+        RegexLexeme rangeLexeme = new RegexLexeme("'a'..'f'");
         List<Token> tokens = Lexer.forLexemes(rangeLexeme).tokenize("a");
         Assert.assertTrue(tokens.size() == 2);
         Assert.assertTrue(tokens.get(0).getTokenType().equals(rangeLexeme));
@@ -44,7 +44,7 @@ public class RegexLexemeTest {
 
     @Test(expected = LexicalError.class)
     public void testRangeFail() {
-        RegexLexeme rangeLexeme = new RegexLexeme("'a'...'f'");
+        RegexLexeme rangeLexeme = new RegexLexeme("'a'..'f'");
         Lexer.forLexemes(rangeLexeme).tokenize("g");
     }
 
@@ -66,7 +66,7 @@ public class RegexLexemeTest {
 
     @Test
     public void testOr3() {
-        RegexLexeme choice = new RegexLexeme("'a'...'z'|'A'...'Z'");
+        RegexLexeme choice = new RegexLexeme("'a'..'z'|'A'..'Z'");
         List<Token> tokens = Lexer.forLexemes(choice).tokenize("X");
         Assert.assertTrue(tokens.size() == 2);
         Assert.assertTrue(tokens.get(0).getTokenType().equals(choice));
@@ -97,6 +97,12 @@ public class RegexLexemeTest {
     }
 
     @Test
+    public void testGroup() {
+        RegexLexeme g = new RegexLexeme("(('a')|('b'))");
+        Lexer.forLexemes(g).tokenize("ab");
+    }
+
+    @Test
     public void testZeroOrMore() {
         RegexLexeme choice = new RegexLexeme("('ta'|'da')*");
         Lexer.forLexemes(choice).tokenize("");
@@ -122,7 +128,7 @@ public class RegexLexemeTest {
     @Test
     @Ignore
     public void testHex() {
-        RegexLexeme hex = new RegexLexeme("'0x'('0'...'9')+");
+        RegexLexeme hex = new RegexLexeme("'0x'(('0'..'9'|'a'..'f'|'A'..'F')+)");
         List<Token> tokens = Lexer.forLexemes(hex).tokenize("0xdeadbeef");
         Assert.assertTrue(tokens.size() == 2);
         Assert.assertTrue(tokens.get(0).getTokenType().equals(hex));
@@ -132,7 +138,7 @@ public class RegexLexemeTest {
     @Ignore
     @Test
     public void testGraph() throws Exception {
-        RegexLexeme rangeLexeme = new RegexLexeme("('a'...'f'|'A'...'F')");
+        RegexLexeme rangeLexeme = new RegexLexeme("(('0'..'9'|'a'..'f'|'A'..'F')+)");
         RegexAutomaton ra = (RegexAutomaton) rangeLexeme.getAutomaton();
         System.out.println(ra.toGraphviz());
         GraphvizViewer viewer = GraphvizViewer.show(ra.toGraphviz());

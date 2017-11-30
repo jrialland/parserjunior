@@ -76,6 +76,10 @@ public class ActionTable implements MarshallingCapable {
         nonTerminals = allSymbols.stream().filter(s -> !s.isTerminal()).collect(Collectors.toList());
         nonTerminals.sort(Comparator.comparing(Symbol::toString));
 
+        if(getLog().isTraceEnabled()) {
+            getLog().trace(String.format("%d terminals, %d non-terminals", terminals.size(), nonTerminals.size()));
+        }
+
     }
 
     private void setAction(int state, Symbol symbol, Action action, boolean allowReplace) {

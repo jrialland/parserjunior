@@ -38,14 +38,28 @@ public class Transition {
         return source;
     }
 
+    public void setSource(Node source) {
+        if(this.source != null) {
+            this.source.getOutgoingTransitions().remove(this);
+        }
+        this.source = source;
+        this.source.getOutgoingTransitions().add(this);
+    }
+
     public Node getTarget() {
         return target;
     }
 
     public void setTarget(Node target) {
-        if(target != null) {
-            target.getIncomingTransitions().remove(this);
+        if(this.target != null) {
+            this.target.getIncomingTransitions().remove(this);
         }
         this.target = target;
+        this.target.getIncomingTransitions().add(this);
+    }
+
+    @Override
+    public String toString() {
+        return charConstraint.toString();
     }
 }

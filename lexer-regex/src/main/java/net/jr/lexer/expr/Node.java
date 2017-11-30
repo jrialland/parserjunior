@@ -20,6 +20,15 @@ public class Node {
         return t;
     }
 
+    public void disconnect() {
+        for(Transition outTransition : outgoingTransitions) {
+            outTransition.getTarget().getIncomingTransitions().remove(outTransition);
+        }
+        for(Transition inTransition : incomingTransitions) {
+            inTransition.getSource().getOutgoingTransitions().remove(inTransition);
+        }
+    }
+
     public Transition addTransition(CharConstraint.Builder builder) {
         return addTransition(builder.build());
     }
