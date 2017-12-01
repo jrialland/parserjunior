@@ -3,6 +3,7 @@ package net.jr.lexer.expr;
 import net.jr.lexer.Lexer;
 import net.jr.lexer.LexicalError;
 import net.jr.lexer.Token;
+import net.jr.lexer.expr.impl.RegexAutomaton;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Ignore;

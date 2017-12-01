@@ -1,5 +1,6 @@
-package net.jr.lexer.expr;
+package net.jr.lexer.expr.impl;
 
+import net.jr.lexer.expr.RegexLexeme;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.ast.annotations.After;
 import net.jr.parser.ast.annotations.Before;

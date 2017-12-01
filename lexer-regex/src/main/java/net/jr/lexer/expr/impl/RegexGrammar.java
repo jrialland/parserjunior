@@ -1,4 +1,4 @@
-package net.jr.lexer.expr;
+package net.jr.lexer.expr.impl;
 
 import net.jr.common.Symbol;
 import net.jr.lexer.Lexeme;

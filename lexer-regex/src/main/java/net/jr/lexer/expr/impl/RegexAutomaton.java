@@ -1,4 +1,4 @@
-package net.jr.lexer.expr;
+package net.jr.lexer.expr.impl;
 
 import net.jr.lexer.Lexeme;
 import net.jr.lexer.impl.Automaton;

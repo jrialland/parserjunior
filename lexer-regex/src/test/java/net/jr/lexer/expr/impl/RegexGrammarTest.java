@@ -1,5 +1,6 @@
-package net.jr.lexer.expr;
+package net.jr.lexer.expr.impl;
 
+import net.jr.lexer.expr.impl.RegexGrammar;
 import net.jr.parser.impl.ActionTable;
 import org.junit.BeforeClass;
 import org.junit.Test;
