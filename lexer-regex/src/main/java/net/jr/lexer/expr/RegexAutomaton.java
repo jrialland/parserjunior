@@ -37,7 +37,11 @@ public class RegexAutomaton implements Automaton {
             }
         }
         activeNodes = newActiveNodes;
-        return activeNodes.isEmpty();
+        boolean dead = activeNodes.isEmpty();
+        if(!dead) {
+            matchLen++;
+        }
+        return dead;
     }
 
     @Override

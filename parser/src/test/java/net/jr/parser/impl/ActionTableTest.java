@@ -131,12 +131,6 @@ public class ActionTableTest {
         for (ItemSet itemSet : itemSets) {
             System.out.println(itemSet);
         }
-
-        //ActionTable.LALR1Builder builder = new ActionTable.LALR1Builder();
-        //Set<ItemSet> itemSets = builder.getAllItemSets(g);
-        //Grammar extended = builder.makeExtendedGrammar(g.getRuleById(0), itemSets);
-        //ExtendedSymbol es = (ExtendedSymbol) extended.getTargetSymbol();
-
     }
 
     @Test
@@ -157,48 +151,12 @@ public class ActionTableTest {
 
     @Test
     public void testCaching() {
-
         ActionTable actionTable = ActionTable.lalr1(grammar);
-
         ActionTableCaching.setEnabled(true);
         ActionTableCaching.get(grammar);
         ActionTable actionTable2 = ActionTableCaching.get(grammar);
-
-        System.out.println(actionTable);
-        System.out.println(actionTable2);
-
-        for (Symbol terminal : grammar.getTerminals()) {
-            for (int state = 0; state < actionTable.getStatesCount(); state++) {
-
-                Action a1 = actionTable.getAction(state, terminal);
-                Action a2 = actionTable2.getAction(state, terminal);
-
-                if (a1 == null) {
-                    Assert.assertNull(a2);
-                } else {
-                    Assert.assertEquals(a1, a2);
-                }
-            }
-        }
-
-        for (Symbol nonTerminal : grammar.getNonTerminals()) {
-            for (int state = 0; state < actionTable.getStatesCount(); state++) {
-
-                Action a1 = actionTable.getAction(state, nonTerminal);
-                Action a2 = actionTable2.getAction(state, nonTerminal);
-
-                if (a1 == null) {
-                    Assert.assertNull(a2);
-                } else {
-                    Assert.assertEquals(a1, a2);
-                }
-            }
-        }
-
         AstNode n1 = new LRParser(grammar, actionTable).parse("x=*x");
-        System.out.println(n1);
-
         AstNode n2 = new LRParser(grammar, actionTable2).parse("x=*x");
-        System.out.println(n2);
+        Assert.assertEquals(n1.repr(), n2.repr());
     }
 }

@@ -5,7 +5,6 @@ import net.jr.lexer.Token;
 import net.jr.parser.Rule;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -20,7 +19,7 @@ public interface AstNode {
 
     default AstNode getFirstChild() {
         List<AstNode> children = getChildren();
-        if(children.isEmpty()) {
+        if (children.isEmpty()) {
             return null;
         }
         return children.get(0);
@@ -28,10 +27,10 @@ public interface AstNode {
 
     default AstNode getLastChild() {
         List<AstNode> children = getChildren();
-        if(children.isEmpty()) {
+        if (children.isEmpty()) {
             return null;
         }
-        return children.get(children.size()-1);
+        return children.get(children.size() - 1);
     }
 
     Token asToken();
@@ -45,19 +44,35 @@ public interface AstNode {
         return opt.isPresent() ? opt.get() : null;
     }
 
-    default String repr() {
-        return String.join(" ", getChildren().stream().map(node -> node.repr()).collect(Collectors.toList()));
+    default AstNode getDescendantOfType(Symbol s) {
+        if (getChildren().isEmpty()) {
+            return null;
+        }
+        AstNode tmp;
+        for (AstNode child : getChildren()) {
+            if ((tmp = child).getSymbol().equals(s)) {
+                return tmp;
+            }
+            if ((tmp = child.getDescendantOfType(s)).getSymbol().equals(s)) {
+                return tmp;
+            }
+        }
+        return null;
     }
 
-    default List<AstNode> find(Symbol s) {
-        if(getSymbol().equals(s)) {
-            return Arrays.asList(this);
-        } else {
-            List<AstNode> list = new ArrayList<>();
-            for(AstNode child : getChildren()) {
-                list.addAll(child.find(s));
+    default List<AstNode> getDescendantsOfType(Symbol s) {
+        List<AstNode> list = new ArrayList<>();
+        AstNode tmp;
+        for (AstNode child : getChildren()) {
+            if ((tmp = child).getSymbol().equals(s)) {
+                list.add(tmp);
             }
-            return list;
+            list.addAll(child.getDescendantsOfType(s));
         }
+        return list;
+    }
+
+    default String repr() {
+        return String.join(" ", getChildren().stream().map(node -> node.repr()).collect(Collectors.toList()));
     }
 }

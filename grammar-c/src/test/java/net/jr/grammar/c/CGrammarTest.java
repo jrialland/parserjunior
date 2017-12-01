@@ -1,12 +1,12 @@
 package net.jr.grammar.c;
 
 
-import net.jr.lexer.expr.LexicalError;
+import net.jr.lexer.LexicalError;
 import net.jr.parser.ParseError;
 import net.jr.parser.Parser;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.ast.VisitorHelper;
-import net.jr.parser.ast.annotations.Target;
+import net.jr.parser.ast.annotations.After;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -52,7 +52,7 @@ public class CGrammarTest {
         AtomicBoolean called = new AtomicBoolean(false);
         VisitorHelper.visit(root, new Object() {
 
-            @Target("FunctionDefinition")
+            @After("FunctionDefinition")
             public void visitFunctionDef(AstNode node) {
                 String methodName = node.getChildOfType(CGrammar.Declarator).getChildOfType(CGrammar.DirectDeclarator).getChildren().get(0).asToken().getText();
                 Assert.assertEquals("recursivefactorial", methodName);

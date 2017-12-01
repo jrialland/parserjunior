@@ -1,7 +1,8 @@
 package net.jr.lexer.expr;
 
 import net.jr.parser.ast.AstNode;
-import net.jr.parser.ast.annotations.Target;
+import net.jr.parser.ast.annotations.After;
+import net.jr.parser.ast.annotations.Before;
 
 import java.util.*;
 
@@ -30,6 +31,8 @@ public class RegexVisitor {
     }
 
     private LinkedList<Context> stack = new LinkedList<>();
+
+    private LinkedList<Integer> stackSize = new LinkedList<>();
 
     private RegexLexeme regexLexeme;
 
@@ -60,20 +63,31 @@ public class RegexVisitor {
         return list;
     }
 
-    @Target("Regex")
+    @Before("Regex")
+    public void beforeRegex(AstNode node) {
+        stackSize.push(0);
+    }
+
+    @After("Regex")
     @SuppressWarnings("unused")
     public void visitRegex(AstNode node) {
         visitGroup(node);
     }
 
-    @Target("Group")
+    @Before("Group")
+    public void beforeGroup(AstNode node) {
+        stackSize.push(stack.size());
+    }
+
+    @After("Group")
     @SuppressWarnings("unused")
     public void visitGroup(AstNode node) {
-        while (stack.size() > 1) {
+
+        int items = stack.size() - stackSize.pop();
+
+        while (items > 1) {
             Context next = stack.pop();
             Context first = stack.pop();
-
-            System.out.println(next.end.getOutgoingTransitions());
 
             Node mergeNode = new Node();
             List<Transition> transitions;
@@ -95,8 +109,7 @@ public class RegexVisitor {
             transitions.forEach(t -> t.setSource(mergeNode));
 
             stack.push(new Context(first.getStart(), next.getEnd()));
-
-            System.out.println(next.end.getOutgoingTransitions());
+            items--;
         }
     }
 
@@ -105,7 +118,7 @@ public class RegexVisitor {
      *
      * @param node
      */
-    @Target("CharSequence")
+    @After("CharSequence")
     @SuppressWarnings("unused")
     public void visitCharSequence(AstNode node) {
         String sequence = node.asToken().getText();
@@ -128,7 +141,7 @@ public class RegexVisitor {
      *
      * @param node
      */
-    @Target("Range")
+    @After("Range")
     @SuppressWarnings("unused")
     public void visitRange(AstNode node) {
         node = node.getFirstChild();
@@ -149,7 +162,7 @@ public class RegexVisitor {
      *
      * @param node
      */
-    @Target("Char")
+    @After("Char")
     @SuppressWarnings("unused")
     public void visitChar(AstNode node) {
         Character c = getChars(node.asToken().getText()).get(0);
@@ -163,7 +176,7 @@ public class RegexVisitor {
     /**
      * The '.' character
      */
-    @Target("AnyChar")
+    @After("AnyChar")
     @SuppressWarnings("unused")
     public void visitAnychar(AstNode node) {
         Node start = new Node();
@@ -173,25 +186,26 @@ public class RegexVisitor {
         stack.push(new Context(start, end));
     }
 
-    @Target("Optional")
+    @After("Optional")
     @SuppressWarnings("unused")
     public void visitOptional(AstNode node) {
         Context context = stack.peek();
         context.start.setFinalState(true);
     }
 
-    @Target("ZeroOrMore")
+    @After("ZeroOrMore")
     @SuppressWarnings("unused")
     public void visitZeroOrMore(AstNode node) {
         Context context = stack.peek();
         context.start.setFinalState(true);//having nothing is ok
-        for (Transition t : context.end.getIncomingTransitions()) {
+        List<Transition> list = new ArrayList<>(context.end.getIncomingTransitions());
+        for (Transition t : list) {
             t.setTarget(context.start);
         }
         context.end = context.start;
     }
 
-    @Target("OneOrMore")
+    @After("OneOrMore")
     @SuppressWarnings("unused")
     public void visitOneOrMore(AstNode node) {
         Context context = stack.peek();
@@ -206,7 +220,7 @@ public class RegexVisitor {
         context.end = n2;
     }
 
-    @Target("Or")
+    @After("Or")
     @SuppressWarnings("unused")
     public void visitOr(AstNode node) {
         Context right = stack.pop();

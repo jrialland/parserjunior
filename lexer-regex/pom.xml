@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>parserjunior-lexer-regex</artifactId>
-    <name>ParserJunior - Regular Expressions support</name>
+    <name>ParserJunior - Regular expressions support</name>
     <packaging>jar</packaging>
 
     <dependencies>

@@ -4,7 +4,7 @@ import net.jr.common.Symbol;
 import net.jr.lexer.Lexeme;
 import net.jr.lexer.Lexemes;
 import net.jr.parser.ast.AstNode;
-import net.jr.parser.ast.annotations.Target;
+import net.jr.parser.ast.annotations.After;
 import net.jr.parser.ast.VisitorHelper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -63,7 +63,7 @@ public class IfElseTest {
         AstNode node = parser.parse("if(E) S1; if (E) S2; else S3;");
         VisitorHelper.visit(node, new Object() {
 
-            @Target("SelectionStatement")
+            @After("SelectionStatement")
             public void selectionStmt(AstNode node) {
                 switch (counter[0]) {
                     case 0:

@@ -29,7 +29,7 @@
     <!--<publishDate position=.. format=.. />-->
     <!--<version position=.. />-->
     <!--<poweredBy>-->
-    <!--<logo name=.. href=.. img=.. position=.. alt=.. border=.. width=.. height=.. target=.. title=.. />-->
+    <!--<logo name=.. href=.. img=.. position=.. alt=.. border=.. width=.. height=.. after=.. title=.. />-->
     <!--</poweredBy>-->
 
     <!--<skin>-->
@@ -42,10 +42,10 @@
         <head/>
         <!--<links>-->
 
-        <!--<item name=.. href=.. img=.. position=.. alt=.. border=.. width=.. height=.. target=.. title=.. />-->
+        <!--<item name=.. href=.. img=.. position=.. alt=.. border=.. width=.. height=.. after=.. title=.. />-->
         <!--</links>-->
         <!--<breadcrumbs>-->
-        <!--<item name=.. href=.. img=.. position=.. alt=.. border=.. width=.. height=.. target=.. title=.. />-->
+        <!--<item name=.. href=.. img=.. position=.. alt=.. border=.. width=.. height=.. after=.. title=.. />-->
         <!--</breadcrumbs>-->
         <menu name="Getting started" inherit="top">
             <item name="Download" href="download.html" title="Click here to download jFastCGI"/>
@@ -55,7 +55,7 @@
             <item name="Licenses" href="license.html"/>
         </menu>
         <!--<menu name=.. inherit=.. inheritAsRef=.. ref=.. img=.. alt=.. position=.. border=.. width=.. height=.. title=.. >-->
-        <!--<item collapse=.. ref=.. name=.. href=.. img=.. position=.. alt=.. border=.. width=.. height=.. target=.. title=.. >-->
+        <!--<item collapse=.. ref=.. name=.. href=.. img=.. position=.. alt=.. border=.. width=.. height=.. after=.. title=.. >-->
         <!--<description/>-->
         <!--<item>...recursion...<item>-->
         <!--</item>-->

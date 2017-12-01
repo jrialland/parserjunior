@@ -3,9 +3,10 @@ package net.jr.parser.ast;
 import net.jr.common.Symbol;
 import net.jr.parser.Forward;
 import net.jr.parser.Rule;
+import net.jr.parser.ast.annotations.After;
 import net.jr.parser.ast.annotations.AfterEachNode;
+import net.jr.parser.ast.annotations.Before;
 import net.jr.parser.ast.annotations.BeforeEachNode;
-import net.jr.parser.ast.annotations.Target;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,9 +57,10 @@ public class VisitorHelper {
     }
 
     private static class Mapping {
-        Map<String, List<Consumer<AstNode>>> map = new HashMap<>();
-        List<Consumer<AstNode>> befores = new ArrayList<>();
-        List<Consumer<AstNode>> afters = new ArrayList<>();
+        Map<String, List<Consumer<AstNode>>> mapBefore = new HashMap<>();
+        Map<String, List<Consumer<AstNode>>> mapAfter = new HashMap<>();
+        List<Consumer<AstNode>> beforeEachNode = new ArrayList<>();
+        List<Consumer<AstNode>> afterEachNode = new ArrayList<>();
     }
 
     private static Mapping createMapping(Object visitor) {
@@ -68,16 +70,22 @@ public class VisitorHelper {
         for (Method method : visitor.getClass().getMethods()) {
 
             if (method.getAnnotation(BeforeEachNode.class) != null) {
-                mapping.befores.add(makeConsumer(method, visitor));
+                mapping.beforeEachNode.add(makeConsumer(method, visitor));
             }
 
             if (method.getAnnotation(AfterEachNode.class) != null) {
-                mapping.afters.add(makeConsumer(method, visitor));
+                mapping.afterEachNode.add(makeConsumer(method, visitor));
             }
 
-            Target target = method.getAnnotation(Target.class);
-            if (target != null) {
-                List<Consumer<AstNode>> consumers = mapping.map.computeIfAbsent(target.value(), s -> new ArrayList<>());
+            Before before = method.getAnnotation(Before.class);
+            if (before != null) {
+                List<Consumer<AstNode>> consumers = mapping.mapBefore.computeIfAbsent(before.value(), s -> new ArrayList<>());
+                consumers.add(makeConsumer(method, visitor));
+            }
+
+            After after = method.getAnnotation(After.class);
+            if (after != null) {
+                List<Consumer<AstNode>> consumers = mapping.mapAfter.computeIfAbsent(after.value(), s -> new ArrayList<>());
                 consumers.add(makeConsumer(method, visitor));
             }
         }
@@ -85,34 +93,47 @@ public class VisitorHelper {
         return mapping;
     }
 
+    private static void _trace(AstNode node, String name, String phase) {
+        if (getLog().isTraceEnabled()) {
+            String nodeToString = node.toString();
+            if (nodeToString.equals(name)) {
+                getLog().trace(phase + " " + nodeToString);
+            } else {
+                getLog().trace(String.format("%s %s \t %s", phase, name, node.toString()));
+            }
+        }
+    }
+
     private static void visitWithMapping(AstNode node, Mapping mapping) {
 
+        String name = getName(node);
+
+        _trace(node, name, "Before");
+
+        //run 'beforeEachNode' consumers
+        mapping.beforeEachNode.forEach(c -> c.accept(node));
+
+        //run @@Before consumers for this symbol name
+        List<Consumer<AstNode>> before = mapping.mapBefore.get(name);
+        if (before != null) {
+            before.forEach(c -> c.accept(node));
+        }
+
+        //visit children
         for (AstNode child : node.getChildren()) {
             visitWithMapping(child, mapping);
         }
 
-        String name = getName(node);
+        _trace(node, name, "After");
 
-        if(getLog().isDebugEnabled()) {
-            String nodeToString = node.toString();
-            if(nodeToString.equals(name)) {
-                getLog().debug(nodeToString);
-            } else {
-                getLog().debug(String.format("%s \t %s" ,name, node.toString()));
-            }
-        }
-
-        //run 'beforeEachNode' methods
-        mapping.befores.forEach(c -> c.accept(node));
-
-        //run the consumers for this symbol name
-        List<Consumer<AstNode>> set = mapping.map.get(name);
+        //run @After consumers for this symbol name
+        List<Consumer<AstNode>> set = mapping.mapAfter.get(name);
         if (set != null) {
             set.forEach(c -> c.accept(node));
         }
 
-        // run 'afterEachNode' methods
-        mapping.afters.forEach(c -> c.accept(node));
+        // run 'afterEachNode' consumers
+        mapping.afterEachNode.forEach(c -> c.accept(node));
     }
 
     public static void visit(AstNode rootNode, Object visitor) {

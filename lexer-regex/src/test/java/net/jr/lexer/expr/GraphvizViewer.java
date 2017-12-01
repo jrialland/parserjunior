@@ -17,6 +17,8 @@ import java.io.OutputStream;
 
 public class GraphvizViewer extends JFrame implements MouseWheelListener, KeyListener {
 
+    private static final long serialVersionUID = 98654312L;
+
     private JPanel jPanel;
 
     private JScrollPane jScrollPane;
@@ -34,6 +36,9 @@ public class GraphvizViewer extends JFrame implements MouseWheelListener, KeyLis
         setSize(400, 300);
         setLayout(new BorderLayout());
         jPanel = new JPanel() {
+
+            private static final long serialVersionUID = 1329844114L;
+
             @Override
             public void paint(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g;

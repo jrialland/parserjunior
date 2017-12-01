@@ -75,7 +75,7 @@ public class RegexLexemeTest {
     @Test(expected = LexicalError.class)
     public void testOrFail() {
         RegexLexeme choice = new RegexLexeme("'daddy'|'mommy'");
-         Lexer.forLexemes(choice).tokenize("B");
+        Lexer.forLexemes(choice).tokenize("B");
     }
 
     @Test
@@ -97,9 +97,20 @@ public class RegexLexemeTest {
     }
 
     @Test
+    public void testGroup1() {
+        RegexLexeme g = new RegexLexeme("('a''b''c''d')");
+        Lexer.forLexemes(g).tokenize("abcd");
+    }
+
+    @Test
     public void testGroup() {
         RegexLexeme g = new RegexLexeme("(('a')|('b'))");
-        Lexer.forLexemes(g).tokenize("ab");
+        List<Token> tokens = Lexer.forLexemes(g).tokenize("ab");
+        Assert.assertEquals(3, tokens.size());
+        Assert.assertEquals(g, tokens.get(0).getTokenType());
+        Assert.assertEquals("a", tokens.get(0).getText());
+        Assert.assertEquals(g, tokens.get(1).getTokenType());
+        Assert.assertEquals("b", tokens.get(1).getText());
     }
 
     @Test
@@ -126,7 +137,6 @@ public class RegexLexemeTest {
     }
 
     @Test
-    @Ignore
     public void testHex() {
         RegexLexeme hex = new RegexLexeme("'0x'(('0'..'9'|'a'..'f'|'A'..'F')+)");
         List<Token> tokens = Lexer.forLexemes(hex).tokenize("0xdeadbeef");
@@ -138,7 +148,7 @@ public class RegexLexemeTest {
     @Ignore
     @Test
     public void testGraph() throws Exception {
-        RegexLexeme rangeLexeme = new RegexLexeme("(('0'..'9'|'a'..'f'|'A'..'F')+)");
+        RegexLexeme rangeLexeme = new RegexLexeme("'0x'(('0'..'9'|'a'..'f'|'A'..'F')+)");
         RegexAutomaton ra = (RegexAutomaton) rangeLexeme.getAutomaton();
         System.out.println(ra.toGraphviz());
         GraphvizViewer viewer = GraphvizViewer.show(ra.toGraphviz());

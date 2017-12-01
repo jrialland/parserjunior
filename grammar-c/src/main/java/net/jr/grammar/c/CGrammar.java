@@ -1,7 +1,7 @@
 package net.jr.grammar.c;
 
 import net.jr.common.Symbol;
-import net.jr.lexer.expr.*;
+import net.jr.lexer.*;
 import net.jr.parser.Forward;
 import net.jr.parser.Grammar;
 import net.jr.parser.Parser;
@@ -269,7 +269,7 @@ public class CGrammar extends Grammar {
                 AstNode initDeclaratorList = astNode.getChildOfType(InitDeclaratorList);
 
                 //for each declarator
-                for (AstNode initDeclarator : initDeclaratorList.find(InitDeclarator)) {
+                for (AstNode initDeclarator : initDeclaratorList.getDescendantsOfType(InitDeclarator)) {
                     AstNode declarator = initDeclarator.getChildOfType(Declarator);
 
                     //find its name

@@ -25,11 +25,11 @@ public class RegexGrammarTest {
     @Test
     public void testRange() {
         RegexGrammar g = new RegexGrammar();
-        g.createParser().parse("'a'...'z'");
+        g.createParser().parse("'a'..'z'");
     }
 
     @Test
-    public void testAnyChar(){
+    public void testAnyChar() {
         new RegexGrammar().createParser().parse(".");
     }
 
@@ -52,20 +52,4 @@ public class RegexGrammarTest {
     public void testOr() {
         new RegexGrammar().createParser().parse("'a'|'b'");
     }
-
-    @Test
-    public void testRepetition() {
-        new RegexGrammar().createParser().parse("'a'{2}");
-    }
-
-    @Test
-    public void testRepetitionWithBounds() {
-        new RegexGrammar().createParser().parse("'a'{3,4}");
-    }
-
-    @Test
-    public void testGroup() {
-        new RegexGrammar().createParser().parse("('a'{3,4}|'b')|('c')");
-    }
-
 }
