@@ -20,4 +20,16 @@ public class IteratorsTest {
         Assert.assertEquals("C", pbit.next());
         Assert.assertFalse(pbit.hasNext());
     }
+
+    @Test
+    public void testNull() {
+        Assert.assertEquals(null, Iterators.pushbackIterator(null));
+    }
+
+    @Test
+    public void testEq() {
+        List<String> list = new ArrayList<>(Arrays.asList("A", "C"));
+        PushbackIterator<String> pbit = Iterators.pushbackIterator(list.iterator());
+        Assert.assertEquals(pbit, Iterators.pushbackIterator(pbit));
+    }
 }
