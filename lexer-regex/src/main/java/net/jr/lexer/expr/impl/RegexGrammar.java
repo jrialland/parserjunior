@@ -10,9 +10,6 @@ import net.jr.lexer.impl.QuotedString;
 import net.jr.parser.Forward;
 import net.jr.parser.Grammar;
 import net.jr.parser.Parser;
-import net.jr.parser.ast.AstNode;
-
-import java.util.List;
 
 /**
  * Character sequence must be enclosed in '' quotes. For example, this lexer rule matches salutation 'Hello': <code>'hello'</code>

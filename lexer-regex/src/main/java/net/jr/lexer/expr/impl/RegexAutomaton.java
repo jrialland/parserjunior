@@ -38,7 +38,7 @@ public class RegexAutomaton implements Automaton {
         }
         activeNodes = newActiveNodes;
         boolean dead = activeNodes.isEmpty();
-        if(!dead) {
+        if (!dead) {
             matchLen++;
         }
         return dead;
@@ -71,12 +71,11 @@ public class RegexAutomaton implements Automaton {
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
+    public Object clone() {
         RegexAutomaton regexAutomaton = new RegexAutomaton(startNode);
         regexAutomaton.setTokenType(tokenType);
         return regexAutomaton;
     }
-
 
     public String toGraphviz() {
         int i = 0;
@@ -84,9 +83,9 @@ public class RegexAutomaton implements Automaton {
         Stack<Node> s = new Stack<>();
         s.push(startNode);
 
-        while(!s.isEmpty()) {
+        while (!s.isEmpty()) {
             Node n = s.pop();
-            if(!nodes.containsValue(n)) {
+            if (!nodes.containsValue(n)) {
                 nodes.put(Integer.toString(i++), n);
                 for (Transition t : n.getOutgoingTransitions()) {
                     Node target = t.getTarget();
@@ -96,23 +95,23 @@ public class RegexAutomaton implements Automaton {
         }
 
         Map<Node, String> rev = new HashMap<>();
-        for(Map.Entry<String, Node> entry : nodes.entrySet()) {
+        for (Map.Entry<String, Node> entry : nodes.entrySet()) {
             rev.put(entry.getValue(), entry.getKey());
         }
 
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
 
-        pw.println("digraph " + getClass().getSimpleName() +" {");
+        pw.println("digraph " + getClass().getSimpleName() + " {");
         pw.println("rankdir=LR;");
         pw.println("size=\"8,5\";");
-        for(Map.Entry<String, Node> entry : nodes.entrySet()) {
+        for (Map.Entry<String, Node> entry : nodes.entrySet()) {
             String nodeName = entry.getKey();
             Node node = entry.getValue();
-            if(node.isFinalState()) {
+            if (node.isFinalState()) {
                 pw.println(String.format("%s [ peripheries = 2 ];", nodeName));
             }
-            for(Transition t : entry.getValue().getOutgoingTransitions()) {
+            for (Transition t : entry.getValue().getOutgoingTransitions()) {
                 String targetName = rev.get(t.getTarget());
                 pw.println(String.format("%s -> %s [ label = \"%s\" ];", nodeName, targetName, t.getCharConstraint().toString()));
             }

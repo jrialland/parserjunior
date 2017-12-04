@@ -15,5 +15,4 @@ public interface Automaton extends Cloneable {
     Lexeme getTokenType();
 
     Object clone() throws CloneNotSupportedException;
-
 }
