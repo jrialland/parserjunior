@@ -39,7 +39,8 @@ public class FourOpsTest {
                     .withName("additiveExpression");
 
             //an expression can also be a multiplication or a division
-            addRule(Expr, Expr, oneOf(Mult, Div), Expr)
+            target(Expr)
+                    .def(Expr, oneOf(Mult, Div), Expr)
                     .withAssociativity(Associativity.Left)
                     .withName("multiplicativeExpression");
 
