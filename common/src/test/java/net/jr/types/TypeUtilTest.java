@@ -25,10 +25,31 @@ public class TypeUtilTest {
     }
 
     @Test
+    public void testArray() {
+        int[] array = new int[]{};
+        String typename = TypeUtil.getBytecodeTypename(array.getClass());
+        Assert.assertEquals("[I", typename);
+        Class<?> clazz = TypeUtil.forBytecodeTypename("[I");
+        Assert.assertEquals(array.getClass(), clazz);
+    }
+
+    @Test
+    public void testNull() {
+
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegal() {
+        TypeUtil.forBytecodeTypename("illegal!");
+
+    }
+
+    @Test
     public void testForBytecodeTypename() {
         String name = TypeUtil.getBytecodeTypename(TypeUtilTest.class);
         Assert.assertEquals(TypeUtilTest.class, TypeUtil.forBytecodeTypename(name));
-        Assert.assertEquals(Integer.class, TypeUtil.forBytecodeTypename("I"));
+        Assert.assertEquals(Integer.TYPE, TypeUtil.forBytecodeTypename("I"));
+        Assert.assertEquals(Integer.class, TypeUtil.forBytecodeTypename("Ljava/lang/Integer;"));
 
     }
 

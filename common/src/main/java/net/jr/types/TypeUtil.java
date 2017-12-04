@@ -10,7 +10,7 @@ public class TypeUtil {
 
     private static final Map<Class<?>, Character> boxingTypes = new HashMap<>();
 
-    private static final Map<Character, Class<?>> reverseBoxingTypes = new HashMap<>();
+    private static final Map<Character, Class<?>> reverseTypes = new HashMap<>();
 
     public static final char BYTE = 'B';
 
@@ -36,36 +36,43 @@ public class TypeUtil {
         //B = byte
         basicTypes.put(Byte.TYPE, BYTE);
         boxingTypes.put(Byte.class, BYTE);
+        reverseTypes.put(BYTE, Byte.TYPE);
 
         //C = char
         basicTypes.put(Character.TYPE, CHAR);
         boxingTypes.put(Character.class, CHAR);
+        reverseTypes.put(CHAR, Character.TYPE);
 
         //D = double
         basicTypes.put(Double.TYPE, DOUBLE);
         boxingTypes.put(Double.class, DOUBLE);
+        reverseTypes.put(DOUBLE, Double.TYPE);
 
         //F = float
         basicTypes.put(Float.TYPE, FLOAT);
         boxingTypes.put(Float.class, FLOAT);
+        reverseTypes.put(FLOAT, Float.TYPE);
 
         //I = int
         basicTypes.put(Integer.TYPE, INT);
         boxingTypes.put(Integer.class, INT);
+        reverseTypes.put(INT, Integer.TYPE);
 
         //J = long
         basicTypes.put(Long.TYPE, LONG);
         boxingTypes.put(Long.class, LONG);
+        reverseTypes.put(LONG, Long.TYPE);
 
         //S = short
         basicTypes.put(Short.TYPE, SHORT);
         boxingTypes.put(Short.class, SHORT);
+        reverseTypes.put(SHORT, Short.TYPE);
 
         //Z = boolean
         basicTypes.put(Boolean.TYPE, BOOLEAN);
         boxingTypes.put(Boolean.class, BOOLEAN);
+        reverseTypes.put(BOOLEAN, Boolean.TYPE);
 
-        boxingTypes.forEach((clazz, character) -> reverseBoxingTypes.put(character, clazz));
     }
 
     public static String getBytecodeTypename(Class<?> clazz) {
@@ -91,15 +98,14 @@ public class TypeUtil {
             throw new IllegalArgumentException("Empty type name");
         }
 
+        if(typename.startsWith("[")) {
+            Class<?> componentType = forBytecodeTypename(typename.substring(1));
+            return Array.newInstance(componentType, 0).getClass();
+        }
+
         if (typename.length() == 1) {
-
             char c = typename.charAt(0);
-            if(c == '[') {
-                Class<?> componentType = forBytecodeTypename(typename.substring(1));
-                return Array.newInstance(componentType, 0).getClass();
-            }
-
-            clazz = reverseBoxingTypes.get(c);
+            clazz = reverseTypes.get(c);
         }
 
         if (typename.startsWith("L") && typename.endsWith(";")) {

@@ -149,7 +149,7 @@ public class RegexLexemeTest {
     @Ignore
     @Test
     public void testGraph() throws Exception {
-        RegexLexeme rangeLexeme = new RegexLexeme("'0x'(('0'..'9'|'a'..'f'|'A'..'F')+)");
+        RegexLexeme rangeLexeme = new RegexLexeme("'john''ny'?");
         RegexAutomaton ra = (RegexAutomaton) rangeLexeme.getAutomaton();
         System.out.println(ra.toGraphviz());
         GraphvizViewer viewer = GraphvizViewer.show(ra.toGraphviz());

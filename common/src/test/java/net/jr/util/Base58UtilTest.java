@@ -20,4 +20,21 @@ public class Base58UtilTest {
         Assert.assertTrue(Arrays.equals(data, decoded));
     }
 
+    @Test
+    public void testEmpty() {
+        Assert.assertEquals("", Base58Util.encode(new byte[]{}));
+        byte[] empty = Base58Util.decode("");
+        Assert.assertEquals(0, empty.length);
+    }
+
+    @Test
+    public void testLeadingZeros() {
+        String encoded;
+        Assert.assertEquals("111D", encoded = Base58Util.encode(new byte[]{0, 0, 0, 12}));
+        byte[] decoded = Base58Util.decode(encoded);
+        Assert.assertEquals(0, decoded[0]);
+        Assert.assertEquals(0, decoded[1]);
+        Assert.assertEquals(0, decoded[2]);
+        Assert.assertEquals(12, decoded[3]);
+    }
 }
