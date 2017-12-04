@@ -29,10 +29,12 @@ public class FourOpsTest {
         public FourOps() {
 
             //an expression can be just a number
-            addRule(Expr, Number).withName("number");
+            target(Expr)
+                    .def(Number).withName("number");
 
             //an expression can be an addition, or a substraction
-            addRule(Expr, Expr, oneOf(Plus, Minus), Expr)
+            target(Expr)
+                    .def(Expr, oneOf(Plus, Minus), Expr)
                     .withAssociativity(Associativity.Left)
                     .withName("additiveExpression");
 
