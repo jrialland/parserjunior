@@ -20,7 +20,7 @@ public class PreMergeReduction {
     }
 
     public boolean matches(PreMergeReduction o) {
-        boolean sameFinalState =  extendedRule.getFinalState() == o.extendedRule.getFinalState();
+        boolean sameFinalState = extendedRule.getFinalState() == o.extendedRule.getFinalState();
         return sameFinalState && extendedRule.isExtensionOf(o.extendedRule.getBaseRule());
     }
 

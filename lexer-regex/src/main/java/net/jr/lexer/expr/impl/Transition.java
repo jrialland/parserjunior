@@ -23,12 +23,6 @@ public class Transition {
         return charConstraint;
     }
 
-    public Node toNewNode() {
-        Node node = new Node();
-        toNode(node);
-        return node;
-    }
-
     public void toNode(Node n) {
         this.target = n;
         n.getIncomingTransitions().add(this);
@@ -39,7 +33,7 @@ public class Transition {
     }
 
     public void setSource(Node source) {
-        if(this.source != null) {
+        if (this.source != null) {
             this.source.getOutgoingTransitions().remove(this);
         }
         this.source = source;
@@ -51,7 +45,7 @@ public class Transition {
     }
 
     public void setTarget(Node target) {
-        if(this.target != null) {
+        if (this.target != null) {
             this.target.getIncomingTransitions().remove(this);
         }
         this.target = target;

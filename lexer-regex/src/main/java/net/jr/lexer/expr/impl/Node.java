@@ -21,10 +21,10 @@ public class Node {
     }
 
     public void disconnect() {
-        for(Transition outTransition : outgoingTransitions) {
+        for (Transition outTransition : outgoingTransitions) {
             outTransition.getTarget().getIncomingTransitions().remove(outTransition);
         }
-        for(Transition inTransition : incomingTransitions) {
+        for (Transition inTransition : incomingTransitions) {
             inTransition.getSource().getOutgoingTransitions().remove(inTransition);
         }
     }

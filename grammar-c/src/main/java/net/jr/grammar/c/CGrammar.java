@@ -2,11 +2,14 @@ package net.jr.grammar.c;
 
 import net.jr.common.Symbol;
 import net.jr.lexer.*;
+import net.jr.parser.Associativity;
 import net.jr.parser.Forward;
 import net.jr.parser.Grammar;
 import net.jr.parser.Parser;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.impl.LRParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -15,6 +18,12 @@ import java.util.TreeSet;
  * ANSI C Grammar
  */
 public class CGrammar extends Grammar {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CGrammar.class);
+
+    private static final Logger getLog() {
+        return LOGGER;
+    }
 
     public static final class Tokens {
         public static Lexeme Volatile = Lexemes.literal("volatile");
@@ -42,7 +51,7 @@ public class CGrammar extends Grammar {
         public static Lexeme Dot = Lexemes.singleChar('.');
         public static Lexeme Register = Lexemes.literal("register");
         public static Lexeme Enum = Lexemes.literal("enum");
-        public static Lexeme Right_assign = Lexemes.literal(">>=");
+        public static Lexeme ShiftRight_assign = Lexemes.literal(">>=");
         public static Lexeme Mul = Lexemes.singleChar('*');
         public static Lexeme Eq_op = Lexemes.literal("==");
         public static Lexeme And = Lexemes.singleChar('&');
@@ -55,7 +64,7 @@ public class CGrammar extends Grammar {
         public static Lexeme RightCurlyBrace = Lexemes.singleChar('}');
         public static Lexeme DotComma = Lexemes.singleChar(';');
         public static Lexeme Ellipsis = Lexemes.literal("...");
-        public static Lexeme Ptr_op = Lexemes.singleChar('*');
+        public static Lexeme Ptr_op = Lexemes.literal("->");
         public static Lexeme Switch = Lexemes.literal("switch");
         public static Lexeme Void = Lexemes.literal("void");
         public static Lexeme Struct = Lexemes.literal("struct");
@@ -92,7 +101,7 @@ public class CGrammar extends Grammar {
         public static Lexeme LeftCurlyBrace = Lexemes.singleChar('{');
         public static Lexeme Mod_assign = Lexemes.literal("%=");
         public static Lexeme String_literal = Lexemes.cString();
-        public static Lexeme Left_assign = Lexemes.literal("<<=");
+        public static Lexeme ShiftLeft_assign = Lexemes.literal("<<=");
         public static Lexeme While = Lexemes.literal("while");
         public static Lexeme Union = Lexemes.literal("union");
         public static Lexeme Inc_op = Lexemes.literal("++");
@@ -166,6 +175,10 @@ public class CGrammar extends Grammar {
     public static final Forward CompilationUnit = new Forward("CompilationUnit");
     public static final Forward Constant = new Forward("Constant");
 
+    public static final Forward ForDeclaration = new Forward("ForDeclaration");
+    public static final Forward ForCondition = new Forward("ForCondition");
+    public static final Forward ForExpression = new Forward("ForExpression");
+
     private Lexer lexer;
 
     CGrammar() {
@@ -180,6 +193,7 @@ public class CGrammar extends Grammar {
         addRule(Constant, Lexemes.cOctal());
         addRule(Constant, Lexemes.cHexNumber());
         addRule(Constant, Lexemes.cFloatingPoint());
+        addRule(Constant, Lexemes.cCharacter());
 
         addRule(PrimaryExpression, Tokens.Identifier);
         addRule(PrimaryExpression, Constant);
@@ -247,8 +261,8 @@ public class CGrammar extends Grammar {
         addRule(AssignmentOperator, Tokens.Mod_assign);
         addRule(AssignmentOperator, Tokens.Add_assign);
         addRule(AssignmentOperator, Tokens.Sub_assign);
-        addRule(AssignmentOperator, Tokens.Left_assign);
-        addRule(AssignmentOperator, Tokens.Right_assign);
+        addRule(AssignmentOperator, Tokens.ShiftLeft_assign);
+        addRule(AssignmentOperator, Tokens.ShiftRight_assign);
         addRule(AssignmentOperator, Tokens.And_assign);
         addRule(AssignmentOperator, Tokens.Xor_assign);
         addRule(AssignmentOperator, Tokens.Or_assign);
@@ -278,7 +292,7 @@ public class CGrammar extends Grammar {
                     //update lexer context
                     LexerStream lexerStream = parsingContext.getLexerStream();
                     LexerHack lh = (LexerHack) lexerStream.getLexer().getTokenListener();
-                    lh.addTypeName(lexerStream, name);
+                    lh.addTypeName(name);
                 }
             }
 
@@ -415,8 +429,15 @@ public class CGrammar extends Grammar {
         addRule(SelectionStatement, Tokens.Switch, Tokens.LeftBrace, Expression, Tokens.RightBrace, Statement);
         addRule(IterationStatement, Tokens.While, Tokens.LeftBrace, Expression, Tokens.RightBrace, Statement);
         addRule(IterationStatement, Tokens.Do, Statement, Tokens.While, Tokens.LeftBrace, Expression, Tokens.RightBrace, Tokens.DotComma);
-        addRule(IterationStatement, Tokens.For, Tokens.LeftBrace, ExpressionStatement, ExpressionStatement, Tokens.RightBrace, Statement);
-        addRule(IterationStatement, Tokens.For, Tokens.LeftBrace, ExpressionStatement, ExpressionStatement, Expression, Tokens.RightBrace, Statement);
+        addRule(IterationStatement, Tokens.For, Tokens.LeftBrace, ForCondition, Tokens.RightBrace, Statement);
+
+        addRule(ForCondition, ForDeclaration, Tokens.DotComma, ForExpression, Tokens.DotComma, ForExpression);
+        addRule(ForCondition, Expression, Tokens.DotComma, ForExpression, Tokens.DotComma, ForExpression);
+        addRule(ForExpression, list(true, Tokens.Comma, AssignmentExpression));
+
+        addRule(ForDeclaration, DeclarationSpecifiers, InitDeclaratorList);
+        addRule(ForDeclaration, DeclarationSpecifiers);
+
         addRule(JumpStatement, Tokens.Goto, Tokens.Identifier, Tokens.DotComma);
         addRule(JumpStatement, Tokens.Continue, Tokens.DotComma);
         addRule(JumpStatement, Tokens.Break, Tokens.DotComma);
@@ -432,7 +453,6 @@ public class CGrammar extends Grammar {
         addRule(FunctionDefinition, Declarator, DeclarationList, CompoundStatement);
         addRule(FunctionDefinition, Declarator, CompoundStatement);
 
-
         lexer = Lexer.forLexemes(getTerminals());
         lexer.setFilteredOut(Lexemes.multilineComment("/*", "*/"));
         lexer.setFilteredOut(Lexemes.lineComment("//"));
@@ -443,11 +463,21 @@ public class CGrammar extends Grammar {
     }
 
     protected String getDeclaratorName(AstNode declarator) {
-        Token t = declarator.getChildOfType(DirectDeclarator).asToken();
+        AstNode directDeclarator = declarator.getChildOfType(DirectDeclarator);
+        if(directDeclarator == null) {
+            AstNode childDeclarator = declarator.getChildOfType(Declarator);
+            if(childDeclarator != null) {
+                return getDeclaratorName(childDeclarator);
+            } else {
+                throw new UnsupportedOperationException(declarator.repr());
+            }
+        }
+        Token t = directDeclarator.asToken();
         if (t != null) {
             return t.getText();
+        } else {
+            return getDeclaratorName(directDeclarator);
         }
-        throw new UnsupportedOperationException(declarator.repr());
     }
 
     @Override
@@ -477,7 +507,8 @@ public class CGrammar extends Grammar {
          *
          * @param typeName
          */
-        public void addTypeName(LexerStream stream, String typeName) {
+        public void addTypeName(String typeName) {
+            getLog().debug("addTypeName " + typeName);
             typeNames.add(typeName);
         }
 

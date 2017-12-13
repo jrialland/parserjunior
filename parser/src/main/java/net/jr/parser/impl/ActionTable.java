@@ -76,7 +76,7 @@ public class ActionTable implements MarshallingCapable {
         nonTerminals = allSymbols.stream().filter(s -> !s.isTerminal()).collect(Collectors.toList());
         nonTerminals.sort(Comparator.comparing(Symbol::toString));
 
-        if(getLog().isTraceEnabled()) {
+        if (getLog().isTraceEnabled()) {
             getLog().trace(String.format("%d terminals, %d non-terminals", terminals.size(), nonTerminals.size()));
         }
 
@@ -216,7 +216,7 @@ public class ActionTable implements MarshallingCapable {
 
             //Syntax Analysis Goal: Item Sets
             Set<ItemSet> allItemSets = getAllItemSets(grammar);
-            if(getLog().isTraceEnabled()) {
+            if (getLog().isTraceEnabled()) {
                 getLog().trace(String.format("Action table will have %d states", allItemSets.size()));
             }
 
@@ -553,7 +553,7 @@ public class ActionTable implements MarshallingCapable {
                                 currentItem = currentItem.getTransitionFor(s);
                                 final int end = currentItem.getId();
                                 ExtendedSymbol extSym = new ExtendedSymbol(start, s, end);
-                                if(!extendedSymbols.contains(extSym)) {
+                                if (!extendedSymbols.contains(extSym)) {
                                     extendedSymbols.add(extSym);
                                 }
                                 eClause.add(extSym);
@@ -569,7 +569,7 @@ public class ActionTable implements MarshallingCapable {
                             }
 
                             ExtendedSymbol eTarget = new ExtendedSymbol(initialState, rule.getTarget(), finalState);
-                            if(!extendedSymbols.contains(eTarget)) {
+                            if (!extendedSymbols.contains(eTarget)) {
                                 extendedSymbols.add(eTarget);
                             }
                             eGrammar.addRule(new ExtendedRule(counter[0]++, rule, eTarget, eClause.toArray(new ExtendedSymbol[]{})));
@@ -579,7 +579,7 @@ public class ActionTable implements MarshallingCapable {
             ExtendedRule eTargetRule = eGrammar.getRules().stream().map(r -> (ExtendedRule) r).filter(r -> ((ExtendedSymbol) r.getTarget()).getSymbol().equals(targetRule.getTarget())).findFirst().get();
             eGrammar.setTargetRule(eTargetRule);
 
-            if(getLog().isTraceEnabled()) {
+            if (getLog().isTraceEnabled()) {
                 getLog().trace(String.format("Extended grammar has %d rules", eGrammar.getRules().size()));
             }
 

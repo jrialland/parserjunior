@@ -77,7 +77,7 @@ public class TypeUtil {
 
     public static String getBytecodeTypename(Class<?> clazz) {
 
-        if(clazz.isArray()) {
+        if (clazz.isArray()) {
             return "[" + getBytecodeTypename(clazz.getComponentType());
         }
 
@@ -98,7 +98,7 @@ public class TypeUtil {
             throw new IllegalArgumentException("Empty type name");
         }
 
-        if(typename.startsWith("[")) {
+        if (typename.startsWith("[")) {
             Class<?> componentType = forBytecodeTypename(typename.substring(1));
             return Array.newInstance(componentType, 0).getClass();
         }

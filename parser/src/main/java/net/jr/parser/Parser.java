@@ -22,6 +22,7 @@ public interface Parser {
 
     /**
      * Sets a {@link ParserListener} that will be notified on different phases
+     *
      * @param parserListener
      */
     void setParserListener(ParserListener parserListener);

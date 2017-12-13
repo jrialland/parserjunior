@@ -1,4 +1,4 @@
-package net.jr.lexer.expr;
+package net.jr.lexer.expr.impl;
 
 import net.jr.lexer.impl.CharConstraint;
 import org.junit.Assert;
@@ -57,4 +57,6 @@ public class CharConstraintTest {
 
         System.out.println(cs.toString());
     }
+
+
 }

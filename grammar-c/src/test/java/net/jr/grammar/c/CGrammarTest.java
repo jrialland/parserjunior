@@ -1,16 +1,22 @@
 package net.jr.grammar.c;
 
 
+import net.jr.lexer.Lexer;
 import net.jr.lexer.LexicalError;
+import net.jr.lexer.Token;
 import net.jr.parser.ParseError;
 import net.jr.parser.Parser;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.ast.VisitorHelper;
 import net.jr.parser.ast.annotations.After;
+import net.jr.parser.impl.ActionTable;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.StringReader;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -22,6 +28,22 @@ public class CGrammarTest {
     public static void setupClass() {
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
     }
+
+    @Test
+    public void testLex() {
+        Lexer l = new CGrammar().createParser().getLexer();
+        Iterator<Token> it = l.iterator(new StringReader("for (int i=0;str[i]!='\\0';i+=1) {}"));
+        while(it.hasNext()) {
+            it.next();
+        }
+    }
+
+    @Test
+    public void testEqAssociativity() {
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
+        new CGrammar().createParser(CGrammar.Statement, false).parse("res = res * 10 ;");
+    }
+
 
     @Test
     public void testSimple() {

@@ -15,7 +15,7 @@ public class LexicalError extends RuntimeException {
     private Position position;
 
     private static String getMessage(int r, Position position) {
-        if(r != -1) {
+        if (r != -1) {
             return String.format("(%s) - Offending char : '%s' (0x%s)", position, StringEscapeUtils.escapeJava("" + (char) r), Integer.toHexString(r));
         } else {
             return String.format("(%s) - No match at end of input", position);

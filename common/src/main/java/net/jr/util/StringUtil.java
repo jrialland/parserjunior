@@ -61,17 +61,17 @@ public final class StringUtil {
         assert s != null;
         assert s.length() > 0;
         String result = "";
-        while(result.length() < size) {
+        while (result.length() < size) {
             result += s;
         }
         return result.substring(0, size);
     }
 
     public static String center(String s, int size) {
-        if(s.length() > size) {
+        if (s.length() > size) {
             return s.substring(0, size);
         }
-        String result = repeat(" ", (size - s.length()) /2) + s;
+        String result = repeat(" ", (size - s.length()) / 2) + s;
         return result + repeat(" ", size - result.length());
     }
 }

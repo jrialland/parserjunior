@@ -63,7 +63,7 @@ public interface Cache<K, T> {
                                 cache.put(key, data);
                             }
                         }
-                        if(getLog().isDebugEnabled()) {
+                        if (getLog().isDebugEnabled()) {
                             if (data == null) {
                                 getLog().trace("Cache Miss");
                             } else {

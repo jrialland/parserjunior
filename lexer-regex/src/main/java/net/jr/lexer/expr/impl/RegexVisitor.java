@@ -115,7 +115,7 @@ public class RegexVisitor {
     }
 
     /**
-     * a character sequence ('word')
+     * A character sequence ('word')
      *
      * @param node
      */

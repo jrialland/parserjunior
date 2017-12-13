@@ -15,18 +15,16 @@ import net.jr.parser.Parser;
  * Character sequence must be enclosed in '' quotes. For example, this lexer rule matches salutation 'Hello': <code>'hello'</code>
  * <p>
  * Use '|' to express alternatives. Lexer rule matching either salutation 'Hello' or 'Bye': <code>'Hello'|'Bye'</code>
+ * </p>
  * <p>
  * The dot '.' represents any character
+ * </p>
  * <p>
  * Use '..' to express interval. Lexer rule matching either 0 or 1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9: '0'..'9'
+ * </p>
  * <p>
  * Use '+' to express repeated one or more times. Lexer rule matching any integer : ('0'..'9')+
- * <p>
- * Use '~' to express inverse of a set ~('0'..'9')
- * <p>
- * Use '{' and '}' to express the number of allowed repetitions :
- * 'a'{3}  => matches aaa
- * 'b'{2,4} matches bb, bbb and bbbb.
+ * </p>
  */
 public class RegexGrammar extends Grammar {
 

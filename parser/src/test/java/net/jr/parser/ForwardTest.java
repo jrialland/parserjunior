@@ -15,7 +15,7 @@ public class ForwardTest {
         f.marshall(d);
         d.flush();
 
-        Forward f2 =Forward.unMarshall(new DataInputStream(new ByteArrayInputStream(baos.toByteArray())));
+        Forward f2 = Forward.unMarshall(new DataInputStream(new ByteArrayInputStream(baos.toByteArray())));
 
         Assert.assertEquals(f.getName(), f2.getName());
         Assert.assertEquals(f, f2);
