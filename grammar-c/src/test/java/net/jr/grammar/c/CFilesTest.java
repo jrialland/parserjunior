@@ -17,13 +17,10 @@ public class CFilesTest {
 
     @Test
     public void test() {
-
-        CGrammar cGrammar = new CGrammar();
-
         getResources().stream().sorted().forEach(rsc -> {
             System.out.println(rsc);
             Reader reader = new InputStreamReader(CFilesTest.class.getClassLoader().getResourceAsStream(rsc));
-            cGrammar.createParser().parse(reader);
+            new CGrammar().createParser().parse(reader);
         });
 
     }

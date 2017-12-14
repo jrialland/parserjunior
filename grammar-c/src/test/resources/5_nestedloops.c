@@ -17,10 +17,7 @@ void foreachpixel(image_t *image, pixelfnct_t fnct) {
 	for(int y=0; y < image->h; y++) {
 		for(int x=0; x < image->w; x++) {
 		    int offset = image->w * y + x;
-		    int *p_r = image->red + offset;
-		    int *p_g = image->green + offset;
-            int *p_b = image->blue + offset;
-			fnct(x, y, p_r, p_g, p_b);
+			fnct(x, y, image->red + offset, image->green + offset, image->blue + offset);
 		}
 	}
 }
