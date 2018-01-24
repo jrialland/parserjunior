@@ -1,30 +1,33 @@
-package net.jr.lexer.impl;
+package net.jr.lexer.basiclexemes;
+
+import net.jr.lexer.Lexemes;
+import net.jr.lexer.automaton.DefaultAutomaton;
+import net.jr.lexer.impl.CharConstraint;
+import net.jr.lexer.impl.LexemeImpl;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import static net.jr.lexer.impl.CharConstraint.Builder.eq;
-import static net.jr.lexer.impl.CharConstraint.Builder.or;
+import static net.jr.lexer.impl.CharConstraint.Builder.inList;
 
-public class CBinary extends LexemeImpl {
+public class COctal extends LexemeImpl {
 
-    public CBinary() {
+    public COctal() {
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
         DefaultAutomaton.Builder.BuilderState init = builder.initialState();
         DefaultAutomaton.Builder.BuilderState got0 = builder.initialState();
-        DefaultAutomaton.Builder.BuilderState gotB = builder.initialState();
         DefaultAutomaton.Builder.BuilderState finalState = builder.newFinalState();
-        init.when(eq('0')).goTo(got0);
-        got0.when(or(eq('B'), eq('b'))).goTo(gotB);
-        gotB.when(or(eq('0'), eq('1'))).goTo(finalState);
-        finalState.when(or(eq('0'), eq('1'))).goTo(finalState);
+        init.when(CharConstraint.Builder.eq('0')).goTo(got0);
+        got0.when(CharConstraint.Builder.inList(Lexemes.OctalDigit)).goTo(finalState);
+        finalState.when(CharConstraint.Builder.inList(Lexemes.OctalDigit)).goTo(finalState);
+        CInteger.addIntegerSuffix(builder, finalState);
         setAutomaton(builder.build());
     }
 
     @Override
     public String toString() {
-        return "CBinary";
+        return "COctal";
     }
 
     @Override
@@ -32,15 +35,16 @@ public class CBinary extends LexemeImpl {
         if (obj == null) {
             return false;
         }
-        if (!obj.getClass().equals(CBinary.class)) {
+        if (!obj.getClass().equals(COctal.class)) {
             return false;
         }
+
         return true;
     }
 
     @Override
     public int hashCode() {
-        return 1686118;
+        return 0x514145;
     }
 
     @Override
@@ -48,7 +52,7 @@ public class CBinary extends LexemeImpl {
 
     }
 
-    public static CBinary unMarshall(DataInputStream in) throws IOException {
-        return new CBinary();
+    public static COctal unMarshall(DataInputStream in) throws IOException {
+        return new COctal();
     }
 }

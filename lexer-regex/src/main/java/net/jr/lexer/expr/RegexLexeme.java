@@ -3,7 +3,7 @@ package net.jr.lexer.expr;
 import net.jr.lexer.expr.impl.RegexAutomaton;
 import net.jr.lexer.expr.impl.RegexGrammar;
 import net.jr.lexer.expr.impl.RegexVisitor;
-import net.jr.lexer.impl.Automaton;
+import net.jr.lexer.automaton.Automaton;
 import net.jr.lexer.impl.LexemeImpl;
 import net.jr.parser.Parser;
 import net.jr.parser.ast.AstNode;

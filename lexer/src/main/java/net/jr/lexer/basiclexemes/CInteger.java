@@ -1,6 +1,8 @@
-package net.jr.lexer.impl;
+package net.jr.lexer.basiclexemes;
 
 import net.jr.lexer.Lexemes;
+import net.jr.lexer.automaton.DefaultAutomaton;
+import net.jr.lexer.impl.LexemeImpl;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

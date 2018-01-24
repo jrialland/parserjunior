@@ -1,5 +1,7 @@
 package net.jr.lexer.impl;
 
+import net.jr.lexer.automaton.DefaultAutomaton;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;

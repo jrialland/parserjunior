@@ -1,4 +1,4 @@
-package net.jr.lexer.impl;
+package net.jr.lexer.basiclexemes;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

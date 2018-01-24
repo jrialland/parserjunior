@@ -5,14 +5,14 @@ import net.jr.lexer.Lexer;
 import net.jr.lexer.LexerAlgorithm;
 
 /**
- * Lexer tests using the basic
+ * Lexer test using the new 'merged' automaton algorithm
  */
-public class LexerTest extends AbstractLexerTestCases {
+public class MergedLexerTest extends AbstractLexerTestCases {
 
     @Override
     protected <L extends Symbol> Lexer getLexer(L... tokenTypes) {
         Lexer lexer =  Lexer.forLexemes(tokenTypes);
-        lexer.setLexerAlgorithm(LexerAlgorithm.Basic);
+        lexer.setLexerAlgorithm(LexerAlgorithm.Merged);
         return lexer;
     }
 }

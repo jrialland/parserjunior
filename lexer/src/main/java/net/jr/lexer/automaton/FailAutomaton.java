@@ -1,4 +1,4 @@
-package net.jr.lexer.impl;
+package net.jr.lexer.automaton;
 
 import net.jr.lexer.Lexeme;
 import net.jr.marshalling.MarshallingCapable;
@@ -82,5 +82,10 @@ public class FailAutomaton implements Automaton, MarshallingCapable {
 
     public static FailAutomaton get(Lexeme lexeme) {
         return failAutomatonMap.computeIfAbsent(lexeme, l -> new FailAutomaton(l));
+    }
+
+    @Override
+    public State getInitialState() {
+        return null;
     }
 }

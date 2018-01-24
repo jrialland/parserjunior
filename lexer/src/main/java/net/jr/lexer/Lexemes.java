@@ -1,6 +1,7 @@
 package net.jr.lexer;
 
 import net.jr.lexer.impl.*;
+import net.jr.lexer.basiclexemes.*;
 
 import java.util.Map;
 import java.util.TreeMap;

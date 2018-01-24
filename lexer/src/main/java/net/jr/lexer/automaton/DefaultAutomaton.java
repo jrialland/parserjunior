@@ -1,13 +1,14 @@
-package net.jr.lexer.impl;
+package net.jr.lexer.automaton;
 
 import net.jr.lexer.Lexeme;
+import net.jr.lexer.impl.CharConstraint;
 
 import java.util.*;
 import java.util.function.Function;
 
 public class DefaultAutomaton implements Automaton {
 
-    private static final State FailedState = new State(Collections.emptyList(), false);
+    private static final StateImpl FailedState = new StateImpl(Collections.emptyList(), false);
 
     private Lexeme tokenType;
 
@@ -24,12 +25,13 @@ public class DefaultAutomaton implements Automaton {
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
-        return new DefaultAutomaton(tokenType, initialState);
+    public State getInitialState() {
+        return initialState;
     }
 
-    public void setTokenType(Lexeme tokenType) {
-        this.tokenType = tokenType;
+    @Override
+    public Object clone() {
+        return new DefaultAutomaton(tokenType, initialState);
     }
 
     public Lexeme getTokenType() {
@@ -69,21 +71,21 @@ public class DefaultAutomaton implements Automaton {
     }
 
     public boolean isInFinalState() {
-        return currentState.finalState;
+        return currentState.isFinalState();
     }
 
-    private static class State implements Cloneable {
+    private static class StateImpl implements State, Cloneable {
 
         private List<Transition> outgoingTransitions;
 
         private boolean finalState;
 
-        private State clone(Map<State, State> knownClones) throws CloneNotSupportedException {
-            State s = knownClones.get(this);
+        private StateImpl clone(Map<StateImpl, StateImpl> knownClones) throws CloneNotSupportedException {
+            StateImpl s = knownClones.get(this);
             if (s != null) {
                 return s;
             } else {
-                return (State) clone();
+                return (StateImpl) clone();
             }
         }
 
@@ -91,11 +93,13 @@ public class DefaultAutomaton implements Automaton {
         protected Object clone() throws CloneNotSupportedException {
 
             List<Transition> clonedTransitions = new ArrayList<>();
-            Map<State, State> clones = new HashMap<>();
-            clones.put(this, new State(clonedTransitions, finalState));
+            Map<StateImpl, StateImpl> clones = new HashMap<>();
+            clones.put(this, new StateImpl(clonedTransitions, finalState));
 
             for (Transition t : clonedTransitions) {
-                Transition tClone = new Transition(t.condition, t.nextState.clone(clones));
+                TransitionImpl tImpl = (TransitionImpl)t;
+                StateImpl tNext = tImpl.nextState;
+                Transition tClone = new TransitionImpl(tImpl.condition, tNext.clone(clones));
                 clonedTransitions.add(tClone);
             }
 
@@ -103,7 +107,7 @@ public class DefaultAutomaton implements Automaton {
 
         }
 
-        public State(List<Transition> outgoingTransitions, boolean finalState) {
+        public StateImpl(List<Transition> outgoingTransitions, boolean finalState) {
             this.outgoingTransitions = outgoingTransitions;
             this.finalState = finalState;
         }
@@ -111,15 +115,20 @@ public class DefaultAutomaton implements Automaton {
         public List<Transition> getOutgoingTransitions() {
             return outgoingTransitions;
         }
+
+        @Override
+        public boolean isFinalState() {
+            return finalState;
+        }
     }
 
-    private static class Transition {
+    private static class TransitionImpl implements Transition {
 
         private Function<Character, Boolean> condition = x -> false;
 
-        private State nextState;
+        private StateImpl nextState;
 
-        Transition(Function<Character, Boolean> condition, State nextState) {
+        TransitionImpl(Function<Character, Boolean> condition, StateImpl nextState) {
             this.condition = condition;
             this.nextState = nextState;
         }
@@ -128,7 +137,7 @@ public class DefaultAutomaton implements Automaton {
             return condition.apply(c);
         }
 
-        public State getNextState() {
+        public StateImpl getNextState() {
             return nextState;
         }
     }
@@ -137,7 +146,7 @@ public class DefaultAutomaton implements Automaton {
 
         private Lexeme tokenType;
 
-        private BuilderStateImpl initialState = new BuilderStateImpl(new State(new ArrayList<>(), false));
+        private BuilderStateImpl initialState = new BuilderStateImpl(new StateImpl(new ArrayList<>(), false));
 
         private Builder(Lexeme tokenType) {
             this.tokenType = tokenType;
@@ -152,11 +161,11 @@ public class DefaultAutomaton implements Automaton {
         }
 
         public BuilderState newNonFinalState() {
-            return new BuilderStateImpl(new State(new ArrayList<>(), false));
+            return new BuilderStateImpl(new StateImpl(new ArrayList<>(), false));
         }
 
         public BuilderState newFinalState() {
-            return new BuilderStateImpl(new State(new ArrayList<>(), true));
+            return new BuilderStateImpl(new StateImpl(new ArrayList<>(), true));
         }
 
         public BuilderState failedState() {
@@ -178,9 +187,9 @@ public class DefaultAutomaton implements Automaton {
 
         class BuilderStateImpl implements BuilderState {
 
-            private State state;
+            private StateImpl state;
 
-            BuilderStateImpl(State state) {
+            BuilderStateImpl(StateImpl state) {
                 this.state = state;
             }
 
@@ -191,18 +200,18 @@ public class DefaultAutomaton implements Automaton {
 
         class BuilderTransitionImpl implements BuilderTransition {
 
-            private State state;
+            private StateImpl state;
 
             private CharConstraint condition;
 
-            BuilderTransitionImpl(State state, CharConstraint condition) {
+            BuilderTransitionImpl(StateImpl state, CharConstraint condition) {
                 this.state = state;
                 this.condition = condition;
             }
 
             @Override
             public void goTo(BuilderState destination) {
-                Transition transition = new Transition(condition, ((BuilderStateImpl) destination).state);
+                TransitionImpl transition = new TransitionImpl(condition, ((BuilderStateImpl) destination).state);
                 state.outgoingTransitions.add(transition);
             }
         }

@@ -2,6 +2,7 @@ package net.jr.lexer.impl;
 
 import net.jr.common.Position;
 import net.jr.lexer.*;
+import net.jr.lexer.automaton.Automaton;
 
 import java.io.IOException;
 import java.io.PushbackReader;
@@ -12,12 +13,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Actual lexing is done by this class.
- * instances are obtained by calling {@link Lexer#iterator(Reader)}
+ * Basic implementation of lexerStream that recognizes tokens by running in parallel several automatons.
  */
-public class LexerStreamImpl implements LexerStream {
-
-    private Lexer lexer;
+public class LexerStreamImpl extends AbstractLexerStream {
 
     private List<Automaton> automatons;
 
@@ -25,17 +23,7 @@ public class LexerStreamImpl implements LexerStream {
 
     private Position position = new Position(1, 1);
 
-    private PushbackReader pushbackReader;
-
     private String currentSequence = "";
-
-    private int lastMatchBegin = 0, lastMatchSize = 0;
-
-    private Function<Token, Token> tokenListener;
-
-    private boolean go = true;
-
-    private LinkedList<Token> buffer = new LinkedList<>();
 
     /**
      * @param lexer         The lexer that defines this stream
@@ -44,68 +32,19 @@ public class LexerStreamImpl implements LexerStream {
      * @param reader        the input reader
      */
     public LexerStreamImpl(Lexer lexer, List<Automaton> automatons, Function<Token, Token> tokenListener, Reader reader) {
-        assert lexer != null;
-        assert tokenListener != null;
-        assert reader != null;
-        this.lexer = lexer;
+        super(lexer, tokenListener, reader);
+
+        assert automatons != null;
+        assert !automatons.isEmpty();
+
         this.automatons = automatons;
-        this.tokenListener = tokenListener;
-        this.pushbackReader = reader instanceof PushbackReader ? (PushbackReader) reader : new PushbackReader(reader);
+
         resetAutomatons();
     }
 
-    @Override
-    public Lexer getLexer() {
-        return lexer;
-    }
 
     @Override
-    public void pushback(Token item) {
-        buffer.addFirst(tokenListener.apply(item));
-    }
-
-    @Override
-    public boolean hasNext() {
-        if (!go && buffer.isEmpty()) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    /**
-     * Empties the internal buffer
-     *
-     * @return the former content of the buffer, older tokens first (i.e the token that would have appeared next when calling {@link LexerStream#next()} is the last item in the returned list)
-     */
-    public List<Token> flushBuffer() {
-        List<Token> copy = new ArrayList<>(buffer);
-        buffer.clear();
-        Collections.reverse(copy);
-        return copy;
-    }
-
-    @Override
-    public Token next() {
-        if (buffer.isEmpty()) {
-            if (go) {
-                try {
-                    while (buffer.isEmpty()) {
-                        go = step(pushbackReader, token -> {
-                            buffer.addLast(token);
-                        });
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            } else {
-                throw new IllegalStateException();
-            }
-        }
-        return buffer.removeFirst();
-    }
-
-    private boolean step(PushbackReader reader, Consumer<Token> callback) throws IOException {
+    protected boolean step(PushbackReader reader, Consumer<Token> callback) throws IOException {
         int r = reader.read();
         if (r == -1) { //eof reached
 
@@ -121,8 +60,8 @@ public class LexerStreamImpl implements LexerStream {
 
             Lexeme eof = Lexemes.eof();
 
-            if (!lexer.isFilteredOut(eof)) {
-                Token eofToken = tokenListener.apply(new Token(Lexemes.eof(), position.nextColumn(), ""));
+            if (!getLexer().isFilteredOut(eof)) {
+                Token eofToken = getTokenListener().apply(new Token(Lexemes.eof(), position.nextColumn(), ""));
                 if (eofToken != null) {
                     callback.accept(eofToken);
                 }
@@ -186,7 +125,7 @@ public class LexerStreamImpl implements LexerStream {
             case 1:
                 break;
             default:
-                Collections.sort(bestMatches, Comparator.comparingInt(a -> -1 * lexer.getPriority(a.getTokenType())));
+                Collections.sort(bestMatches, Comparator.comparingInt(a -> -1 * getLexer().getPriority(a.getTokenType())));
         }
 
         return bestMatches.get(0);
@@ -195,15 +134,13 @@ public class LexerStreamImpl implements LexerStream {
     private void emitForAutomaton(Automaton a, Consumer<Token> emitCallback) {
         String matchedText = currentSequence.substring(0, a.getMatchedLength());
         currentSequence = "";
-        lastMatchBegin += lastMatchSize;
         Position p = updatePosition(matchedText);
-        if (!lexer.isFilteredOut(a.getTokenType())) {
-            Token token = tokenListener.apply(new Token(a.getTokenType(), p, matchedText));
+        if (!getLexer().isFilteredOut(a.getTokenType())) {
+            Token token = getTokenListener().apply(new Token(a.getTokenType(), p, matchedText));
             if (token != null) {
                 emitCallback.accept(token);
             }
         }
-        lastMatchSize = matchedText.length();
     }
 
     private Position updatePosition(String matchedText) {

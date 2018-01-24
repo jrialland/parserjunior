@@ -1,9 +1,10 @@
 package net.jr.lexer;
 
 import net.jr.common.Symbol;
-import net.jr.lexer.impl.Automaton;
+import net.jr.lexer.automaton.Automaton;
 import net.jr.lexer.impl.LexerStreamImpl;
 import net.jr.lexer.impl.LexemeImpl;
+import net.jr.lexer.impl.MergingLexerStreamImpl;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -16,6 +17,8 @@ import java.util.function.Function;
  * for matches in the list of the referenced Lexemes.
  */
 public class Lexer {
+
+    private LexerAlgorithm lexerAlgorithm = LexerAlgorithm.Basic;
 
     private List<Automaton> automatons;
 
@@ -69,7 +72,7 @@ public class Lexer {
     }
 
     /**
-     * A given text may match several lexemes (for example 'int' may be recognized both by {@link Lexemes#literal(String)}  and {@link Lexemes#cIdentifier()})
+     * A given text may match several basiclexemes (for example 'int' may be recognized both by {@link Lexemes#literal(String)}  and {@link Lexemes#cIdentifier()})
      * The priority can make the difference by choosing the right type when there is such conflict.
      * <p>
      * In the given example priority(literal('int')) > priority(cIdentifier)
@@ -168,6 +171,14 @@ public class Lexer {
         return tokens;
     }
 
+    public void setLexerAlgorithm(LexerAlgorithm lexerAlgorithm) {
+        this.lexerAlgorithm = lexerAlgorithm;
+    }
+
+    public LexerAlgorithm getLexerAlgorithm() {
+        return lexerAlgorithm;
+    }
+
     /**
      * builds a {@link LexerStream} out this Lexer
      *
@@ -184,7 +195,14 @@ public class Lexer {
             throw new RuntimeException(e);
         }
         Function<Token, Token> listener = tokenListener == null ? t -> t : t -> tokenListener.onNewToken(t);
-        return new LexerStreamImpl(this, clonedAutomatons, listener, reader);
+
+        switch (lexerAlgorithm) {
+            case Basic:
+                return new LexerStreamImpl(this, clonedAutomatons, listener, reader);
+            case Merged:
+                return new MergingLexerStreamImpl(this, clonedAutomatons, listener, reader);
+        }
+        throw new IllegalStateException();
     }
 
 }

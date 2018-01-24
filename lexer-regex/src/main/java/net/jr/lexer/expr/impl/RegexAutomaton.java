@@ -1,7 +1,7 @@
 package net.jr.lexer.expr.impl;
 
 import net.jr.lexer.Lexeme;
-import net.jr.lexer.impl.Automaton;
+import net.jr.lexer.automaton.Automaton;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

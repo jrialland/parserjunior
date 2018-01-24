@@ -1,6 +1,7 @@
 package net.jr.lexer.impl;
 
 import net.jr.lexer.Lexeme;
+import net.jr.lexer.automaton.Automaton;
 
 public abstract class LexemeImpl implements Lexeme {
 

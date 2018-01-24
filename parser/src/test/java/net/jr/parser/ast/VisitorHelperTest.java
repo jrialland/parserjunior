@@ -1,7 +1,7 @@
 package net.jr.parser.ast;
 
 import net.jr.common.Symbol;
-import net.jr.lexer.impl.SingleChar;
+import net.jr.lexer.basiclexemes.SingleChar;
 import net.jr.parser.Forward;
 import net.jr.parser.Grammar;
 import net.jr.parser.ast.annotations.After;
