@@ -10,7 +10,8 @@ import net.jr.lexer.LexerAlgorithm;
 public class MergedLexerTest extends AbstractLexerTestCases {
 
     @Override
-    protected <L extends Symbol> Lexer getLexer(L... tokenTypes) {
+    @SafeVarargs
+    protected final <L extends Symbol> Lexer getLexer(L... tokenTypes) {
         Lexer lexer =  Lexer.forLexemes(tokenTypes);
         lexer.setLexerAlgorithm(LexerAlgorithm.Merged);
         return lexer;
