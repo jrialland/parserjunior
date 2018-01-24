@@ -102,7 +102,7 @@
                 <version>3.7.0</version>
                 <configuration>
                     <source>${java.version}</source>
-                    <after>${java.version}</after>
+                    <target>${java.version}</target>
                     <showWarnings>true</showWarnings>
                     <compilerArgs>
                         <arg>-Werror</arg>
