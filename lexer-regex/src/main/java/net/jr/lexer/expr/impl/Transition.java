@@ -1,8 +1,9 @@
 package net.jr.lexer.expr.impl;
 
+import net.jr.lexer.automaton.State;
 import net.jr.lexer.impl.CharConstraint;
 
-public class Transition {
+public class Transition implements net.jr.lexer.automaton.Transition {
 
     private CharConstraint charConstraint;
 
@@ -55,5 +56,15 @@ public class Transition {
     @Override
     public String toString() {
         return charConstraint.toString();
+    }
+
+    @Override
+    public boolean isValid(char c) {
+        return true;
+    }
+
+    @Override
+    public State getNextState() {
+        return getTarget();
     }
 }

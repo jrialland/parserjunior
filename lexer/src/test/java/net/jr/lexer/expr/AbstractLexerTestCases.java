@@ -327,6 +327,7 @@ public abstract class AbstractLexerTestCases {
     public void testCBinary() {
         Lexer lexer = getLexer(Lexemes.cOctal(), Lexemes.cBinary());
         List<Token> tokens = lexer.tokenize("0b1011011");
+        System.out.println(tokens);
         Assert.assertEquals(2, tokens.size());
     }
 

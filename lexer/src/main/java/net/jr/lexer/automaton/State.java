@@ -1,10 +1,10 @@
 package net.jr.lexer.automaton;
 
-import java.util.List;
+import java.util.Set;
 
 public interface State {
 
-    List<Transition> getOutgoingTransitions();
+    Set<Transition> getOutgoingTransitions();
 
     boolean isFinalState();
 }

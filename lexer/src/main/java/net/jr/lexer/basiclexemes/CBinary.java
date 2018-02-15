@@ -15,8 +15,8 @@ public class CBinary extends LexemeImpl {
     public CBinary() {
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
         DefaultAutomaton.Builder.BuilderState init = builder.initialState();
-        DefaultAutomaton.Builder.BuilderState got0 = builder.initialState();
-        DefaultAutomaton.Builder.BuilderState gotB = builder.initialState();
+        DefaultAutomaton.Builder.BuilderState got0 = builder.newNonFinalState();
+        DefaultAutomaton.Builder.BuilderState gotB = builder.newNonFinalState();
         DefaultAutomaton.Builder.BuilderState finalState = builder.newFinalState();
         init.when(eq('0')).goTo(got0);
         got0.when(or(eq('B'), eq('b'))).goTo(gotB);

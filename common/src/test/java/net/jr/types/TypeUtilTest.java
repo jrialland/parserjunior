@@ -33,9 +33,9 @@ public class TypeUtilTest {
         Assert.assertEquals(array.getClass(), clazz);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testNull() {
-
+        TypeUtil.forBytecodeTypename(null);
     }
 
     @Test(expected = IllegalArgumentException.class)

@@ -1,15 +1,16 @@
 package net.jr.lexer.expr.impl;
 
+import net.jr.lexer.automaton.State;
 import net.jr.lexer.impl.CharConstraint;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class Node {
+public class Node implements State {
 
-    private Set<Transition> outgoingTransitions = new HashSet<>();
+    private Set<net.jr.lexer.automaton.Transition> outgoingTransitions = new HashSet<>();
 
-    private Set<Transition> incomingTransitions = new HashSet<>();
+    private Set<net.jr.lexer.automaton.Transition> incomingTransitions = new HashSet<>();
 
     private boolean finalState = false;
 
@@ -21,11 +22,11 @@ public class Node {
     }
 
     public void disconnect() {
-        for (Transition outTransition : outgoingTransitions) {
-            outTransition.getTarget().getIncomingTransitions().remove(outTransition);
+        for (net.jr.lexer.automaton.Transition outTransition : outgoingTransitions) {
+            ((Transition)outTransition).getTarget().getIncomingTransitions().remove(outTransition);
         }
-        for (Transition inTransition : incomingTransitions) {
-            inTransition.getSource().getOutgoingTransitions().remove(inTransition);
+        for (net.jr.lexer.automaton.Transition inTransition : incomingTransitions) {
+            ((Transition)inTransition).getSource().getOutgoingTransitions().remove(inTransition);
         }
     }
 
@@ -33,14 +34,15 @@ public class Node {
         return addTransition(builder.build());
     }
 
-    public Set<Transition> getOutgoingTransitions() {
+    public Set<net.jr.lexer.automaton.Transition> getOutgoingTransitions() {
         return outgoingTransitions;
     }
 
-    public Set<Transition> getIncomingTransitions() {
+    public Set<net.jr.lexer.automaton.Transition> getIncomingTransitions() {
         return incomingTransitions;
     }
 
+    @Override
     public boolean isFinalState() {
         return finalState;
     }

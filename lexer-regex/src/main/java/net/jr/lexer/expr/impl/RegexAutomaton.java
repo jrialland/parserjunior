@@ -2,6 +2,7 @@ package net.jr.lexer.expr.impl;
 
 import net.jr.lexer.Lexeme;
 import net.jr.lexer.automaton.Automaton;
+import net.jr.lexer.automaton.State;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -24,11 +25,17 @@ public class RegexAutomaton implements Automaton {
     }
 
     @Override
+    public State getInitialState() {
+        return startNode;
+    }
+
+    @Override
     public boolean step(char c) {
         inFinalState = false;
         Set<Node> newActiveNodes = new HashSet<>();
         for (Node node : activeNodes) {
-            for (Transition t : node.getOutgoingTransitions()) {
+            for (net.jr.lexer.automaton.Transition _t : node.getOutgoingTransitions()) {
+                Transition t = (Transition)_t;
                 if (t.getCharConstraint().apply(c)) {
                     Node target = t.getTarget();
                     inFinalState = inFinalState || target.isFinalState();
@@ -87,7 +94,8 @@ public class RegexAutomaton implements Automaton {
             Node n = s.pop();
             if (!nodes.containsValue(n)) {
                 nodes.put(Integer.toString(i++), n);
-                for (Transition t : n.getOutgoingTransitions()) {
+                for (net.jr.lexer.automaton.Transition _t : n.getOutgoingTransitions()) {
+                    Transition t = (Transition)_t;
                     Node target = t.getTarget();
                     s.push(target);
                 }
@@ -111,7 +119,8 @@ public class RegexAutomaton implements Automaton {
             if (node.isFinalState()) {
                 pw.println(String.format("%s [ peripheries = 2 ];", nodeName));
             }
-            for (Transition t : entry.getValue().getOutgoingTransitions()) {
+            for (net.jr.lexer.automaton.Transition _t : entry.getValue().getOutgoingTransitions()) {
+                Transition t = (Transition)_t;
                 String targetName = rev.get(t.getTarget());
                 pw.println(String.format("%s -> %s [ label = \"%s\" ];", nodeName, targetName, t.getCharConstraint().toString()));
             }
