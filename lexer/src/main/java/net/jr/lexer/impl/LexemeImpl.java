@@ -9,8 +9,19 @@ public abstract class LexemeImpl implements Lexeme {
 
     private int priority;
 
+    private String name;
+
     public LexemeImpl() {
+        this(null);
+    }
+
+    public LexemeImpl(String name) {
+        this.name = name;
         this.priority = 1;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
     }
 
     @Override
@@ -26,4 +37,20 @@ public abstract class LexemeImpl implements Lexeme {
         return automaton;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        if(name != null) {
+            return name;
+        } else {
+            return super.toString();
+        }
+    }
 }

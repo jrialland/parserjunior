@@ -27,7 +27,8 @@ public class SingleChar extends LexemeImpl {
 
     @Override
     public String toString() {
-        return "'" + Character.toString(character) + "'";
+        String name = getName();
+        return name==null?"'" + Character.toString(character) + "'":name;
     }
 
     @Override
@@ -57,4 +58,5 @@ public class SingleChar extends LexemeImpl {
     public static SingleChar unMarshall(DataInputStream dataInputStream) throws IOException {
         return new SingleChar(dataInputStream.readChar());
     }
+
 }

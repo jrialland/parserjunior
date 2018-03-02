@@ -1,0 +1,13 @@
+#ifndef __{{ grammar.name }}_H__
+#define __{{ grammar.name }}_H__
+
+typedef enum {
+    {% for terminalName in terminalNames %}{{ terminalName }} = {{ loop.index }}{{ (loop.last) ? '' : ',' }}
+    {% endfor %}
+} {{ grammar.name }}_token_t;
+
+void {{ grammar.name }}_parser_init(struct {{ grammar.name }}_parser_t * parser);
+
+void {{ grammar.name }}_parser_parse({{ grammar.name }}_parser_t * parser, {{ grammar.name }}_lexer_t * lexer);
+
+#endif//__{{ grammar.name }}_H__

@@ -177,6 +177,7 @@
         <module>parser</module>
         <module>lexer-regex</module>
         <module>grammar-c</module>
+        <module>codegenerator</module>
     </modules>
 
 </project>

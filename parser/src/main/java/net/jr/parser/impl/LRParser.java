@@ -113,7 +113,7 @@ public class LRParser implements Parser {
                     decision = actionTable.getAction(currentState, Lexemes.empty());
                     lexerStream.pushback(token);
                 } else {
-                    throw new ParseError(token, actionTable.getExpectedTerminals(currentState));
+                    decision = new Action(ActionType.Fail,0);
                 }
             }
 
@@ -330,4 +330,5 @@ public class LRParser implements Parser {
     public AstNodeFactory getAstNodeFactory() {
         return astNodeFactory;
     }
+
 }

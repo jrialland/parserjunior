@@ -59,7 +59,8 @@ public class Literal extends LexemeImpl {
 
     @Override
     public String toString() {
-        return "'" + value + "'";
+        String name = getName();
+        return name == null ? "'" + value + "'" : name;
     }
 
     @Override

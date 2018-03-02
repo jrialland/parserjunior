@@ -1,0 +1,70 @@
+
+export class {{grammar.name}}Lexer {
+
+    const Token = Object.freeze({
+    {% for terminalName in terminalNames %}    {{ terminalName }} = {{ loop.index }}{{ (loop.last) ? '' : ',' }}
+    {% endfor %}
+    });
+
+    pushBack(token) {
+    }
+}
+
+export class {{grammar.name}}Parser {
+
+    const ActionType = Object.freeze({
+    {% for a in actionTypeEnum %} {{ a }}{{ (loop.last) ? '' : ',' }}
+    {% endfor %}
+    });
+
+    const _actions = {{ actionTypes }};
+    const _actionParams = {{ actionParams }};
+    const _emptyActions = {{ emptyActions }};
+    const _targetRule = {{ targetRuleIndex }};
+
+    parse(lexer) {
+        const stack = [];
+        stack.push({
+            rule:_targetRule,
+            state:0
+        });
+        while(true) {
+            {currentRule, currentState} = stack[stack.length-1];
+            var actionType = _actions[currentState];
+            if(actionType == -1) {
+                actionType = _emptyActions[currentState];
+                if(actionType != -1) {
+                    lexerStream.pushBack(token);
+                } else {
+                    actionType = Parser.ActionType.FAIL;
+                }
+            }
+            switch(actionType) {
+                case Parser.ActionType.ACCEPT:
+                    _accept(stack, lexerStream);
+                    return stack.pop().getAstNode();
+                case Parser.ActionType.SHIFT:
+                    _shift(stack, token, _actionsParams[currentState]);
+                    break;
+                case Parser.ActionType.REDUCE:
+                    this._reduce(stack, lexerStream, _actionsParams[currentState]);
+                    lexer.pushBack(token)
+                    break;
+                case Parser.ActionType.FAIL:
+                default:
+                    throw new Error('parse error');
+                    break;
+            }
+        }
+    }
+
+    _accept(stack, lexer) {
+    }
+
+    _shift(stack, token, action) {
+    }
+
+    _reduce(stack, lexer, param) {
+    }
+
+}

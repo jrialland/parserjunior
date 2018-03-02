@@ -122,7 +122,7 @@ public class ActionTable implements MarshallingCapable {
         return row == null ? null : row.get(s);
     }
 
-    Set<Symbol> getExpectedTerminals(int state) {
+    public Set<Symbol> getExpectedTerminals(int state) {
         Map<Symbol, Action> row = data.get(state);
         return row.keySet().stream()
                 .filter(s -> s.isTerminal())

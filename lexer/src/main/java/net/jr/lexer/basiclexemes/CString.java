@@ -8,6 +8,7 @@ public class CString extends QuotedString {
 
     public CString() {
         super('\"', '\"', '\\', new char[]{'\r', '\n'});
+        setName("cString");
     }
 
     @Override

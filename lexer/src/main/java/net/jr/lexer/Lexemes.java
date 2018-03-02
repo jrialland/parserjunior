@@ -31,13 +31,18 @@ public class Lexemes {
 
     public static final String HexDigit = Numbers + "abcdef" + "ABCDEF";
 
-    private static final Lexeme cIdentifier = new Word("_" + Alpha, "_" + AlphaNum, "CIdentifier");
+    private static final Word cIdentifier = new Word("_" + Alpha, "_" + AlphaNum, "CIdentifier");
+
+    private static final CString cString = new CString();
+
+    static {
+        cIdentifier.setName("cIdentifier");
+    }
 
     private static final Lexeme whitespaces = new Word(WhitespacesNonNewLine);
 
     private static final Lexeme lowercaseWord = new Word(LowercaseLetters);
 
-    private static final Lexeme cString = new CString();
 
     private static final Map<String, Lexeme> Artificials = new TreeMap<>();
 
@@ -47,7 +52,11 @@ public class Lexemes {
      */
     public static Lexeme artificial(String name) {
         assert name != null;
-        return Artificials.computeIfAbsent(name, k -> new Artificial(k));
+        return Artificials.computeIfAbsent(name, k -> {
+            Artificial a = new Artificial(k);
+            a.setName(k);
+            return a;
+        });
     }
 
     private static final Lexeme Eof = artificial("ᵉᵒᶠ");
@@ -151,10 +160,26 @@ public class Lexemes {
         return SingleChars.computeIfAbsent(c, SingleChar::new);
     }
 
+    public static Lexeme singleChar(char c, String name) {
+        return SingleChars.computeIfAbsent(c, (character) -> {
+            SingleChar s =  new SingleChar(character);
+            s.setName(name);
+            return s;
+        });
+    }
+
     private static Map<String, Literal> Literals = new TreeMap<>();
 
     public static Lexeme literal(String s) {
         return Literals.computeIfAbsent(s, c -> new Literal(s));
+    }
+
+    public static Lexeme literal(String s, String name) {
+        return Literals.computeIfAbsent(s, c -> {
+            Literal l = new Literal(s);
+            l.setName(name);
+            return l;
+        });
     }
 
     private static LexemeImpl CInteger = new CInteger();
