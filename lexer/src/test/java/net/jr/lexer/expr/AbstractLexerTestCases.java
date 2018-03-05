@@ -27,6 +27,10 @@ public abstract class AbstractLexerTestCases {
     public void testWhitespace() {
         Lexeme x = new SingleChar('X');
         Lexer lexer = getLexer(Lexemes.whitespace(), x);
+
+        Assert.assertEquals(2, lexer.tokenize(" ").size());
+        Assert.assertEquals(2, lexer.tokenize("X").size());
+
         for (int i = 0; i < 100; i++) {
             lexer.tokenize("      ");
             lexer.tokenize("  X  X    ");
@@ -361,6 +365,7 @@ public abstract class AbstractLexerTestCases {
 
         //give a low priority to cIdentifier
         lexer.setPriority(Lexemes.cIdentifier(), 100);
+
         Lexeme l = lexer.tokenize("int").get(0).getTokenType();
         Assert.assertEquals(l, Lexemes.cIdentifier());
         Assert.assertFalse(l.equals(Lexemes.literal("int")));

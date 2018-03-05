@@ -8,7 +8,7 @@ import java.util.function.Function;
 
 public class DefaultAutomaton implements Automaton {
 
-    private static final StateImpl FailedState = new StateImpl(Collections.emptySet(), false);
+    private static final StateImpl FailedState = new StateImpl(Collections.emptySet(), false, null);
 
     private Lexeme tokenType;
 
@@ -80,6 +80,8 @@ public class DefaultAutomaton implements Automaton {
 
         private boolean finalState;
 
+        private Lexeme lexeme = null;
+
         private StateImpl clone(Map<StateImpl, StateImpl> knownClones) throws CloneNotSupportedException {
             StateImpl s = knownClones.get(this);
             if (s != null) {
@@ -94,7 +96,7 @@ public class DefaultAutomaton implements Automaton {
 
             Set<Transition> clonedTransitions = new HashSet<>();
             Map<StateImpl, StateImpl> clones = new HashMap<>();
-            clones.put(this, new StateImpl(clonedTransitions, finalState));
+            clones.put(this, new StateImpl(clonedTransitions, finalState, lexeme));
 
             for (Transition t : clonedTransitions) {
                 TransitionImpl tImpl = (TransitionImpl)t;
@@ -107,9 +109,22 @@ public class DefaultAutomaton implements Automaton {
 
         }
 
-        public StateImpl(Set<Transition> outgoingTransitions, boolean finalState) {
-            this.outgoingTransitions = outgoingTransitions;
+        private StateImpl(Set<Transition> transitions, boolean finalState, Lexeme lexeme) {
+            this.outgoingTransitions = transitions;
             this.finalState = finalState;
+            this.lexeme = lexeme;
+        }
+
+        public static StateImpl nonFinal(Set<Transition> outgoingTransitions) {
+            StateImpl stateImpl = new StateImpl(outgoingTransitions, false, null);
+            stateImpl.outgoingTransitions = outgoingTransitions;
+            stateImpl.finalState = false;
+            return stateImpl;
+        }
+
+        public static StateImpl finalState(Lexeme lexeme) {
+            StateImpl stateImpl = new StateImpl(null, true, lexeme);
+            return stateImpl;
         }
 
         public Set<Transition> getOutgoingTransitions() {
@@ -120,9 +135,14 @@ public class DefaultAutomaton implements Automaton {
         public boolean isFinalState() {
             return finalState;
         }
+
+        @Override
+        public Lexeme getLexeme() {
+            return lexeme;
+        }
     }
 
-    private static class TransitionImpl implements Transition {
+    private static class TransitionImpl implements Transition<Character> {
 
         private Function<Character, Boolean> condition = x -> false;
 
@@ -140,13 +160,17 @@ public class DefaultAutomaton implements Automaton {
         public StateImpl getNextState() {
             return nextState;
         }
+
+        public Function<Character, Boolean> getCondition() {
+            return condition;
+        }
     }
 
     public static class Builder {
 
         private Lexeme tokenType;
 
-        private BuilderStateImpl initialState = new BuilderStateImpl(new StateImpl(new HashSet<>(), false));
+        private BuilderStateImpl initialState = new BuilderStateImpl(new StateImpl(new HashSet<>(), false, null));
 
         private Builder(Lexeme tokenType) {
             this.tokenType = tokenType;
@@ -161,11 +185,12 @@ public class DefaultAutomaton implements Automaton {
         }
 
         public BuilderState newNonFinalState() {
-            return new BuilderStateImpl(new StateImpl(new HashSet<>(), false));
+            return new BuilderStateImpl(new StateImpl(new HashSet<>(), false, null));
         }
 
         public BuilderState newFinalState() {
-            return new BuilderStateImpl(new StateImpl(new HashSet<>(), true));
+            assert tokenType != null;
+            return new BuilderStateImpl(new StateImpl(new HashSet<>(), true, tokenType));
         }
 
         public BuilderState failedState() {

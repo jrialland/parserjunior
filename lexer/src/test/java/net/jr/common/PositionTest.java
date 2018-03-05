@@ -23,6 +23,22 @@ public class PositionTest {
     }
 
     @Test
+    public void testUpdate() {
+        Position p = Position.start();
+
+
+        p = p.updated('c');
+
+        Assert.assertEquals(1, p.getLine());
+        Assert.assertEquals(2, p.getColumn());
+
+        p = p.updated('\n');
+        Assert.assertEquals(2, p.getLine());
+        Assert.assertEquals(1, p.getColumn());
+
+    }
+
+    @Test
     public void testMarshall() {
         Position p = new Position(54, 151);
         byte[] bytes = MarshallingUtil.toByteArray(p, false);

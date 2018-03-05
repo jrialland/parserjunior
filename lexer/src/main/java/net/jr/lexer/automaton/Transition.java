@@ -1,8 +1,12 @@
 package net.jr.lexer.automaton;
 
-public interface Transition {
+import java.util.function.Function;
+
+public interface Transition<T> {
 
     boolean isValid(char c);
 
-    State getNextState();
+    State<T> getNextState();
+
+    Function<T, Boolean> getCondition();
 }

@@ -8,6 +8,8 @@ import java.io.IOException;
 
 public class Position implements MarshallingCapable {
 
+    private static final Position INITIAL = new Position(1,1);
+
     private int line;
 
     private int column;
@@ -31,6 +33,10 @@ public class Position implements MarshallingCapable {
 
     public Position nextColumn() {
         return new Position(line, column + 1);
+    }
+
+    public Position updated(char c) {
+        return c == '\n' ? nextLine() : nextColumn();
     }
 
     @Override
@@ -63,5 +69,9 @@ public class Position implements MarshallingCapable {
         int line = in.readInt();
         int column = in.readInt();
         return new Position(line, column);
+    }
+
+    public static Position start() {
+        return INITIAL;
     }
 }

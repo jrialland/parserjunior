@@ -1,5 +1,6 @@
 package net.jr.lexer.expr.impl;
 
+import net.jr.lexer.Lexeme;
 import net.jr.lexer.automaton.State;
 import net.jr.lexer.impl.CharConstraint;
 
@@ -13,6 +14,11 @@ public class Node implements State {
     private Set<net.jr.lexer.automaton.Transition> incomingTransitions = new HashSet<>();
 
     private boolean finalState = false;
+
+    @Override
+    public Lexeme getLexeme() {
+        throw new IllegalStateException();
+    }
 
     public Transition addTransition(CharConstraint charConstraint) {
         Transition t = new Transition(this);
