@@ -1,11 +1,11 @@
 
 
-extern void puts(char *s);
+extern int puts(char *s);
 
 static const char *hello="\"Hello \n World\"\x0a";
 
 
-int a = {0,1,2,3,4,5,6,7,8,9};
+int a[] = {0,1,2,3,4,5,6,7,8,9};
 
 
 struct _sample {

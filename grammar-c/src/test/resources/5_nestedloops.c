@@ -18,7 +18,7 @@ void foreachpixel(ptr_image_t image, pixelfnct_t fnct) {
         int line = image->w * y;
         for(int x=0; x < image->w; x++) {
             int offset = line + x;
-            fnct(x, y, image->red + offset, image->green + offset, image->blue + offset);
+            fnct(x, y, image->red[offset], image->green[offset], image->blue[offset]);
         }
     }
 }
@@ -30,7 +30,7 @@ void setblack(int x, int y, int *r, int *g, int *b) {
 }
 
 void paintblack(ptr_image_t image) {
-    foreachpixel(image, setblack);
+    foreachpixel(image, &setblack);
 }
 
 int main(void) {
