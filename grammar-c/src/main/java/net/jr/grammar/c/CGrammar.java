@@ -86,7 +86,7 @@ public class CGrammar extends Grammar {
         public static Lexeme Lt = Lexemes.singleChar('<', "lt");
         public static Lexeme Signed = Lexemes.literal("signed", "signed");
         public static Lexeme Mul_assign = Lexemes.literal("*=", "mulAssign");
-        public static Lexeme Identifier = Lexemes.cIdentifier();
+        public static Lexeme Identifier = Lexemes.cIdentifier().withPriority(-10);
         public static Lexeme Add_assign = Lexemes.literal("+=", "plusAssign");
         public static Lexeme Double = Lexemes.literal("double", "double");
         public static Lexeme Long = Lexemes.literal("long", "long");

@@ -21,32 +21,12 @@ public class FailAutomaton implements Automaton, MarshallingCapable {
     }
 
     @Override
-    public boolean step(char c) {
-        return true;
-    }
-
-    @Override
-    public void reset() {
-
-    }
-
-    @Override
-    public int getMatchedLength() {
-        return 0;
-    }
-
-    @Override
-    public boolean isInFinalState() {
-        return false;
-    }
-
-    @Override
     public Lexeme getTokenType() {
         return lexeme;
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
+    public Object clone() {
         return this;
     }
 

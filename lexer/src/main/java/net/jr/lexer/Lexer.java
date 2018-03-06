@@ -2,7 +2,6 @@ package net.jr.lexer;
 
 import net.jr.common.Symbol;
 import net.jr.lexer.automaton.Automaton;
-import net.jr.lexer.impl.LexerStreamImpl;
 import net.jr.lexer.impl.LexemeImpl;
 import net.jr.lexer.impl.MergingLexerStreamImpl;
 
@@ -18,13 +17,11 @@ import java.util.function.Function;
  */
 public class Lexer {
 
-    private LexerAlgorithm lexerAlgorithm = LexerAlgorithm.Basic;
-
     private List<Automaton> automatons;
 
     private Set<Lexeme> filteredOut = new HashSet<>();
 
-    private TokenListener tokenListener;
+    private TokenListener tokenListener = t -> t;
 
     private Map<Symbol, Integer> priorities = new HashMap<>();
 
@@ -171,14 +168,6 @@ public class Lexer {
         return tokens;
     }
 
-    public void setLexerAlgorithm(LexerAlgorithm lexerAlgorithm) {
-        this.lexerAlgorithm = lexerAlgorithm;
-    }
-
-    public LexerAlgorithm getLexerAlgorithm() {
-        return lexerAlgorithm;
-    }
-
     /**
      * builds a {@link LexerStream} out this Lexer
      *
@@ -195,14 +184,7 @@ public class Lexer {
             throw new RuntimeException(e);
         }
         Function<Token, Token> listener = tokenListener == null ? t -> t : t -> tokenListener.onNewToken(t);
-
-        switch (lexerAlgorithm) {
-            case Basic:
-                return new LexerStreamImpl(this, clonedAutomatons, listener, reader);
-            case Merged:
-                return new MergingLexerStreamImpl(this, clonedAutomatons, listener, reader);
-        }
-        throw new IllegalStateException();
+        return new MergingLexerStreamImpl(this, clonedAutomatons, listener, reader);
     }
 
 }

@@ -5,6 +5,8 @@ import net.jr.lexer.*;
 import net.jr.lexer.automaton.Automaton;
 import net.jr.lexer.automaton.State;
 import net.jr.lexer.automaton.Transition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PushbackReader;
@@ -13,6 +15,7 @@ import java.io.StringWriter;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -21,6 +24,7 @@ import java.util.stream.Collectors;
  */
 public class MergingLexerStreamImpl extends AbstractLexerStream {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(MergingLexerStreamImpl.class);
 
     class StateImpl implements State<Character> {
 
@@ -56,16 +60,18 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
 
     private Token candidate;
 
-    private StringWriter sw = new StringWriter();
+    private StringWriter matched = new StringWriter();
 
     public MergingLexerStreamImpl(Lexer lexer, List<Automaton> automatons, Function<Token, Token> tokenListener, Reader reader) {
         super(lexer, tokenListener, reader);
         initial = new StateImpl();
         for(Automaton a : automatons) {
             State s = a.getInitialState();
-            initial.getOutgoingTransitions().addAll(s.getOutgoingTransitions());
-            if(s.isFinalState()) {
-                initial.setLexeme(s.getLexeme());
+            if( s != null) {
+                initial.getOutgoingTransitions().addAll(s.getOutgoingTransitions());
+                if (s.isFinalState()) {
+                    initial.setLexeme(s.getLexeme());
+                }
             }
         }
         activeStates.add(initial);
@@ -78,17 +84,25 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
         if(!getLexer().isFilteredOut(candidate.getTokenType())){
 
             if(getLexer().getTokenListener() != null) {
-                getLexer().getTokenListener().onNewToken(candidate);
+                candidate = getLexer().getTokenListener().onNewToken(candidate);
             }
 
             callback.accept(candidate);
         }
         candidate = null;
-        sw = new StringWriter();
+        matched = new StringWriter();
         activeStates.clear();
         activeStates.add(initial);
         reader.unread(c);
         startPosition = position;
+    }
+
+    protected void emitEof(Consumer<Token> callback) {
+        Token eof = new Token(Lexemes.eof(), position, "");
+        if(!getLexer().isFilteredOut(eof.getTokenType())) {
+            eof = getLexer().getTokenListener().onNewToken(eof);
+            callback.accept(eof);
+        }
     }
 
     @Override
@@ -97,16 +111,18 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
 
         if(c == -1) {
             if(candidate == null) {
-                throw new LexicalError(c, position);
+                if(activeStates.size() != 1 || activeStates.iterator().next() != initial) {
+                    throw new LexicalError(c, position);
+                }
             } else {
                 emit(pushbackReader, c, callback);
-                callback.accept(new Token(Lexemes.eof(), position, ""));
-                return false;
             }
+            emitEof(callback);
+            return false;
         }
 
         //update matched text
-        sw.append((char)c);
+        matched.append((char)c);
 
         //apply new states
         Set<State<Character>> newStates = new HashSet<>();
@@ -132,12 +148,27 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
         //find the state that is final with the highest priority
         List<State> posssibleFinals = newStates.stream()
                 .filter(s -> s.isFinalState())
-                .sorted(Comparator.comparingInt(s->-getLexer().getPriority(s.getLexeme()))).collect(Collectors.toList());
+                .sorted(Comparator.comparingInt(s->-getLexer().getPriority(s.getLexeme())))
+                .limit(1)
+                .collect(Collectors.toList());
+
+
+//        if(posssibleFinals.size() > 1) {
+//            StringWriter sw = new StringWriter();
+//            sw.append("Input can be matched by several tokens");
+//            sw.append(" : ");
+//            sw.append(posssibleFinals.stream().map(state -> state.getLexeme()).collect(Collectors.toList()).toString());
+//            sw.append('\n');
+//            sw.append("(matched input :\n");
+//            sw.append("\t" + matched.toString().replaceAll("\n", "\t\n"));
+//            sw.append("\n)");
+//            LOGGER.warn(sw.toString());
+//        }
 
         State<Character> finalState = posssibleFinals.isEmpty() ? null : posssibleFinals.get(0);
 
         if(finalState != null) {
-            candidate = new Token(finalState.getLexeme(), startPosition, sw.toString());
+            candidate = new Token(finalState.getLexeme(), startPosition, matched.toString());
         }
 
         this.position = this.position.updated((char)c);

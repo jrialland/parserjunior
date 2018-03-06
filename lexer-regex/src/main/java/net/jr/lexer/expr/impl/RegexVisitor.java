@@ -47,7 +47,7 @@ public class RegexVisitor {
 
     public RegexAutomaton getAutomaton() {
         Context context = stack.pop();
-        context.end.setFinalState(true);
+        context.end.setLexeme(regexLexeme);
         return new RegexAutomaton(context.getStart());
     }
 
@@ -137,7 +137,7 @@ public class RegexVisitor {
             current.addTransition(eq(c)).toNode(n);
             current = n;
         }
-        current.setFinalState(true);
+        current.setLexeme(regexLexeme);
         stack.push(new Context(start, current));
     }
 
@@ -158,7 +158,7 @@ public class RegexVisitor {
         Node start = new Node();
         Node end = new Node();
         start.addTransition(inRange(l, u)).toNode(end);
-        end.setFinalState(true);
+        end.setLexeme(regexLexeme);
         stack.push(new Context(start, end));
     }
 
@@ -174,7 +174,7 @@ public class RegexVisitor {
         Node start = new Node();
         Node end = new Node();
         start.addTransition(eq(c)).toNode(end);
-        end.setFinalState(true);
+        end.setLexeme(regexLexeme);
         stack.push(new Context(start, end));
     }
 
@@ -186,7 +186,7 @@ public class RegexVisitor {
     public void visitAnychar(AstNode node) {
         Node start = new Node();
         Node end = new Node();
-        end.setFinalState(true);
+        end.setLexeme(regexLexeme);
         start.addTransition(any()).toNode(end);
         stack.push(new Context(start, end));
     }
@@ -195,14 +195,14 @@ public class RegexVisitor {
     @SuppressWarnings("unused")
     public void visitOptional(AstNode node) {
         Context context = stack.peek();
-        context.start.setFinalState(true);
+        context.start.setLexeme(regexLexeme);
     }
 
     @After("ZeroOrMore")
     @SuppressWarnings("unused")
     public void visitZeroOrMore(AstNode node) {
         Context context = stack.peek();
-        context.start.setFinalState(true);//having nothing is ok
+        context.start.setLexeme(regexLexeme);//having nothing is ok
         List<net.jr.lexer.automaton.Transition> list = new ArrayList<>(context.end.getIncomingTransitions());
         for (net.jr.lexer.automaton.Transition _t : list) {
             Transition t = (Transition)_t;
@@ -257,13 +257,13 @@ public class RegexVisitor {
         }
 
         if (right.end.isFinalState() || left.end.isFinalState()) {
-            lastNode.setFinalState(true);
+            lastNode.setLexeme(regexLexeme);;
         }
 
         right.end.disconnect();
         left.end.disconnect();
 
-        lastNode.setFinalState(true);
+        lastNode.setLexeme(regexLexeme);
         stack.push(new Context(firstNode, lastNode));
     }
 }

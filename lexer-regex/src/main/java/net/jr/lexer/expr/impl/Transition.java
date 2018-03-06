@@ -5,7 +5,7 @@ import net.jr.lexer.impl.CharConstraint;
 
 import java.util.function.Function;
 
-public class Transition implements net.jr.lexer.automaton.Transition {
+public class Transition implements net.jr.lexer.automaton.Transition<Character> {
 
     private CharConstraint charConstraint;
 
@@ -61,8 +61,8 @@ public class Transition implements net.jr.lexer.automaton.Transition {
     }
 
     @Override
-    public boolean isValid(char c) {
-        return true;
+    public boolean isValid(Character c) {
+        return charConstraint.apply(c);
     }
 
     @Override
@@ -70,8 +70,4 @@ public class Transition implements net.jr.lexer.automaton.Transition {
         return getTarget();
     }
 
-    @Override
-    public Function getCondition() {
-        return charConstraint;
-    }
 }

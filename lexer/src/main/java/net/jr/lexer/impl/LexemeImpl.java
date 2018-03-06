@@ -2,6 +2,7 @@ package net.jr.lexer.impl;
 
 import net.jr.lexer.Lexeme;
 import net.jr.lexer.automaton.Automaton;
+import net.jr.marshalling.MarshallingUtil;
 
 public abstract class LexemeImpl implements Lexeme {
 
@@ -47,10 +48,21 @@ public abstract class LexemeImpl implements Lexeme {
 
     @Override
     public String toString() {
-        if(name != null) {
+        if (name != null) {
             return name;
         } else {
             return super.toString();
         }
     }
+
+    @Override
+    public Lexeme withPriority(int priority) {
+        try {
+            LexemeImpl clone = MarshallingUtil.copyOf(this);
+            return clone;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

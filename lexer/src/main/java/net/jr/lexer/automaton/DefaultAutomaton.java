@@ -14,14 +14,9 @@ public class DefaultAutomaton implements Automaton {
 
     private State initialState;
 
-    private State currentState;
-
-    private String matchedString = "";
-
     private DefaultAutomaton(Lexeme tokenType, State initialState) {
         this.tokenType = tokenType;
         this.initialState = initialState;
-        this.currentState = initialState;
     }
 
     @Override
@@ -38,49 +33,13 @@ public class DefaultAutomaton implements Automaton {
         return tokenType;
     }
 
-    /**
-     * @param c
-     * @return true if the automaton is "dead"
-     */
-    @Override
-    public boolean step(char c) {
-        if (currentState == FailedState) {
-            return true;
-        }
-        Set<Transition> transitions = currentState.getOutgoingTransitions();
-        currentState = FailedState;
-        for (Transition transition : transitions) {
-            if (transition.isValid(c)) {
-                matchedString += c;
-                currentState = transition.getNextState();
-                break;
-            }
-        }
-        return currentState == FailedState;
-    }
-
-    @Override
-    public void reset() {
-        currentState = initialState;
-        this.matchedString = "";
-    }
-
-    @Override
-    public int getMatchedLength() {
-        return matchedString.length();
-    }
-
-    public boolean isInFinalState() {
-        return currentState.isFinalState();
-    }
-
     private static class StateImpl implements State, Cloneable {
 
         private Set<Transition> outgoingTransitions;
 
         private boolean finalState;
 
-        private Lexeme lexeme = null;
+        private Lexeme lexeme;
 
         private StateImpl clone(Map<StateImpl, StateImpl> knownClones) throws CloneNotSupportedException {
             StateImpl s = knownClones.get(this);
@@ -115,13 +74,6 @@ public class DefaultAutomaton implements Automaton {
             this.lexeme = lexeme;
         }
 
-        public static StateImpl nonFinal(Set<Transition> outgoingTransitions) {
-            StateImpl stateImpl = new StateImpl(outgoingTransitions, false, null);
-            stateImpl.outgoingTransitions = outgoingTransitions;
-            stateImpl.finalState = false;
-            return stateImpl;
-        }
-
         public static StateImpl finalState(Lexeme lexeme) {
             StateImpl stateImpl = new StateImpl(null, true, lexeme);
             return stateImpl;
@@ -153,7 +105,7 @@ public class DefaultAutomaton implements Automaton {
             this.nextState = nextState;
         }
 
-        public boolean isValid(char c) {
+        public boolean isValid(Character c) {
             return condition.apply(c);
         }
 
@@ -161,9 +113,6 @@ public class DefaultAutomaton implements Automaton {
             return nextState;
         }
 
-        public Function<Character, Boolean> getCondition() {
-            return condition;
-        }
     }
 
     public static class Builder {

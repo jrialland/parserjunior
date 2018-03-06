@@ -15,4 +15,6 @@ public interface Lexeme extends Symbol {
     default int getPriority() {
         return 1;
     }
+
+    Lexeme withPriority(int priority);
 }

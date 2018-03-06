@@ -13,11 +13,15 @@ public class Node implements State {
 
     private Set<net.jr.lexer.automaton.Transition> incomingTransitions = new HashSet<>();
 
-    private boolean finalState = false;
+    private Lexeme lexeme = null;
+
+    public void setLexeme(Lexeme lexeme) {
+        this.lexeme = lexeme;
+    }
 
     @Override
     public Lexeme getLexeme() {
-        throw new IllegalStateException();
+        return lexeme;
     }
 
     public Transition addTransition(CharConstraint charConstraint) {
@@ -50,10 +54,6 @@ public class Node implements State {
 
     @Override
     public boolean isFinalState() {
-        return finalState;
-    }
-
-    public void setFinalState(boolean finalState) {
-        this.finalState = finalState;
+        return lexeme != null;
     }
 }

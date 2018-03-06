@@ -383,4 +383,19 @@ public abstract class AbstractLexerTestCases {
         Assert.assertEquals("works", tokens.get(2).getText());
         Assert.assertEquals(Lexemes.eof(), tokens.get(3).getTokenType());
     }
+
+    @Test
+    public void testErrorAtEnd() {
+        try {
+            getLexer(Lexemes.literal("bar")).tokenize("ba");
+            Assert.fail();
+        } catch(LexicalError e) {
+            Assert.assertEquals(-1, e.getOffendingChar());
+        }
+    }
+
+    @Test
+    public void testEmpty() {
+        getLexer(Lexemes.cBinary()).tokenize("");
+    }
 }

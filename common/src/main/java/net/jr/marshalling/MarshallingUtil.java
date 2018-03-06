@@ -352,4 +352,8 @@ public class MarshallingUtil {
             }
         };
     }
+
+    public static <T> T copyOf(T obj) {
+        return fromByteArray(toByteArray(obj, false), false);
+    }
 }

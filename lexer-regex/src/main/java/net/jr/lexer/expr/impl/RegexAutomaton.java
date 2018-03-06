@@ -14,12 +14,6 @@ public class RegexAutomaton implements Automaton {
 
     private Node startNode;
 
-    private Set<Node> activeNodes;
-
-    private boolean inFinalState = false;
-
-    private int matchLen = 0;
-
     public RegexAutomaton(Node startNode) {
         this.startNode = startNode;
     }
@@ -27,45 +21,6 @@ public class RegexAutomaton implements Automaton {
     @Override
     public State getInitialState() {
         return startNode;
-    }
-
-    @Override
-    public boolean step(char c) {
-        inFinalState = false;
-        Set<Node> newActiveNodes = new HashSet<>();
-        for (Node node : activeNodes) {
-            for (net.jr.lexer.automaton.Transition _t : node.getOutgoingTransitions()) {
-                Transition t = (Transition)_t;
-                if (t.getCharConstraint().apply(c)) {
-                    Node target = t.getTarget();
-                    inFinalState = inFinalState || target.isFinalState();
-                    newActiveNodes.add(target);
-                }
-            }
-        }
-        activeNodes = newActiveNodes;
-        boolean dead = activeNodes.isEmpty();
-        if (!dead) {
-            matchLen++;
-        }
-        return dead;
-    }
-
-    @Override
-    public void reset() {
-        matchLen = 0;
-        activeNodes = new HashSet<>();
-        activeNodes.add(startNode);
-    }
-
-    @Override
-    public int getMatchedLength() {
-        return matchLen;
-    }
-
-    @Override
-    public boolean isInFinalState() {
-        return inFinalState;
     }
 
     @Override

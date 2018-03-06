@@ -56,20 +56,14 @@ public abstract class AbstractLexerStream implements LexerStream {
 
     @Override
     public Token next() {
-        if (buffer.isEmpty()) {
-            if (go) {
-                try {
-                    while (buffer.isEmpty()) {
-                        go = step(pushbackReader, token -> {
-                            buffer.addLast(token);
-                        });
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            } else {
-                throw new IllegalStateException();
+        try {
+            while (buffer.isEmpty()) {
+                go = step(pushbackReader, token ->
+                        buffer.addLast(token)
+                );
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         return buffer.removeFirst();
     }
