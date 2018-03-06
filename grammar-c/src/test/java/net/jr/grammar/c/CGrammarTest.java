@@ -1,6 +1,7 @@
 package net.jr.grammar.c;
 
 
+import net.jr.lexer.Lexemes;
 import net.jr.lexer.Lexer;
 import net.jr.lexer.LexicalError;
 import net.jr.lexer.Token;
@@ -37,6 +38,19 @@ public class CGrammarTest {
             it.next();
         }
     }
+
+    @Test
+    public void testLexTypes() {
+        Lexer l = new CGrammar().createParser().getLexer();
+        List<Token> tokens  = l.tokenize("int intish;");
+        Assert.assertEquals(4, tokens.size());
+        Assert.assertEquals(CGrammar.Tokens.Int, tokens.get(0).getTokenType());
+        Assert.assertEquals(CGrammar.Tokens.Identifier, tokens.get(1).getTokenType());
+        Assert.assertEquals(CGrammar.Tokens.DotComma, tokens.get(2).getTokenType());
+        Assert.assertEquals(Lexemes.eof(), tokens.get(3).getTokenType());
+
+    }
+
 
     @Test
     public void testEqAssociativity() {
