@@ -55,7 +55,7 @@ public class ParseError extends RuntimeException {
 
     /**
      * @param unexpectedToken
-     * @param expected        The basiclexemes that were expected according to parser's current state
+     * @param expected        The basicterminals that were expected according to parser's current state
      */
     public ParseError(Token unexpectedToken, Set<Symbol> expected) {
         super(getDefaultMessage(unexpectedToken, expected));

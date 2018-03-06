@@ -1,8 +1,8 @@
 package net.jr.lexer.expr.impl;
 
-import net.jr.lexer.Lexeme;
+import net.jr.lexer.Terminal;
 import net.jr.lexer.impl.*;
-import net.jr.lexer.basiclexemes.*;
+import net.jr.lexer.basicterminals.*;
 import net.jr.marshalling.MarshallingUtil;
 import org.junit.Assert;
 import org.junit.Test;
@@ -13,7 +13,7 @@ import java.util.concurrent.Callable;
 
 public class TestLexemes {
 
-    private static Map<Class<?>, Callable<? extends Lexeme>> types = new HashMap<>();
+    private static Map<Class<?>, Callable<? extends Terminal>> types = new HashMap<>();
 
     static {
         types.put(Artificial.class, () -> new Artificial("Test"));
@@ -40,7 +40,7 @@ public class TestLexemes {
 
             try {
 
-                Lexeme l = entry.getValue().call();
+                Terminal l = entry.getValue().call();
 
                 Assert.assertFalse(l.equals("hehe"));
                 Assert.assertFalse(l.equals(null));
@@ -57,8 +57,8 @@ public class TestLexemes {
     public void testHashCode() {
         types.entrySet().forEach(entry -> {
             try {
-                Lexeme l = entry.getValue().call();
-                Lexeme l2 = entry.getValue().call();
+                Terminal l = entry.getValue().call();
+                Terminal l2 = entry.getValue().call();
                 Assert.assertEquals(l.hashCode(), l.hashCode());
                 Assert.assertEquals(l.hashCode(), l2.hashCode());
             } catch (Exception e) {
@@ -71,10 +71,10 @@ public class TestLexemes {
     public void testMarshall() {
         types.entrySet().forEach(entry -> {
             try {
-                Lexeme l = entry.getValue().call();
+                Terminal l = entry.getValue().call();
                 byte[] bytes = MarshallingUtil.toByteArray(l, true);
                 Assert.assertFalse(bytes.length == 0);
-                Lexeme l2 = MarshallingUtil.fromByteArray(bytes, true);
+                Terminal l2 = MarshallingUtil.fromByteArray(bytes, true);
                 Assert.assertEquals(l, l2);
             } catch (Exception e) {
                 throw new RuntimeException(entry.getKey().getName(), e);

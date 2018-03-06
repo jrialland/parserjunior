@@ -1,4 +1,4 @@
-package net.jr.lexer.basiclexemes;
+package net.jr.lexer.basicterminals;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

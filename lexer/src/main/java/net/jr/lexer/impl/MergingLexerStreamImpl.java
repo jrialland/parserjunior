@@ -15,7 +15,6 @@ import java.io.StringWriter;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -30,7 +29,7 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
 
         private Set<Transition<Character>> outgoingTransitions = new HashSet<>();
 
-        private Lexeme lexeme;
+        private Terminal terminal;
 
         @Override
         public Set<Transition<Character>> getOutgoingTransitions() {
@@ -39,16 +38,16 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
 
         @Override
         public boolean isFinalState() {
-            return lexeme != null;
+            return terminal != null;
         }
 
         @Override
-        public Lexeme getLexeme() {
-            return lexeme;
+        public Terminal getTerminal() {
+            return terminal;
         }
 
-        public void setLexeme(Lexeme lexeme) {
-            this.lexeme = lexeme;
+        public void setTerminal(Terminal terminal) {
+            this.terminal = terminal;
         }
     }
 
@@ -70,7 +69,7 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
             if( s != null) {
                 initial.getOutgoingTransitions().addAll(s.getOutgoingTransitions());
                 if (s.isFinalState()) {
-                    initial.setLexeme(s.getLexeme());
+                    initial.setTerminal(s.getTerminal());
                 }
             }
         }
@@ -148,7 +147,7 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
         //find the state that is final with the highest priority
         List<State> posssibleFinals = newStates.stream()
                 .filter(s -> s.isFinalState())
-                .sorted(Comparator.comparingInt(s->-getLexer().getPriority(s.getLexeme())))
+                .sorted(Comparator.comparingInt(s->-getLexer().getPriority(s.getTerminal())))
                 .limit(1)
                 .collect(Collectors.toList());
 
@@ -157,7 +156,7 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
 //            StringWriter sw = new StringWriter();
 //            sw.append("Input can be matched by several tokens");
 //            sw.append(" : ");
-//            sw.append(posssibleFinals.stream().map(state -> state.getLexeme()).collect(Collectors.toList()).toString());
+//            sw.append(posssibleFinals.stream().map(state -> state.getTerminal()).collect(Collectors.toList()).toString());
 //            sw.append('\n');
 //            sw.append("(matched input :\n");
 //            sw.append("\t" + matched.toString().replaceAll("\n", "\t\n"));
@@ -168,7 +167,7 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
         State<Character> finalState = posssibleFinals.isEmpty() ? null : posssibleFinals.get(0);
 
         if(finalState != null) {
-            candidate = new Token(finalState.getLexeme(), startPosition, matched.toString());
+            candidate = new Token(finalState.getTerminal(), startPosition, matched.toString());
         }
 
         this.position = this.position.updated((char)c);

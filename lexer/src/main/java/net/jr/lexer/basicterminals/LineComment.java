@@ -1,14 +1,14 @@
-package net.jr.lexer.basiclexemes;
+package net.jr.lexer.basicterminals;
 
 import net.jr.lexer.automaton.DefaultAutomaton;
 import net.jr.lexer.impl.CharConstraint;
-import net.jr.lexer.impl.LexemeImpl;
+import net.jr.lexer.impl.TerminalImpl;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class LineComment extends LexemeImpl {
+public class LineComment extends TerminalImpl {
 
     private String commentStart;
 

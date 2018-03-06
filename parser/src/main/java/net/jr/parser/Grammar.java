@@ -465,7 +465,7 @@ public class Grammar {
             return this;
         } else {
             //ensure that we have a target rule that appear only once
-            Symbol start = new Forward("(all)");
+            Symbol start = new NonTerminal("(all)");
             Grammar cleanGrammar = new Grammar();
             cleanGrammar.precedenceLevels = precedenceLevels;
             if (name != null) {
@@ -551,8 +551,8 @@ public class Grammar {
         }
     }
 
-    public Forward rule(Symbol... symbols) {
-        Forward tmp = new Forward("(" + String.join(" ", Arrays.asList(symbols).stream().map(Symbol::toString).collect(Collectors.toList()) + ")"));
+    public NonTerminal rule(Symbol... symbols) {
+        NonTerminal tmp = new NonTerminal("(" + String.join(" ", Arrays.asList(symbols).stream().map(Symbol::toString).collect(Collectors.toList()) + ")"));
         addRule(tmp, symbols);
         return tmp;
     }
@@ -567,9 +567,9 @@ public class Grammar {
      * @param symbols
      * @return
      */
-    public Forward oneOf(Symbol... symbols) {
+    public NonTerminal oneOf(Symbol... symbols) {
         assert symbols.length > 1;
-        Forward tmp = new Forward("oneOf(" + String.join(", ", Arrays.asList(symbols).stream().map(Symbol::toString).collect(Collectors.toList())) + ")");
+        NonTerminal tmp = new NonTerminal("oneOf(" + String.join(", ", Arrays.asList(symbols).stream().map(Symbol::toString).collect(Collectors.toList())) + ")");
         for (Symbol s : symbols) {
             addRule(tmp, s);
         }
@@ -586,8 +586,8 @@ public class Grammar {
      * @param symbols
      * @return
      */
-    public Forward optional(Symbol... symbols) {
-        Forward opt = new Forward("optional(" + String.join(", ", Arrays.asList(symbols).stream().map(Symbol::toString).collect(Collectors.toList())) + ")");
+    public NonTerminal optional(Symbol... symbols) {
+        NonTerminal opt = new NonTerminal("optional(" + String.join(", ", Arrays.asList(symbols).stream().map(Symbol::toString).collect(Collectors.toList())) + ")");
         addRule(opt, symbols);
         addEmptyRule(opt);
         return opt;
@@ -603,8 +603,8 @@ public class Grammar {
      * @param symbols
      * @return
      */
-    public Forward oneOrMore(Symbol... symbols) {
-        Forward tmp = new Forward();
+    public NonTerminal oneOrMore(Symbol... symbols) {
+        NonTerminal tmp = new NonTerminal();
         tmp.setName(makeName("oneOrMore"));
         addRule(tmp, symbols);
         List<Symbol> list = new ArrayList<>();
@@ -624,8 +624,8 @@ public class Grammar {
      * @param symbols
      * @return
      */
-    public Forward zeroOrMore(Symbol... symbols) {
-        Forward tmp = new Forward();
+    public NonTerminal zeroOrMore(Symbol... symbols) {
+        NonTerminal tmp = new NonTerminal();
         tmp.setName(makeName("zeroOrMore"));
         addRule(tmp, symbols);
         List<Symbol> list = new ArrayList<>();
@@ -685,8 +685,8 @@ public class Grammar {
      * @param typeOfItems    the symbol for each element
      * @return
      */
-    public Forward list(boolean allowEmptyList, Symbol separator, Symbol typeOfItems) {
-        Forward tmp = new Forward("listOf(" + typeOfItems + ")");
+    public NonTerminal list(boolean allowEmptyList, Symbol separator, Symbol typeOfItems) {
+        NonTerminal tmp = new NonTerminal("listOf(" + typeOfItems + ")");
 
         //a list may contain only one item
         addRule(tmp, typeOfItems);

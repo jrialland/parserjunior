@@ -1,6 +1,6 @@
 package net.jr.lexer.automaton;
 
-import net.jr.lexer.Lexeme;
+import net.jr.lexer.Terminal;
 
 import java.util.Set;
 
@@ -10,5 +10,5 @@ public interface State<T> {
 
     boolean isFinalState();
 
-    Lexeme getLexeme();
+    Terminal getTerminal();
 }

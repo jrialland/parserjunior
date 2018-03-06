@@ -5,17 +5,17 @@ import org.junit.Test;
 
 import java.io.*;
 
-public class ForwardTest {
+public class NonTerminalTest {
 
     @Test
     public void testMarshall() throws IOException {
-        Forward f = new Forward("test");
+        NonTerminal f = new NonTerminal("test");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream d = new DataOutputStream(baos);
         f.marshall(d);
         d.flush();
 
-        Forward f2 = Forward.unMarshall(new DataInputStream(new ByteArrayInputStream(baos.toByteArray())));
+        NonTerminal f2 = NonTerminal.unMarshall(new DataInputStream(new ByteArrayInputStream(baos.toByteArray())));
 
         Assert.assertEquals(f.getName(), f2.getName());
         Assert.assertEquals(f, f2);
@@ -24,7 +24,7 @@ public class ForwardTest {
 
     @Test
     public void testEquals() {
-        Forward f = new Forward("test");
+        NonTerminal f = new NonTerminal("test");
         Assert.assertFalse(f.equals(null));
         Assert.assertTrue(f.equals(f));
 

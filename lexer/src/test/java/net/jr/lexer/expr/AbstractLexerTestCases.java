@@ -4,10 +4,10 @@ package net.jr.lexer.expr;
 import net.jr.common.Position;
 import net.jr.common.Symbol;
 import net.jr.lexer.*;
-import net.jr.lexer.basiclexemes.Literal;
-import net.jr.lexer.basiclexemes.MultilineComment;
-import net.jr.lexer.basiclexemes.SingleChar;
-import net.jr.lexer.basiclexemes.Word;
+import net.jr.lexer.basicterminals.Literal;
+import net.jr.lexer.basicterminals.MultilineComment;
+import net.jr.lexer.basicterminals.SingleChar;
+import net.jr.lexer.basicterminals.Word;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,7 +25,7 @@ public abstract class AbstractLexerTestCases {
 
     @Test
     public void testWhitespace() {
-        Lexeme x = new SingleChar('X');
+        Terminal x = new SingleChar('X');
         Lexer lexer = getLexer(Lexemes.whitespace(), x);
 
         Assert.assertEquals(2, lexer.tokenize(" ").size());
@@ -96,8 +96,8 @@ public abstract class AbstractLexerTestCases {
         Assert.assertEquals(34, tokens.size());
     }
 
-    protected Set<Lexeme> getMixedTokenTypes() {
-        Set<Lexeme> tokenTypes = new HashSet<>();
+    protected Set<Terminal> getMixedTokenTypes() {
+        Set<Terminal> tokenTypes = new HashSet<>();
         tokenTypes.add(new Literal("if"));
         tokenTypes.add(new Literal("then"));
         tokenTypes.add(new Literal("else"));
@@ -204,7 +204,7 @@ public abstract class AbstractLexerTestCases {
         int i = 0;
         Token token = null;
 
-        Set<Lexeme> tokenTypes = getMixedTokenTypes();
+        Set<Terminal> tokenTypes = getMixedTokenTypes();
         tokenTypes.add(Lexemes.whitespace());
 
         Lexer lexer = getLexer(tokenTypes);
@@ -354,7 +354,7 @@ public abstract class AbstractLexerTestCases {
     @Test
     public void testInt() {
         Lexer lexer = getLexer(Lexemes.literal("int"), Lexemes.cIdentifier());
-        Lexeme l = lexer.tokenize("int").get(0).getTokenType();
+        Terminal l = lexer.tokenize("int").get(0).getTokenType();
         Assert.assertEquals(l, Lexemes.literal("int"));
         Assert.assertFalse(l.equals(Lexemes.cIdentifier()));
     }
@@ -366,7 +366,7 @@ public abstract class AbstractLexerTestCases {
         //give a low priority to cIdentifier
         lexer.setPriority(Lexemes.cIdentifier(), 100);
 
-        Lexeme l = lexer.tokenize("int").get(0).getTokenType();
+        Terminal l = lexer.tokenize("int").get(0).getTokenType();
         Assert.assertEquals(l, Lexemes.cIdentifier());
         Assert.assertFalse(l.equals(Lexemes.literal("int")));
     }

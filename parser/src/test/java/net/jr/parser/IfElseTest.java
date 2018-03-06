@@ -1,7 +1,7 @@
 package net.jr.parser;
 
 import net.jr.common.Symbol;
-import net.jr.lexer.Lexeme;
+import net.jr.lexer.Terminal;
 import net.jr.lexer.Lexemes;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.ast.annotations.After;
@@ -13,15 +13,15 @@ public class IfElseTest {
 
     Parser parser;
 
-    Lexeme If = Lexemes.literal("if");
-    Lexeme Else = Lexemes.literal("else");
-    Lexeme LeftBrace = Lexemes.singleChar('(');
-    Lexeme RightBrace = Lexemes.singleChar(')');
-    Lexeme Expression = Lexemes.singleChar('E');
+    Terminal If = Lexemes.literal("if");
+    Terminal Else = Lexemes.literal("else");
+    Terminal LeftBrace = Lexemes.singleChar('(');
+    Terminal RightBrace = Lexemes.singleChar(')');
+    Terminal Expression = Lexemes.singleChar('E');
 
-    Symbol All = new Forward("All");
-    Symbol Statement = new Forward("Statement");
-    Symbol SelectionStatement = new Forward("SelectionStatement");
+    Symbol All = new NonTerminal("All");
+    Symbol Statement = new NonTerminal("Statement");
+    Symbol SelectionStatement = new NonTerminal("SelectionStatement");
 
     Grammar g = new Grammar();
 

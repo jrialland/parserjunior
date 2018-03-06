@@ -2,7 +2,7 @@ package net.jr.lexer;
 
 import net.jr.common.Symbol;
 import net.jr.lexer.automaton.Automaton;
-import net.jr.lexer.impl.LexemeImpl;
+import net.jr.lexer.impl.TerminalImpl;
 import net.jr.lexer.impl.MergingLexerStreamImpl;
 
 import java.io.IOException;
@@ -12,14 +12,14 @@ import java.util.*;
 import java.util.function.Function;
 
 /**
- * {@link Lexer} reference all the valid Lexeme that can be scanned, and can produce tokens by analyzing input text, searching
+ * {@link Lexer} reference all the valid Terminal that can be scanned, and can produce tokens by analyzing input text, searching
  * for matches in the list of the referenced Lexemes.
  */
 public class Lexer {
 
     private List<Automaton> automatons;
 
-    private Set<Lexeme> filteredOut = new HashSet<>();
+    private Set<Terminal> filteredOut = new HashSet<>();
 
     private TokenListener tokenListener = t -> t;
 
@@ -58,7 +58,7 @@ public class Lexer {
                 throw new IllegalArgumentException("Not a terminal : " + tokenType);
             }
             if (!tokenType.equals(Lexemes.eof())) {
-                Automaton a = ((LexemeImpl) tokenType).getAutomaton();
+                Automaton a = ((TerminalImpl) tokenType).getAutomaton();
                 automatons.add(a);
             }
         }
@@ -69,7 +69,7 @@ public class Lexer {
     }
 
     /**
-     * A given text may match several basiclexemes (for example 'int' may be recognized both by {@link Lexemes#literal(String)}  and {@link Lexemes#cIdentifier()})
+     * A given text may match several basicterminals (for example 'int' may be recognized both by {@link Lexemes#literal(String)}  and {@link Lexemes#cIdentifier()})
      * The priority can make the difference by choosing the right type when there is such conflict.
      * <p>
      * In the given example priority(literal('int')) > priority(cIdentifier)
@@ -111,7 +111,7 @@ public class Lexer {
      *
      * @param tokenType
      */
-    public void setFilteredOut(Lexeme tokenType) {
+    public void setFilteredOut(Terminal tokenType) {
 
         if (tokenType == null) {
             throw new IllegalArgumentException();
@@ -129,7 +129,7 @@ public class Lexer {
             }
         }
 
-        Automaton added = ((LexemeImpl) tokenType).getAutomaton();
+        Automaton added = ((TerminalImpl) tokenType).getAutomaton();
         automatons.add(added);
         filteredOut.add(tokenType);
     }
@@ -140,7 +140,7 @@ public class Lexer {
      * @param tokenType
      * @return
      */
-    public boolean isFilteredOut(Lexeme tokenType) {
+    public boolean isFilteredOut(Terminal tokenType) {
         return filteredOut.contains(tokenType);
     }
 

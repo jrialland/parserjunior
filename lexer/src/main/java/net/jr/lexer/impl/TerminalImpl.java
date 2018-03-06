@@ -1,10 +1,10 @@
 package net.jr.lexer.impl;
 
-import net.jr.lexer.Lexeme;
+import net.jr.lexer.Terminal;
 import net.jr.lexer.automaton.Automaton;
 import net.jr.marshalling.MarshallingUtil;
 
-public abstract class LexemeImpl implements Lexeme {
+public abstract class TerminalImpl implements Terminal {
 
     private Automaton automaton;
 
@@ -12,11 +12,11 @@ public abstract class LexemeImpl implements Lexeme {
 
     private String name;
 
-    public LexemeImpl() {
+    public TerminalImpl() {
         this(null);
     }
 
-    public LexemeImpl(String name) {
+    public TerminalImpl(String name) {
         this.name = name;
         this.priority = 1;
     }
@@ -56,9 +56,9 @@ public abstract class LexemeImpl implements Lexeme {
     }
 
     @Override
-    public Lexeme withPriority(int priority) {
+    public Terminal withPriority(int priority) {
         try {
-            LexemeImpl clone = MarshallingUtil.copyOf(this);
+            TerminalImpl clone = MarshallingUtil.copyOf(this);
             return clone;
         } catch (Exception e) {
             throw new RuntimeException(e);

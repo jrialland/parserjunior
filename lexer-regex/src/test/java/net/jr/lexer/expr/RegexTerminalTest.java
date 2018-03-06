@@ -14,7 +14,7 @@ import java.awt.event.WindowEvent;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
-public class RegexLexemeTest {
+public class RegexTerminalTest {
 
     @BeforeClass
     public static void setupClass() {
@@ -23,7 +23,7 @@ public class RegexLexemeTest {
 
     @Test
     public void testSequence() {
-        RegexLexeme regexLexeme = new RegexLexeme("'test'");
+        RegexTerminal regexLexeme = new RegexTerminal("'test'");
         List<Token> tokens = Lexer.forLexemes(regexLexeme).tokenize("test");
         Assert.assertTrue(tokens.size() == 2);
         Assert.assertTrue(tokens.get(0).getTokenType().equals(regexLexeme));
@@ -31,13 +31,13 @@ public class RegexLexemeTest {
 
     @Test(expected = LexicalError.class)
     public void testSequence2() {
-        RegexLexeme regexLexeme = new RegexLexeme("'longTextSequence'");
+        RegexTerminal regexLexeme = new RegexTerminal("'longTextSequence'");
         Lexer.forLexemes(regexLexeme).tokenize("longT");
     }
 
     @Test
     public void testRange() {
-        RegexLexeme rangeLexeme = new RegexLexeme("'a'..'f'");
+        RegexTerminal rangeLexeme = new RegexTerminal("'a'..'f'");
         List<Token> tokens = Lexer.forLexemes(rangeLexeme).tokenize("a");
         Assert.assertTrue(tokens.size() == 2);
         Assert.assertTrue(tokens.get(0).getTokenType().equals(rangeLexeme));
@@ -45,13 +45,13 @@ public class RegexLexemeTest {
 
     @Test(expected = LexicalError.class)
     public void testRangeFail() {
-        RegexLexeme rangeLexeme = new RegexLexeme("'a'..'f'");
+        RegexTerminal rangeLexeme = new RegexTerminal("'a'..'f'");
         Lexer.forLexemes(rangeLexeme).tokenize("g");
     }
 
     @Test
     public void testOr() {
-        RegexLexeme choice = new RegexLexeme("'A'|'B'");
+        RegexTerminal choice = new RegexTerminal("'A'|'B'");
         List<Token> tokens = Lexer.forLexemes(choice).tokenize("B");
         Assert.assertTrue(tokens.size() == 2);
         Assert.assertTrue(tokens.get(0).getTokenType().equals(choice));
@@ -59,7 +59,7 @@ public class RegexLexemeTest {
 
     @Test
     public void testOr2() {
-        RegexLexeme choice = new RegexLexeme("'daddy'|'mommy'");
+        RegexTerminal choice = new RegexTerminal("'daddy'|'mommy'");
         List<Token> tokens = Lexer.forLexemes(choice).tokenize("daddy");
         Assert.assertTrue(tokens.size() == 2);
         Assert.assertTrue(tokens.get(0).getTokenType().equals(choice));
@@ -67,7 +67,7 @@ public class RegexLexemeTest {
 
     @Test
     public void testOr3() {
-        RegexLexeme choice = new RegexLexeme("'a'..'z'|'A'..'Z'");
+        RegexTerminal choice = new RegexTerminal("'a'..'z'|'A'..'Z'");
         List<Token> tokens = Lexer.forLexemes(choice).tokenize("X");
         Assert.assertTrue(tokens.size() == 2);
         Assert.assertTrue(tokens.get(0).getTokenType().equals(choice));
@@ -75,13 +75,13 @@ public class RegexLexemeTest {
 
     @Test(expected = LexicalError.class)
     public void testOrFail() {
-        RegexLexeme choice = new RegexLexeme("'daddy'|'mommy'");
+        RegexTerminal choice = new RegexTerminal("'daddy'|'mommy'");
         Lexer.forLexemes(choice).tokenize("B");
     }
 
     @Test
     public void testOptional() {
-        RegexLexeme opt = new RegexLexeme("(((((('nancy'?))))))");
+        RegexTerminal opt = new RegexTerminal("(((((('nancy'?))))))");
         Lexer.forLexemes(opt).tokenize("");
         Lexer.forLexemes(opt).tokenize("nancy");
 
@@ -99,13 +99,13 @@ public class RegexLexemeTest {
 
     @Test
     public void testGroup1() {
-        RegexLexeme g = new RegexLexeme("('a''b''c''d')");
+        RegexTerminal g = new RegexTerminal("('a''b''c''d')");
         Lexer.forLexemes(g).tokenize("abcd");
     }
 
     @Test
     public void testGroup() {
-        RegexLexeme g = new RegexLexeme("(('a')|('b'))");
+        RegexTerminal g = new RegexTerminal("(('a')|('b'))");
         List<Token> tokens = Lexer.forLexemes(g).tokenize("ab");
         Assert.assertEquals(3, tokens.size());
         Assert.assertEquals(g, tokens.get(0).getTokenType());
@@ -116,7 +116,7 @@ public class RegexLexemeTest {
 
     @Test
     public void testZeroOrMore() {
-        RegexLexeme choice = new RegexLexeme("('ta'|'da')*");
+        RegexTerminal choice = new RegexTerminal("('ta'|'da')*");
         Lexer.forLexemes(choice).tokenize("");
         Lexer.forLexemes(choice).tokenize("da");
         Lexer.forLexemes(choice).tokenize("tadadatadadata");
@@ -124,14 +124,14 @@ public class RegexLexemeTest {
 
     @Test
     public void testOneOrMore() {
-        RegexLexeme choice = new RegexLexeme("'nah'+");
+        RegexTerminal choice = new RegexTerminal("'nah'+");
         Lexer.forLexemes(choice).tokenize("nah");
         Lexer.forLexemes(choice).tokenize("nahnahnah");
     }
 
     @Test
     public void testAnyChar() {
-        RegexLexeme anyCharLexeme = new RegexLexeme(".");
+        RegexTerminal anyCharLexeme = new RegexTerminal(".");
         List<Token> tokens = Lexer.forLexemes(anyCharLexeme).tokenize("a");
         Assert.assertTrue(tokens.size() == 2);
         Assert.assertTrue(tokens.get(0).getTokenType().equals(anyCharLexeme));
@@ -139,7 +139,7 @@ public class RegexLexemeTest {
 
     @Test
     public void testHex() {
-        RegexLexeme hex = new RegexLexeme("'0x'(('0'..'9'|'a'..'f'|'A'..'F')+)");
+        RegexTerminal hex = new RegexTerminal("'0x'(('0'..'9'|'a'..'f'|'A'..'F')+)");
         List<Token> tokens = Lexer.forLexemes(hex).tokenize("0xdeadbeef");
         Assert.assertTrue(tokens.size() == 2);
         Assert.assertTrue(tokens.get(0).getTokenType().equals(hex));
@@ -149,7 +149,7 @@ public class RegexLexemeTest {
     @Ignore
     @Test
     public void testGraph() throws Exception {
-        RegexLexeme rangeLexeme = new RegexLexeme("'john''ny'?");
+        RegexTerminal rangeLexeme = new RegexTerminal("'john''ny'?");
         RegexAutomaton ra = (RegexAutomaton) rangeLexeme.getAutomaton();
         System.out.println(ra.toGraphviz());
         GraphvizViewer viewer = GraphvizViewer.show(ra.toGraphviz());

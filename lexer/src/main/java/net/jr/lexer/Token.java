@@ -3,17 +3,17 @@ package net.jr.lexer;
 import net.jr.common.Position;
 
 /**
- * A {@link Token} is the basic 'word' of a particular program.
+ * A {@link Token} is the basicterminals 'word' of a particular program.
  */
 public class Token {
 
-    private Lexeme tokenType;
+    private Terminal tokenType;
 
     private Position position;
 
     private String matchedText;
 
-    public Token(Lexeme tokenType, Position position, String matchedText) {
+    public Token(Terminal tokenType, Position position, String matchedText) {
         this.tokenType = tokenType;
         this.position = position;
         this.matchedText = matchedText;
@@ -29,7 +29,7 @@ public class Token {
     /**
      * @return the type of this token
      */
-    public Lexeme getTokenType() {
+    public Terminal getTokenType() {
         return tokenType;
     }
 

@@ -1,8 +1,8 @@
-package net.jr.lexer.basiclexemes;
+package net.jr.lexer.basicterminals;
 
 import net.jr.lexer.Lexemes;
 import net.jr.lexer.automaton.DefaultAutomaton;
-import net.jr.lexer.impl.LexemeImpl;
+import net.jr.lexer.impl.TerminalImpl;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -10,7 +10,7 @@ import java.io.IOException;
 
 import static net.jr.lexer.impl.CharConstraint.Builder.*;
 
-public class CInteger extends LexemeImpl {
+public class CInteger extends TerminalImpl {
 
     public CInteger() {
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);

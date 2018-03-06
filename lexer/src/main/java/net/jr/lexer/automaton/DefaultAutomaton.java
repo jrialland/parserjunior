@@ -1,6 +1,6 @@
 package net.jr.lexer.automaton;
 
-import net.jr.lexer.Lexeme;
+import net.jr.lexer.Terminal;
 import net.jr.lexer.impl.CharConstraint;
 
 import java.util.*;
@@ -10,11 +10,11 @@ public class DefaultAutomaton implements Automaton {
 
     private static final StateImpl FailedState = new StateImpl(Collections.emptySet(), false, null);
 
-    private Lexeme tokenType;
+    private Terminal tokenType;
 
     private State initialState;
 
-    private DefaultAutomaton(Lexeme tokenType, State initialState) {
+    private DefaultAutomaton(Terminal tokenType, State initialState) {
         this.tokenType = tokenType;
         this.initialState = initialState;
     }
@@ -29,7 +29,7 @@ public class DefaultAutomaton implements Automaton {
         return new DefaultAutomaton(tokenType, initialState);
     }
 
-    public Lexeme getTokenType() {
+    public Terminal getTokenType() {
         return tokenType;
     }
 
@@ -39,7 +39,7 @@ public class DefaultAutomaton implements Automaton {
 
         private boolean finalState;
 
-        private Lexeme lexeme;
+        private Terminal terminal;
 
         private StateImpl clone(Map<StateImpl, StateImpl> knownClones) throws CloneNotSupportedException {
             StateImpl s = knownClones.get(this);
@@ -55,7 +55,7 @@ public class DefaultAutomaton implements Automaton {
 
             Set<Transition> clonedTransitions = new HashSet<>();
             Map<StateImpl, StateImpl> clones = new HashMap<>();
-            clones.put(this, new StateImpl(clonedTransitions, finalState, lexeme));
+            clones.put(this, new StateImpl(clonedTransitions, finalState, terminal));
 
             for (Transition t : clonedTransitions) {
                 TransitionImpl tImpl = (TransitionImpl)t;
@@ -68,14 +68,14 @@ public class DefaultAutomaton implements Automaton {
 
         }
 
-        private StateImpl(Set<Transition> transitions, boolean finalState, Lexeme lexeme) {
+        private StateImpl(Set<Transition> transitions, boolean finalState, Terminal terminal) {
             this.outgoingTransitions = transitions;
             this.finalState = finalState;
-            this.lexeme = lexeme;
+            this.terminal = terminal;
         }
 
-        public static StateImpl finalState(Lexeme lexeme) {
-            StateImpl stateImpl = new StateImpl(null, true, lexeme);
+        public static StateImpl finalState(Terminal terminal) {
+            StateImpl stateImpl = new StateImpl(null, true, terminal);
             return stateImpl;
         }
 
@@ -89,8 +89,8 @@ public class DefaultAutomaton implements Automaton {
         }
 
         @Override
-        public Lexeme getLexeme() {
-            return lexeme;
+        public Terminal getTerminal() {
+            return terminal;
         }
     }
 
@@ -117,15 +117,15 @@ public class DefaultAutomaton implements Automaton {
 
     public static class Builder {
 
-        private Lexeme tokenType;
+        private Terminal tokenType;
 
         private BuilderStateImpl initialState = new BuilderStateImpl(new StateImpl(new HashSet<>(), false, null));
 
-        private Builder(Lexeme tokenType) {
+        private Builder(Terminal tokenType) {
             this.tokenType = tokenType;
         }
 
-        public static Builder forTokenType(Lexeme tokenType) {
+        public static Builder forTokenType(Terminal tokenType) {
             return new Builder(tokenType);
         }
 

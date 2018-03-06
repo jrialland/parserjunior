@@ -1,13 +1,13 @@
 package net.jr.lexer.expr.impl;
 
 import net.jr.common.Symbol;
-import net.jr.lexer.Lexeme;
+import net.jr.lexer.Terminal;
 import net.jr.lexer.Lexemes;
 import net.jr.lexer.Lexer;
 import net.jr.lexer.Token;
-import net.jr.lexer.basiclexemes.Literal;
-import net.jr.lexer.basiclexemes.QuotedString;
-import net.jr.parser.Forward;
+import net.jr.lexer.basicterminals.Literal;
+import net.jr.lexer.basicterminals.QuotedString;
+import net.jr.parser.NonTerminal;
 import net.jr.parser.Grammar;
 import net.jr.parser.Parser;
 
@@ -30,37 +30,37 @@ public class RegexGrammar extends Grammar {
 
     public static final class Tokens {
 
-        public static final Lexeme LeftBrace = Lexemes.singleChar('(');
+        public static final Terminal LeftBrace = Lexemes.singleChar('(');
 
-        public static final Lexeme RightBrace = Lexemes.singleChar(')');
+        public static final Terminal RightBrace = Lexemes.singleChar(')');
 
-        public static final Lexeme Dot = Lexemes.singleChar('.');
+        public static final Terminal Dot = Lexemes.singleChar('.');
 
-        public static final Lexeme Plus = Lexemes.singleChar('+');
+        public static final Terminal Plus = Lexemes.singleChar('+');
 
-        public static final Lexeme Pipe = Lexemes.singleChar('|');
+        public static final Terminal Pipe = Lexemes.singleChar('|');
 
-        public static final Lexeme QuestionMark = Lexemes.singleChar('?');
+        public static final Terminal QuestionMark = Lexemes.singleChar('?');
 
-        public static final Lexeme Star = Lexemes.singleChar('*');
+        public static final Terminal Star = Lexemes.singleChar('*');
 
-        public static final Lexeme ThreePoints = new Literal("..");
+        public static final Terminal ThreePoints = new Literal("..");
 
-        public static final Lexeme Char = Lexemes.cCharacter();
+        public static final Terminal Char = Lexemes.cCharacter();
 
-        public static final Lexeme SingleQuotedString = new QuotedString('\'', '\'', '\\', "\n\r".toCharArray());
+        public static final Terminal SingleQuotedString = new QuotedString('\'', '\'', '\\', "\n\r".toCharArray());
 
     }
 
-    public static final Forward OneOrMoreExpr = new Forward("OneOrMoreExpr");
+    public static final NonTerminal OneOrMoreExpr = new NonTerminal("OneOrMoreExpr");
 
-    public static final Forward Regex = new Forward("Regex");
+    public static final NonTerminal Regex = new NonTerminal("Regex");
 
-    public static final Forward Expr = new Forward("Expr");
+    public static final NonTerminal Expr = new NonTerminal("Expr");
 
-    public static final Forward Sequence = new Forward("Sequence");
+    public static final NonTerminal Sequence = new NonTerminal("Sequence");
 
-    public static final Forward CharacterRange = new Forward("CharacterRange");
+    public static final NonTerminal CharacterRange = new NonTerminal("CharacterRange");
 
     private Lexer lexer;
 

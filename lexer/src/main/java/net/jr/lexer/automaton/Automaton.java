@@ -1,10 +1,10 @@
 package net.jr.lexer.automaton;
 
-import net.jr.lexer.Lexeme;
+import net.jr.lexer.Terminal;
 
 public interface Automaton extends Cloneable {
 
-    Lexeme getTokenType();
+    Terminal getTokenType();
 
     Object clone() throws CloneNotSupportedException;
 

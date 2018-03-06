@@ -1,8 +1,8 @@
-package net.jr.lexer.basiclexemes;
+package net.jr.lexer.basicterminals;
 
 import net.jr.lexer.automaton.Automaton;
 import net.jr.lexer.automaton.DefaultAutomaton;
-import net.jr.lexer.impl.LexemeImpl;
+import net.jr.lexer.impl.TerminalImpl;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -13,7 +13,7 @@ import static net.jr.lexer.impl.CharConstraint.Builder.eq;
 /**
  * A literal is a 'keyword' i.e a fixed string.
  */
-public class Literal extends LexemeImpl {
+public class Literal extends TerminalImpl {
 
     private String value;
 

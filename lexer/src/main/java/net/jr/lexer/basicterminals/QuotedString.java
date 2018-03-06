@@ -1,8 +1,8 @@
-package net.jr.lexer.basiclexemes;
+package net.jr.lexer.basicterminals;
 
 import net.jr.lexer.automaton.Automaton;
 import net.jr.lexer.automaton.DefaultAutomaton;
-import net.jr.lexer.impl.LexemeImpl;
+import net.jr.lexer.impl.TerminalImpl;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -11,7 +11,7 @@ import java.util.Arrays;
 
 import static net.jr.lexer.impl.CharConstraint.Builder.*;
 
-public class QuotedString extends LexemeImpl {
+public class QuotedString extends TerminalImpl {
 
     private Automaton automaton;
 

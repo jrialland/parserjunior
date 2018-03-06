@@ -4,7 +4,7 @@ import net.jr.lexer.expr.impl.RegexAutomaton;
 import net.jr.lexer.expr.impl.RegexGrammar;
 import net.jr.lexer.expr.impl.RegexVisitor;
 import net.jr.lexer.automaton.Automaton;
-import net.jr.lexer.impl.LexemeImpl;
+import net.jr.lexer.impl.TerminalImpl;
 import net.jr.parser.Parser;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.ast.VisitorHelper;
@@ -14,9 +14,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
- * A Lexeme that can be configured using some kind of 'regular expressions'.
+ * A Terminal that can be configured using some kind of 'regular expressions'.
  */
-public class RegexLexeme extends LexemeImpl {
+public class RegexTerminal extends TerminalImpl {
 
     private static final RegexGrammar Grammar = new RegexGrammar();
 
@@ -28,11 +28,11 @@ public class RegexLexeme extends LexemeImpl {
 
     private RegexAutomaton automaton;
 
-    public RegexLexeme(String expression) {
+    public RegexTerminal(String expression) {
         this(expression, 1);
     }
 
-    public RegexLexeme(String expression, int priority) {
+    public RegexTerminal(String expression, int priority) {
         this.expression = expression;
         this.priority = priority;
 
@@ -55,11 +55,11 @@ public class RegexLexeme extends LexemeImpl {
             return false;
         }
 
-        if (!obj.getClass().isAssignableFrom(RegexLexeme.class)) {
+        if (!obj.getClass().isAssignableFrom(RegexTerminal.class)) {
             return false;
         }
 
-        final RegexLexeme o = (RegexLexeme) obj;
+        final RegexTerminal o = (RegexTerminal) obj;
 
         return expression.equals(o.expression) && priority == o.priority;
     }
@@ -71,10 +71,10 @@ public class RegexLexeme extends LexemeImpl {
     }
 
     @SuppressWarnings("unused")
-    public static RegexLexeme unMarshall(DataInputStream in) throws IOException {
+    public static RegexTerminal unMarshall(DataInputStream in) throws IOException {
         String expression = in.readUTF();
         int priority = in.readInt();
-        return new RegexLexeme(expression, priority);
+        return new RegexTerminal(expression, priority);
     }
 
     @Override

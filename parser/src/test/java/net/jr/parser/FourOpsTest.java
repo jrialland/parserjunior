@@ -1,6 +1,6 @@
 package net.jr.parser;
 
-import net.jr.lexer.Lexeme;
+import net.jr.lexer.Terminal;
 import net.jr.lexer.Lexemes;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.ast.VisitorHelper;
@@ -14,17 +14,17 @@ public class FourOpsTest {
 
     static class FourOps extends Grammar {
 
-        private static final Lexeme Number = Lexemes.cInteger();
+        private static final Terminal Number = Lexemes.cInteger();
 
-        private static final Lexeme Plus = Lexemes.singleChar('+');
+        private static final Terminal Plus = Lexemes.singleChar('+');
 
-        private static final Lexeme Minus = Lexemes.singleChar('-');
+        private static final Terminal Minus = Lexemes.singleChar('-');
 
-        private static final Lexeme Mult = Lexemes.singleChar('*');
+        private static final Terminal Mult = Lexemes.singleChar('*');
 
-        private static final Lexeme Div = Lexemes.singleChar('/');
+        private static final Terminal Div = Lexemes.singleChar('/');
 
-        private static final Forward Expr = new Forward("Expr");
+        private static final NonTerminal Expr = new NonTerminal("Expr");
 
         public FourOps() {
 

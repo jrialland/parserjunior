@@ -11,7 +11,7 @@ import static net.jr.lexer.impl.CharConstraint.Builder.inList;
 /**
  * Define a lexeme that can be any of the characters passed to its constructor.
  */
-public class OneOf extends LexemeImpl {
+public class OneOf extends TerminalImpl {
 
     private String chars;
 

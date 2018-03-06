@@ -1,7 +1,7 @@
 package net.jr.parser.ast;
 
 import net.jr.common.Symbol;
-import net.jr.parser.Forward;
+import net.jr.parser.NonTerminal;
 import net.jr.parser.Rule;
 import net.jr.parser.ast.annotations.After;
 import net.jr.parser.ast.annotations.AfterEachNode;
@@ -26,8 +26,8 @@ public class VisitorHelper {
     }
 
     private static String getNameForSymbol(Symbol symbol) {
-        if (symbol instanceof Forward) {
-            String name = ((Forward) symbol).getName();
+        if (symbol instanceof NonTerminal) {
+            String name = ((NonTerminal) symbol).getName();
             if (name != null) {
                 return name;
             }

@@ -1,6 +1,6 @@
 package net.jr.lexer.automaton;
 
-import net.jr.lexer.Lexeme;
+import net.jr.lexer.Terminal;
 import net.jr.marshalling.MarshallingCapable;
 import net.jr.marshalling.MarshallingUtil;
 
@@ -12,17 +12,17 @@ import java.util.Map;
 
 public class FailAutomaton implements Automaton, MarshallingCapable {
 
-    private static Map<Lexeme, FailAutomaton> failAutomatonMap = new HashMap<>();
+    private static Map<Terminal, FailAutomaton> failAutomatonMap = new HashMap<>();
 
-    private Lexeme lexeme;
+    private Terminal terminal;
 
-    private FailAutomaton(Lexeme lexeme) {
-        this.lexeme = lexeme;
+    private FailAutomaton(Terminal terminal) {
+        this.terminal = terminal;
     }
 
     @Override
-    public Lexeme getTokenType() {
-        return lexeme;
+    public Terminal getTokenType() {
+        return terminal;
     }
 
     @Override
@@ -32,18 +32,18 @@ public class FailAutomaton implements Automaton, MarshallingCapable {
 
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
-        lexeme.marshall(dataOutputStream);
+        terminal.marshall(dataOutputStream);
     }
 
     @SuppressWarnings("unused")
     public static Automaton unMarshall(DataInputStream in) throws IOException {
-        Lexeme l = MarshallingUtil.unMarshall(in);
+        Terminal l = MarshallingUtil.unMarshall(in);
         return get(l);
     }
 
     @Override
     public int hashCode() {
-        return lexeme.hashCode() + 3;
+        return terminal.hashCode() + 3;
     }
 
     @Override
@@ -57,11 +57,11 @@ public class FailAutomaton implements Automaton, MarshallingCapable {
         }
 
         final FailAutomaton o = (FailAutomaton) obj;
-        return o.lexeme.equals(lexeme);
+        return o.terminal.equals(terminal);
     }
 
-    public static FailAutomaton get(Lexeme lexeme) {
-        return failAutomatonMap.computeIfAbsent(lexeme, l -> new FailAutomaton(l));
+    public static FailAutomaton get(Terminal terminal) {
+        return failAutomatonMap.computeIfAbsent(terminal, l -> new FailAutomaton(l));
     }
 
     @Override

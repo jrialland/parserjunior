@@ -3,9 +3,9 @@ package net.jr.parser;
 import net.jr.common.Symbol;
 import net.jr.lexer.Lexemes;
 import net.jr.lexer.Lexer;
-import net.jr.lexer.basiclexemes.Literal;
-import net.jr.lexer.basiclexemes.SingleChar;
-import net.jr.lexer.basiclexemes.Word;
+import net.jr.lexer.basicterminals.Literal;
+import net.jr.lexer.basicterminals.SingleChar;
+import net.jr.lexer.basicterminals.Word;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.impl.ActionTableCaching;
 import net.jr.parser.impl.LRParser;
@@ -25,12 +25,12 @@ public class GrammarTest {
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
     }
 
-    Symbol S = new Forward("S");
-    Symbol N = new Forward("N");
-    Symbol E = new Forward("E");
-    Symbol V = new Forward("V");
+    Symbol S = new NonTerminal("S");
+    Symbol N = new NonTerminal("N");
+    Symbol E = new NonTerminal("E");
+    Symbol V = new NonTerminal("V");
 
-    Symbol B = new Forward("B");
+    Symbol B = new NonTerminal("B");
 
     SingleChar x = new SingleChar('x');
     SingleChar eq = new SingleChar('=');
@@ -115,7 +115,7 @@ public class GrammarTest {
 
     @Test
     public void testParseSimpleChoice() {
-        Symbol V = new Forward("V");
+        Symbol V = new NonTerminal("V");
         Grammar g = new Grammar();
         g.addRule(V, new SingleChar('0'));
         g.addRule(V, new SingleChar('1'));
@@ -128,8 +128,8 @@ public class GrammarTest {
     @Test
     public void testParseSimpleList() {
         Grammar g = new Grammar();
-        Symbol L = new Forward("list");
-        Symbol I = new Forward("inList");
+        Symbol L = new NonTerminal("list");
+        Symbol I = new NonTerminal("inList");
         Symbol ident = Lexemes.cIdentifier();
 
         g.addRule(L, new SingleChar('('), I, new SingleChar(')'));
@@ -154,7 +154,7 @@ public class GrammarTest {
     @Test
     public void testList() {
         Grammar g = new Grammar();
-        Symbol L = new Forward("list");
+        Symbol L = new NonTerminal("list");
         g.addRule(L, new SingleChar('('), g.list(true, new SingleChar(','), Lexemes.cIdentifier()), new SingleChar(')'));
 
         Parser parser = g.createParser(L, false);
@@ -180,7 +180,7 @@ public class GrammarTest {
 
         Grammar g = new Grammar();
 
-        Forward listOfInts = new Forward("listOfInts");
+        NonTerminal listOfInts = new NonTerminal("listOfInts");
         g.addRule(listOfInts, g.list(true, Lexemes.singleChar(','), Lexemes.cInteger()));
 
         AstNode list = g.createParser(false).parse("51,178,1158,155").getFirstChild();
@@ -194,7 +194,7 @@ public class GrammarTest {
     @Test
     public void testEmptyList() {
         Grammar g = new Grammar();
-        Forward listOfInts = new Forward("listOfInts");
+        NonTerminal listOfInts = new NonTerminal("listOfInts");
         g.addRule(listOfInts, g.list(true, Lexemes.singleChar(','), Lexemes.cInteger()));
         AstNode emptyList = g.createParser(false).parse("").getFirstChild();
         Assert.assertTrue(emptyList.getChildren().isEmpty());
@@ -204,7 +204,7 @@ public class GrammarTest {
     public void testZeroOrMore() {
 
         Grammar g = new Grammar();
-        Symbol L = new Forward("onomatopoeias");
+        Symbol L = new NonTerminal("onomatopoeias");
         g.addRule(L, new Literal(">>"), g.zeroOrMore(Lexemes.cIdentifier(), new SingleChar('!')));
 
         Parser parser = g.createParser(L, false);
@@ -220,7 +220,7 @@ public class GrammarTest {
     @Test
     public void testOneOrMore() {
         Grammar g = new Grammar();
-        Symbol S = new Forward("S");
+        Symbol S = new NonTerminal("S");
         g.addRule(S, g.oneOrMore(new Word("nahnah")), new Word("batman"));
 
         Parser parser = g.createParser(S, false);
@@ -251,7 +251,7 @@ public class GrammarTest {
 
         Stack<Integer> calculatorStack = new Stack<>();
         Grammar g = new Grammar();
-        Symbol E = new Forward("E");
+        Symbol E = new NonTerminal("E");
 
         g.setPrecedenceLevel(20, mult, div);
         g.setPrecedenceLevel(10, plus, minus);

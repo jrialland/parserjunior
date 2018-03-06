@@ -1,7 +1,7 @@
 package net.jr.lexer;
 
 import net.jr.lexer.impl.*;
-import net.jr.lexer.basiclexemes.*;
+import net.jr.lexer.basicterminals.*;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -39,18 +39,18 @@ public class Lexemes {
         cIdentifier.setName("cIdentifier");
     }
 
-    private static final Lexeme whitespaces = new Word(WhitespacesNonNewLine);
+    private static final Terminal whitespaces = new Word(WhitespacesNonNewLine);
 
-    private static final Lexeme lowercaseWord = new Word(LowercaseLetters);
+    private static final Terminal lowercaseWord = new Word(LowercaseLetters);
 
 
-    private static final Map<String, Lexeme> Artificials = new TreeMap<>();
+    private static final Map<String, Terminal> Artificials = new TreeMap<>();
 
     /**
      * returns a new lexeme that matches nothing, ie a lexeme that will never be encountered.
      * This is useful when using artificial lexeme when dealing with context-aware grammars (for exemple the C typedef-name issue)
      */
-    public static Lexeme artificial(String name) {
+    public static Terminal artificial(String name) {
         assert name != null;
         return Artificials.computeIfAbsent(name, k -> {
             Artificial a = new Artificial(k);
@@ -59,32 +59,32 @@ public class Lexemes {
         });
     }
 
-    private static final Lexeme Eof = artificial("ᵉᵒᶠ");
+    private static final Terminal Eof = artificial("ᵉᵒᶠ");
 
-    private static final Lexeme Empty = artificial("ε");
+    private static final Terminal Empty = artificial("ε");
 
     /*
      * @return The lexeme for a C identifier
      */
-    public static final Lexeme cIdentifier() {
+    public static final Terminal cIdentifier() {
         return cIdentifier;
     }
 
     /**
-     * @return The Lexeme for a C string (with double-quotes)
+     * @return The Terminal for a C string (with double-quotes)
      */
-    public static final Lexeme cString() {
+    public static final Terminal cString() {
         return cString;
     }
 
     /**
      * @return a whitespace
      */
-    public static final Lexeme whitespace() {
+    public static final Terminal whitespace() {
         return whitespaces;
     }
 
-    public static final Lexeme lowercaseWord() {
+    public static final Terminal lowercaseWord() {
         return lowercaseWord;
     }
 
@@ -94,18 +94,18 @@ public class Lexemes {
      *
      * @return
      */
-    public static final Lexeme eof() {
+    public static final Terminal eof() {
         return Eof;
     }
 
 
     /**
-     * The 'empty' Lexeme may be used when referencing the absence of any symbol in a grammar.
+     * The 'empty' Terminal may be used when referencing the absence of any symbol in a grammar.
      * This lexeme is 'artificial' and may therefore not be emitted by a practical lexer.
      *
      * @return
      */
-    public static final Lexeme empty() {
+    public static final Terminal empty() {
         return Empty;
     }
 
@@ -115,7 +115,7 @@ public class Lexemes {
      * @param commentStart
      * @return
      */
-    public static final Lexeme lineComment(String commentStart) {
+    public static final Terminal lineComment(String commentStart) {
         return new LineComment(commentStart);
     }
 
@@ -126,41 +126,41 @@ public class Lexemes {
      * @param commentEnd   comment end ("*&#47;" by example)
      * @return
      */
-    public static final Lexeme multilineComment(String commentStart, String commentEnd) {
+    public static final Terminal multilineComment(String commentStart, String commentEnd) {
         return new MultilineComment(commentStart, commentEnd);
     }
 
-    private static LexemeImpl CHexNumber = new CHexNumber();
+    private static TerminalImpl CHexNumber = new CHexNumber();
 
     /**
      * '0x'- prefixed hexadecimal number : 0x[0-9A-Fa-f]+
      */
-    public static final Lexeme cHexNumber() {
+    public static final Terminal cHexNumber() {
         return CHexNumber;
     }
 
-    private static LexemeImpl CSimpleFloat = new CFloatingPoint();
+    private static TerminalImpl CSimpleFloat = new CFloatingPoint();
 
     /**
      * [0-9]+ DOT [0-9]* or DOT [0-9]+ (fF|lL)?
      */
-    public static Lexeme cFloatingPoint() {
+    public static Terminal cFloatingPoint() {
         return CSimpleFloat;
     }
 
-    private static LexemeImpl NewLine = new NewLine();
+    private static TerminalImpl NewLine = new NewLine();
 
-    public static Lexeme newLine() {
+    public static Terminal newLine() {
         return NewLine;
     }
 
     private static Map<Character, SingleChar> SingleChars = new TreeMap<>();
 
-    public static Lexeme singleChar(char c) {
+    public static Terminal singleChar(char c) {
         return SingleChars.computeIfAbsent(c, SingleChar::new);
     }
 
-    public static Lexeme singleChar(char c, String name) {
+    public static Terminal singleChar(char c, String name) {
         return SingleChars.computeIfAbsent(c, (character) -> {
             SingleChar s =  new SingleChar(character);
             s.setName(name);
@@ -170,11 +170,11 @@ public class Lexemes {
 
     private static Map<String, Literal> Literals = new TreeMap<>();
 
-    public static Lexeme literal(String s) {
+    public static Terminal literal(String s) {
         return Literals.computeIfAbsent(s, c -> new Literal(s));
     }
 
-    public static Lexeme literal(String s, String name) {
+    public static Terminal literal(String s, String name) {
         return Literals.computeIfAbsent(s, c -> {
             Literal l = new Literal(s);
             l.setName(name);
@@ -182,32 +182,32 @@ public class Lexemes {
         });
     }
 
-    private static LexemeImpl CInteger = new CInteger();
+    private static TerminalImpl CInteger = new CInteger();
 
-    public static Lexeme cInteger() {
+    public static Terminal cInteger() {
         return CInteger;
     }
 
-    private static LexemeImpl COctal = new COctal();
+    private static TerminalImpl COctal = new COctal();
 
-    public static Lexeme cOctal() {
+    public static Terminal cOctal() {
         return COctal;
     }
 
-    private static LexemeImpl CBinary = new CBinary();
+    private static TerminalImpl CBinary = new CBinary();
 
     /**
      * C-style binary constant  ('0' [bB] [0-1]+)
      *
      * @return
      */
-    public static Lexeme cBinary() {
+    public static Terminal cBinary() {
         return CBinary;
     }
 
-    private static LexemeImpl CCharacter = new CCharacter();
+    private static TerminalImpl CCharacter = new CCharacter();
 
-    public static Lexeme cCharacter() {
+    public static Terminal cCharacter() {
         return CCharacter;
     }
 

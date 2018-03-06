@@ -9,17 +9,16 @@ import java.io.IOException;
 
 /**
  * This is the base type for non-terminal symbols, that may be used to designate any non-terminal in a grammar.
- * The 'Forward' term is borrowed from the python pyparsing (http://pyparsing.wikispaces.com/) library
  */
-public class Forward implements Symbol {
+public class NonTerminal implements Symbol {
 
     private String name;
 
-    public Forward() {
+    public NonTerminal() {
         this(null);
     }
 
-    public Forward(String name) {
+    public NonTerminal(String name) {
         this.name = name;
     }
 
@@ -50,11 +49,11 @@ public class Forward implements Symbol {
             return false;
         }
 
-        if (!obj.getClass().equals(Forward.class)) {
+        if (!obj.getClass().equals(NonTerminal.class)) {
             return false;
         }
 
-        Forward o = (Forward) obj;
+        NonTerminal o = (NonTerminal) obj;
         if (name == null) {
             return hashCode() == o.hashCode();
         } else {
@@ -77,8 +76,8 @@ public class Forward implements Symbol {
     }
 
     @SuppressWarnings("unused")
-    public static Forward unMarshall(DataInputStream in) throws IOException {
+    public static NonTerminal unMarshall(DataInputStream in) throws IOException {
         String name = in.readUTF();
-        return new Forward(name);
+        return new NonTerminal(name);
     }
 }

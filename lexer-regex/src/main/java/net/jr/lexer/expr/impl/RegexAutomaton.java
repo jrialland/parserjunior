@@ -1,6 +1,6 @@
 package net.jr.lexer.expr.impl;
 
-import net.jr.lexer.Lexeme;
+import net.jr.lexer.Terminal;
 import net.jr.lexer.automaton.Automaton;
 import net.jr.lexer.automaton.State;
 
@@ -10,7 +10,7 @@ import java.util.*;
 
 public class RegexAutomaton implements Automaton {
 
-    private Lexeme tokenType;
+    private Terminal tokenType;
 
     private Node startNode;
 
@@ -24,11 +24,11 @@ public class RegexAutomaton implements Automaton {
     }
 
     @Override
-    public Lexeme getTokenType() {
+    public Terminal getTokenType() {
         return tokenType;
     }
 
-    public void setTokenType(Lexeme tokenType) {
+    public void setTokenType(Terminal tokenType) {
         this.tokenType = tokenType;
     }
 

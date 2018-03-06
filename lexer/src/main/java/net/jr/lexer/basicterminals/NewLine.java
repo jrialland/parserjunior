@@ -1,7 +1,7 @@
-package net.jr.lexer.basiclexemes;
+package net.jr.lexer.basicterminals;
 
 import net.jr.lexer.automaton.DefaultAutomaton;
-import net.jr.lexer.impl.LexemeImpl;
+import net.jr.lexer.impl.TerminalImpl;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -9,7 +9,7 @@ import java.io.IOException;
 
 import static net.jr.lexer.impl.CharConstraint.Builder.eq;
 
-public class NewLine extends LexemeImpl {
+public class NewLine extends TerminalImpl {
 
     public NewLine() {
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);

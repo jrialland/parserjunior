@@ -1,6 +1,6 @@
 package net.jr.lexer;
 
-import net.jr.lexer.basiclexemes.Literal;
+import net.jr.lexer.basicterminals.Literal;
 import org.junit.Test;
 
 public class LexemesTest {

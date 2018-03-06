@@ -1,15 +1,15 @@
-package net.jr.lexer.basiclexemes;
+package net.jr.lexer.basicterminals;
 
 import net.jr.lexer.Lexemes;
 import net.jr.lexer.automaton.DefaultAutomaton;
 import net.jr.lexer.impl.CharConstraint;
-import net.jr.lexer.impl.LexemeImpl;
+import net.jr.lexer.impl.TerminalImpl;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class CFloatingPoint extends LexemeImpl {
+public class CFloatingPoint extends TerminalImpl {
 
 
     public CFloatingPoint() {

@@ -1,8 +1,8 @@
 package net.jr.parser.ast;
 
 import net.jr.common.Symbol;
-import net.jr.lexer.basiclexemes.SingleChar;
-import net.jr.parser.Forward;
+import net.jr.lexer.basicterminals.SingleChar;
+import net.jr.parser.NonTerminal;
 import net.jr.parser.Grammar;
 import net.jr.parser.ast.annotations.After;
 import net.jr.parser.ast.annotations.Before;
@@ -23,10 +23,10 @@ public class VisitorHelperTest {
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
     }
 
-    Symbol S = new Forward("S");
-    Symbol N = new Forward("N");
-    Symbol E = new Forward("E");
-    Symbol V = new Forward("V");
+    Symbol S = new NonTerminal("S");
+    Symbol N = new NonTerminal("N");
+    Symbol E = new NonTerminal("E");
+    Symbol V = new NonTerminal("V");
 
     SingleChar mult = new SingleChar('*');
     SingleChar eq = new SingleChar('=');

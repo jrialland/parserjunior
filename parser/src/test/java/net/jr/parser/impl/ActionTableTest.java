@@ -2,8 +2,8 @@ package net.jr.parser.impl;
 
 import net.jr.common.Symbol;
 import net.jr.lexer.Lexemes;
-import net.jr.lexer.basiclexemes.SingleChar;
-import net.jr.parser.Forward;
+import net.jr.lexer.basicterminals.SingleChar;
+import net.jr.parser.NonTerminal;
 import net.jr.parser.Grammar;
 import net.jr.parser.ast.AstNode;
 import org.junit.Assert;
@@ -18,10 +18,10 @@ public class ActionTableTest {
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
     }
 
-    Symbol S = new Forward("S");
-    Symbol N = new Forward("N");
-    Symbol E = new Forward("E");
-    Symbol V = new Forward("V");
+    Symbol S = new NonTerminal("S");
+    Symbol N = new NonTerminal("N");
+    Symbol E = new NonTerminal("E");
+    Symbol V = new NonTerminal("V");
 
     SingleChar x = new SingleChar('x');
     SingleChar eq = new SingleChar('=');
@@ -117,8 +117,8 @@ public class ActionTableTest {
     public void testExtendedGrammar2() {
 
         Grammar g = new Grammar();
-        Symbol L = new Forward("list");
-        Symbol I = new Forward("inList");
+        Symbol L = new NonTerminal("list");
+        Symbol I = new NonTerminal("inList");
         Symbol ident = Lexemes.cIdentifier();
 
         g.addRule(L, new SingleChar('('), I, new SingleChar(')'));
