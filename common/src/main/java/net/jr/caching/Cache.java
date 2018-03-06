@@ -193,7 +193,13 @@ public interface Cache<K, T> {
                     @Override
                     public X get(K key) {
                         V value = cache.get(key);
-                        return value == null ? null : converter.convertBack(value);
+                        try {
+                            return value == null ? null : converter.convertBack(value);
+                        } catch(Exception e) {
+                            LOGGER.warn("Cache failure", e);
+                            evict(key);
+                            return null;
+                        }
                     }
 
                     @Override
