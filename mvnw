@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
-MVN_DIST_VER=3.5.0
-TMP_DIR="/tmp/mvnw/$MVN_DIST_VER"
+MVN_DIST_VER=3.5.3
+TMP_DIR="$HOME/.mvnw/$MVN_DIST_VER"
 if [ ! -d "$TMP_DIR" ]; then
     mkdir -p "$TMP_DIR"
     pushd "$TMP_DIR" > /dev/null
