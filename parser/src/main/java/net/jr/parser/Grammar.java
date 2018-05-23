@@ -100,6 +100,11 @@ public class Grammar {
         RuleSpecifier withName(String name);
 
         /**
+         * Sets a comment that documents the rule
+         */
+        RuleSpecifier withComment(String name);
+
+        /**
          * Sets the conflict arbitration strategy
          *
          * @return this
@@ -197,6 +202,12 @@ public class Grammar {
             }
 
             @Override
+            public RuleSpecifier withComment(String comment) {
+                rule.setComment(comment);
+                return this;
+            }
+
+            @Override
             public RuleSpecifier withPrecedenceLevel(int level) {
                 return this;
             }
@@ -240,7 +251,7 @@ public class Grammar {
     /**
      * Get the terminals for this grammar, according to the recorded rules.
      *
-     * @return
+     * @return all the terminals (tokens that only appear on right side of rules)
      */
     public Set<? extends Symbol> getTerminals() {
         Set<Symbol> terminals = new HashSet<>();
@@ -257,7 +268,7 @@ public class Grammar {
     /**
      * Get all the different symbols known to the grammar
      *
-     * @return
+     * @return all the different symbols known to the grammar
      */
     public Set<? extends Symbol> getSymbols() {
         Set<Symbol> symbols = new HashSet<>();
@@ -275,7 +286,7 @@ public class Grammar {
     /**
      * Get the list of non terminals known to the grammar
      *
-     * @return
+     * @return the list of non terminals known to the grammar
      */
     public Set<Symbol> getNonTerminals() {
         return rules.stream().map(r -> r.getTarget()).collect(Collectors.toSet());

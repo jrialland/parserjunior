@@ -15,6 +15,8 @@ public class BaseRule extends Rule {
 
     private String name;
 
+    private String comment;
+
     private Symbol target;
 
     private Symbol[] clause;
@@ -68,5 +70,13 @@ public class BaseRule extends Rule {
 
     public ActionType getConflictArbitration() {
         return conflictArbitration;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 }
