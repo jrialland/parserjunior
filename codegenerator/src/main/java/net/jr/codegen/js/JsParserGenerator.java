@@ -1,6 +1,5 @@
 package net.jr.codegen.js;
 
-import jdk.nashorn.internal.ir.Terminal;
 import net.jr.common.Symbol;
 import net.jr.lexer.Lexemes;
 import net.jr.parser.Grammar;

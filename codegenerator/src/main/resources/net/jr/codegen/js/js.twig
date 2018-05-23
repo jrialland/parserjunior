@@ -1,4 +1,14 @@
 
+const rle_decode = (array) => {
+    const out = [];
+    for(var i=0; i< array.length; i++) {
+        for(var j=0; j < array[i+1]; j++){
+            out.push(array[i]);
+        }
+    }
+    return out;
+};
+
 export class {{grammar.name}}Lexer {
 
     const Token = Object.freeze({
@@ -17,10 +27,10 @@ export class {{grammar.name}}Parser {
     {% endfor %}
     });
 
-    const _actions = {{ actionTypes }};
-    const _actionParams = {{ actionParams }};
-    const _emptyActions = {{ emptyActions }};
-    const _targetRule = {{ targetRuleIndex }};
+    let _actions = {{ actionTypes }};
+    let _actionParams = {{ actionParams }};
+    let _emptyActions = rle_decode({{ emptyActions }});
+    let _targetRule = {{ targetRuleIndex }};
 
     parse(lexer) {
         const stack = [];
