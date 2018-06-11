@@ -41,6 +41,17 @@ public class DefaultAutomaton implements Automaton {
 
         private Terminal terminal;
 
+        private StateImpl(Set<Transition> transitions, boolean finalState, Terminal terminal) {
+            this.outgoingTransitions = transitions;
+            this.finalState = finalState;
+            this.terminal = terminal;
+        }
+
+        public static StateImpl finalState(Terminal terminal) {
+            StateImpl stateImpl = new StateImpl(null, true, terminal);
+            return stateImpl;
+        }
+
         private StateImpl clone(Map<StateImpl, StateImpl> knownClones) throws CloneNotSupportedException {
             StateImpl s = knownClones.get(this);
             if (s != null) {
@@ -58,7 +69,7 @@ public class DefaultAutomaton implements Automaton {
             clones.put(this, new StateImpl(clonedTransitions, finalState, terminal));
 
             for (Transition t : clonedTransitions) {
-                TransitionImpl tImpl = (TransitionImpl)t;
+                TransitionImpl tImpl = (TransitionImpl) t;
                 StateImpl tNext = tImpl.nextState;
                 Transition tClone = new TransitionImpl(tImpl.condition, tNext.clone(clones));
                 clonedTransitions.add(tClone);
@@ -66,17 +77,6 @@ public class DefaultAutomaton implements Automaton {
 
             return clones.get(this);
 
-        }
-
-        private StateImpl(Set<Transition> transitions, boolean finalState, Terminal terminal) {
-            this.outgoingTransitions = transitions;
-            this.finalState = finalState;
-            this.terminal = terminal;
-        }
-
-        public static StateImpl finalState(Terminal terminal) {
-            StateImpl stateImpl = new StateImpl(null, true, terminal);
-            return stateImpl;
         }
 
         public Set<Transition> getOutgoingTransitions() {

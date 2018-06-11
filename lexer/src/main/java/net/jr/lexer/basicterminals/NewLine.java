@@ -22,6 +22,11 @@ public class NewLine extends TerminalImpl {
         setAutomaton(builder.build());
     }
 
+    @SuppressWarnings("unused")
+    public static NewLine unMarshall(DataInputStream in) throws IOException {
+        return new NewLine();
+    }
+
     @Override
     public String toString() {
         return "NewLine";
@@ -46,10 +51,5 @@ public class NewLine extends TerminalImpl {
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
 
-    }
-
-    @SuppressWarnings("unused")
-    public static NewLine unMarshall(DataInputStream in) throws IOException {
-        return new NewLine();
     }
 }

@@ -56,13 +56,6 @@ public class VisitorHelper {
         };
     }
 
-    private static class Mapping {
-        Map<String, List<Consumer<AstNode>>> mapBefore = new HashMap<>();
-        Map<String, List<Consumer<AstNode>>> mapAfter = new HashMap<>();
-        List<Consumer<AstNode>> beforeEachNode = new ArrayList<>();
-        List<Consumer<AstNode>> afterEachNode = new ArrayList<>();
-    }
-
     private static Mapping createMapping(Object visitor) {
 
         Mapping mapping = new Mapping();
@@ -138,6 +131,13 @@ public class VisitorHelper {
 
     public static void visit(AstNode rootNode, Object visitor) {
         visitWithMapping(rootNode, createMapping(visitor));
+    }
+
+    private static class Mapping {
+        Map<String, List<Consumer<AstNode>>> mapBefore = new HashMap<>();
+        Map<String, List<Consumer<AstNode>>> mapAfter = new HashMap<>();
+        List<Consumer<AstNode>> beforeEachNode = new ArrayList<>();
+        List<Consumer<AstNode>> afterEachNode = new ArrayList<>();
     }
 
 

@@ -29,26 +29,15 @@ import java.util.stream.Collectors;
 public class ActionTable implements MarshallingCapable {
 
     private static Logger Logger = LoggerFactory.getLogger(ActionTable.class);
+    private Map<Integer, Map<Symbol, Action>> data = new TreeMap<>();
+    private List<Symbol> terminals;
+    private List<Symbol> nonTerminals;
+
+    private ActionTable() {
+    }
 
     private static final Logger getLog() {
         return Logger;
-    }
-
-    private Map<Integer, Map<Symbol, Action>> data = new TreeMap<>();
-
-    private List<Symbol> terminals;
-
-    private List<Symbol> nonTerminals;
-
-    public int getStatesCount() {
-        return data.size();
-    }
-
-    @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
-        MarshallingUtil.marshall(terminals, dataOutputStream);
-        MarshallingUtil.marshall(nonTerminals, dataOutputStream);
-        MarshallingUtil.marshall(data, dataOutputStream);
     }
 
     @SuppressWarnings("unused")
@@ -60,7 +49,37 @@ public class ActionTable implements MarshallingCapable {
         return actionTable;
     }
 
-    private ActionTable() {
+    private static String actionToString(Action action) {
+        final String sParam = Integer.toString(action.getActionParameter());
+        switch (action.getActionType()) {
+            case Accept:
+                return "acc";
+            case Fail:
+                return "";
+            case Goto:
+                return Integer.toString(action.getActionParameter());
+            case Shift:
+                return "s" + sParam;
+            case Reduce:
+                return "r" + sParam;
+            default:
+                throw new UnsupportedOperationException();
+        }
+    }
+
+    public static ActionTable lalr1(Grammar grammar) {
+        return new LALR1Builder().build(grammar);
+    }
+
+    public int getStatesCount() {
+        return data.size();
+    }
+
+    @Override
+    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+        MarshallingUtil.marshall(terminals, dataOutputStream);
+        MarshallingUtil.marshall(nonTerminals, dataOutputStream);
+        MarshallingUtil.marshall(data, dataOutputStream);
     }
 
     private void onInitialized() {
@@ -145,24 +164,6 @@ public class ActionTable implements MarshallingCapable {
         return nonTerminals;
     }
 
-    private static String actionToString(Action action) {
-        final String sParam = Integer.toString(action.getActionParameter());
-        switch (action.getActionType()) {
-            case Accept:
-                return "acc";
-            case Fail:
-                return "";
-            case Goto:
-                return Integer.toString(action.getActionParameter());
-            case Shift:
-                return "s" + sParam;
-            case Reduce:
-                return "r" + sParam;
-            default:
-                throw new UnsupportedOperationException();
-        }
-    }
-
     @Override
     public String toString() {
         TableModel<String> tm = new TableModel<>();
@@ -194,10 +195,6 @@ public class ActionTable implements MarshallingCapable {
         }
 
         return new AsciiTableView(4, 100).tableToString(tm);
-    }
-
-    public static ActionTable lalr1(Grammar grammar) {
-        return new LALR1Builder().build(grammar);
     }
 
     static class LALR1Builder {

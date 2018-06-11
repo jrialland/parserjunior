@@ -6,8 +6,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import static net.jr.lexer.impl.CharConstraint.Builder.inList;
-
 /**
  * Define a lexeme that can be any of the characters passed to its constructor.
  */
@@ -21,6 +19,12 @@ public class OneOf extends TerminalImpl {
         DefaultAutomaton.Builder.BuilderState initialState = builder.initialState();
         initialState.when(CharConstraint.Builder.inList(chars)).goTo(builder.newFinalState());
         setAutomaton(builder.build());
+    }
+
+    @SuppressWarnings("unused")
+    public static OneOf unMarshall(DataInputStream in) throws IOException {
+        String chars = in.readUTF();
+        return new OneOf(chars);
     }
 
     @Override
@@ -53,11 +57,5 @@ public class OneOf extends TerminalImpl {
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
         dataOutputStream.writeUTF(chars);
-    }
-
-    @SuppressWarnings("unused")
-    public static OneOf unMarshall(DataInputStream in) throws IOException {
-        String chars = in.readUTF();
-        return new OneOf(chars);
     }
 }

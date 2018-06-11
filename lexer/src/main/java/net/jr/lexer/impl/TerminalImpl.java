@@ -21,29 +21,29 @@ public abstract class TerminalImpl implements Terminal {
         this.priority = 1;
     }
 
-    public void setPriority(int priority) {
-        this.priority = priority;
-    }
-
     @Override
     public int getPriority() {
         return priority;
     }
 
-    public void setAutomaton(Automaton automaton) {
-        this.automaton = automaton;
+    public void setPriority(int priority) {
+        this.priority = priority;
     }
 
     public Automaton getAutomaton() {
         return automaton;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setAutomaton(Automaton automaton) {
+        this.automaton = automaton;
     }
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override

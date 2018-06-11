@@ -22,6 +22,12 @@ public class Action implements MarshallingCapable {
         this.actionParameter = actionParameter;
     }
 
+    public static Action unMarshall(DataInputStream dataInputStream) throws IOException {
+        ActionType actionType = ActionType.valueOf(dataInputStream.readUTF());
+        int actionParameter = dataInputStream.readInt();
+        return new Action(actionType, actionParameter);
+    }
+
     public ActionType getActionType() {
         return actionType;
     }
@@ -57,11 +63,5 @@ public class Action implements MarshallingCapable {
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
         dataOutputStream.writeUTF(actionType.name());
         dataOutputStream.writeInt(actionParameter);
-    }
-
-    public static Action unMarshall(DataInputStream dataInputStream) throws IOException {
-        ActionType actionType = ActionType.valueOf(dataInputStream.readUTF());
-        int actionParameter = dataInputStream.readInt();
-        return new Action(actionType, actionParameter);
     }
 }

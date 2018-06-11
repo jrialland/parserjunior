@@ -30,6 +30,14 @@ public class ExtendedSymbol implements Symbol {
         this.to = to;
     }
 
+    @SuppressWarnings("unused")
+    public static ExtendedSymbol unMarshall(DataInputStream in) throws IOException {
+        int from = in.readInt();
+        Symbol symbol = MarshallingUtil.unMarshall(in);
+        int to = in.readInt();
+        return new ExtendedSymbol(from, symbol, to);
+    }
+
     @Override
     public int hashCode() {
         return 613 + from + symbol.hashCode() + to;
@@ -76,13 +84,5 @@ public class ExtendedSymbol implements Symbol {
         dataOutputStream.writeInt(from);
         symbol.marshall(dataOutputStream);
         dataOutputStream.writeInt(to);
-    }
-
-    @SuppressWarnings("unused")
-    public static ExtendedSymbol unMarshall(DataInputStream in) throws IOException {
-        int from = in.readInt();
-        Symbol symbol = MarshallingUtil.unMarshall(in);
-        int to = in.readInt();
-        return new ExtendedSymbol(from, symbol, to);
     }
 }

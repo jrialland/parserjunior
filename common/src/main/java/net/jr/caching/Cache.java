@@ -21,18 +21,15 @@ public interface Cache<K, T> {
     class Builder<K, V> {
 
         private static final Logger LOGGER = LoggerFactory.getLogger(Cache.class);
-
-        private static final Logger getLog() {
-            return LOGGER;
-        }
-
         private int ttl = 10;
-
         private TimeUnit timeUnit = TimeUnit.MINUTES;
-
         private Callable<Cache<K, V>> callable;
 
         private Builder() {
+        }
+
+        private static final Logger getLog() {
+            return LOGGER;
         }
 
         public static <K, V> Builder<K, V> inMemory(Class<K> keyType, Class<V> valueType) {
@@ -195,7 +192,7 @@ public interface Cache<K, T> {
                         V value = cache.get(key);
                         try {
                             return value == null ? null : converter.convertBack(value);
-                        } catch(Exception e) {
+                        } catch (Exception e) {
                             LOGGER.warn("Cache failure", e);
                             evict(key);
                             return null;

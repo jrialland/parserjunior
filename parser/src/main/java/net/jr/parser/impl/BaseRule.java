@@ -32,20 +32,20 @@ public class BaseRule extends Rule {
         this.clause = clause;
     }
 
-    public void setAction(Consumer<ParsingContext> action) {
-        this.action = action;
-    }
-
     public Consumer<ParsingContext> getAction() {
         return action;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setAction(Consumer<ParsingContext> action) {
+        this.action = action;
     }
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Symbol[] getClause() {
@@ -56,20 +56,20 @@ public class BaseRule extends Rule {
         return target;
     }
 
-    public void setPrecedenceLevel(int precedenceLevel) {
-        this.precedenceLevel = precedenceLevel;
-    }
-
     public Integer getPrecedenceLevel() {
         return precedenceLevel;
     }
 
-    public void setConflictArbitration(ActionType conflictArbitration) {
-        this.conflictArbitration = conflictArbitration;
+    public void setPrecedenceLevel(int precedenceLevel) {
+        this.precedenceLevel = precedenceLevel;
     }
 
     public ActionType getConflictArbitration() {
         return conflictArbitration;
+    }
+
+    public void setConflictArbitration(ActionType conflictArbitration) {
+        this.conflictArbitration = conflictArbitration;
     }
 
     public String getComment() {

@@ -9,8 +9,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import static net.jr.lexer.impl.CharConstraint.Builder.inList;
-
 public class COctal extends TerminalImpl {
 
     public COctal() {
@@ -23,6 +21,10 @@ public class COctal extends TerminalImpl {
         finalState.when(CharConstraint.Builder.inList(Lexemes.OctalDigit)).goTo(finalState);
         CInteger.addIntegerSuffix(builder, finalState);
         setAutomaton(builder.build());
+    }
+
+    public static COctal unMarshall(DataInputStream in) throws IOException {
+        return new COctal();
     }
 
     @Override
@@ -50,9 +52,5 @@ public class COctal extends TerminalImpl {
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
 
-    }
-
-    public static COctal unMarshall(DataInputStream in) throws IOException {
-        return new COctal();
     }
 }

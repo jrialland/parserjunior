@@ -2,8 +2,8 @@ package net.jr.lexer;
 
 import net.jr.common.Symbol;
 import net.jr.lexer.automaton.Automaton;
-import net.jr.lexer.impl.TerminalImpl;
 import net.jr.lexer.impl.MergingLexerStreamImpl;
+import net.jr.lexer.impl.TerminalImpl;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -24,6 +24,23 @@ public class Lexer {
     private TokenListener tokenListener = t -> t;
 
     private Map<Symbol, Integer> priorities = new HashMap<>();
+
+    private <L extends Symbol> Lexer(Collection<L> tokenTypes) {
+        automatons = new ArrayList<>(tokenTypes.size());
+        for (Symbol tokenType : tokenTypes) {
+            if (!tokenType.isTerminal()) {
+                throw new IllegalArgumentException("Not a terminal : " + tokenType);
+            }
+            if (!tokenType.equals(Lexemes.eof())) {
+                Automaton a = ((TerminalImpl) tokenType).getAutomaton();
+                automatons.add(a);
+            }
+        }
+        priorities = new HashMap<>();
+        for (Automaton a : automatons) {
+            priorities.put(a.getTokenType(), a.getTokenType().getPriority());
+        }
+    }
 
     /**
      * Creates a new {@link Lexer} that can recognize the passed Lexemes
@@ -51,23 +68,6 @@ public class Lexer {
         return new Lexer(tokenTypes);
     }
 
-    private <L extends Symbol> Lexer(Collection<L> tokenTypes) {
-        automatons = new ArrayList<>(tokenTypes.size());
-        for (Symbol tokenType : tokenTypes) {
-            if (!tokenType.isTerminal()) {
-                throw new IllegalArgumentException("Not a terminal : " + tokenType);
-            }
-            if (!tokenType.equals(Lexemes.eof())) {
-                Automaton a = ((TerminalImpl) tokenType).getAutomaton();
-                automatons.add(a);
-            }
-        }
-        priorities = new HashMap<>();
-        for (Automaton a : automatons) {
-            priorities.put(a.getTokenType(), a.getTokenType().getPriority());
-        }
-    }
-
     /**
      * A given text may match several basicterminals (for example 'int' may be recognized both by {@link Lexemes#literal(String)}  and {@link Lexemes#cIdentifier()})
      * The priority can make the difference by choosing the right type when there is such conflict.
@@ -87,15 +87,6 @@ public class Lexer {
     }
 
     /**
-     * associates a {@link TokenListener} with this {@link Lexer}
-     *
-     * @param tokenListener
-     */
-    public void setTokenListener(TokenListener tokenListener) {
-        this.tokenListener = tokenListener;
-    }
-
-    /**
      * gets the associated {@link TokenListener}.
      * <p>
      * may return null
@@ -104,6 +95,15 @@ public class Lexer {
      */
     public TokenListener getTokenListener() {
         return tokenListener;
+    }
+
+    /**
+     * associates a {@link TokenListener} with this {@link Lexer}
+     *
+     * @param tokenListener
+     */
+    public void setTokenListener(TokenListener tokenListener) {
+        this.tokenListener = tokenListener;
     }
 
     /**

@@ -20,48 +20,11 @@ import java.util.*;
 public class LRParser implements Parser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LRParser.class);
-
-    private static Logger getLog() {
-        return LOGGER;
-    }
-
     private Grammar grammar;
-
     private Lexer defaultLexer;
-
     private ActionTable actionTable;
-
     private AstNodeFactory astNodeFactory = new DefaultAstNodeFactory();
-
     private ParserListener parserListener;
-
-    private class Context {
-
-        private int state;
-
-        private AstNode astNode;
-
-        void setState(int state) {
-            this.state = state;
-        }
-
-        int getState() {
-            return state;
-        }
-
-        AstNode getAstNode() {
-            return astNode;
-        }
-
-        Context(AstNode astNode) {
-            this.astNode = astNode;
-        }
-
-        public Context(AstNode astNode, int state) {
-            this(astNode);
-            this.state = state;
-        }
-    }
 
     /**
      * @param grammar     target grammar
@@ -75,6 +38,15 @@ public class LRParser implements Parser {
         this.grammar = grammar;
         this.defaultLexer = lexer;
         this.actionTable = actionTable;
+    }
+
+    private static Logger getLog() {
+        return LOGGER;
+    }
+
+    private static boolean isEofNode(AstNode astNode) {
+        Token token = astNode.asToken();
+        return token != null && token.getTokenType().equals(Lexemes.eof());
     }
 
     public AstNode parse(Reader reader) {
@@ -113,7 +85,7 @@ public class LRParser implements Parser {
                     decision = actionTable.getAction(currentState, Lexemes.empty());
                     lexerStream.pushback(token);
                 } else {
-                    decision = new Action(ActionType.Fail,0);
+                    decision = new Action(ActionType.Fail, 0);
                 }
             }
 
@@ -160,6 +132,80 @@ public class LRParser implements Parser {
     private void shift(Token token, final Stack<Context> stack, final int nextState) {
         //add a node that represents the terminal
         stack.add(new Context(astNodeFactory.newLeafNode(token), nextState));
+    }
+
+    private AstNode makeNode(Stack<Context> stack, final LexerStream lexerStream, Rule rule) {
+        // for each symbol on the left side of the rule, a state is removed from the stack
+        getLog().trace("      - reducing rule : " + rule);
+        AstNode astNode = astNodeFactory.newNonLeafNode(rule);
+        List<AstNode> children = astNode.getChildren();
+        for (int i = 0; i < rule.getClause().length; i++) {
+            AstNode popped = stack.pop().getAstNode();
+            if (!isEofNode(popped)) {
+                children.add(popped);
+            }
+        }
+
+        Collections.reverse(children);
+
+        ParsingContextImpl parsingContext = new ParsingContextImpl(this, lexerStream, astNode);
+        if (((BaseRule) rule).getAction() != null) {
+            ((BaseRule) rule).getAction().accept(parsingContext);
+        }
+        if (parserListener != null) {
+            parserListener.onReduce(rule, parsingContext);
+        }
+
+        return astNode;
+    }
+
+    private void reduce(Stack<Context> stack, final LexerStream lexerStream, int ruleIndex) {
+        Rule rule = grammar.getRuleById(ruleIndex);
+        AstNode astNode = makeNode(stack, lexerStream, rule);
+        Context nextParserContext = new Context(astNode);
+        // depending on the state that is now on the top of stack, and the target of the rule,
+        // a new state is searched in the goto table and becomes the current state
+        int newState = actionTable.getNextState(stack.peek().getState(), rule.getTarget());
+        nextParserContext.setState(newState);
+        getLog().trace("      - goto " + newState);
+        stack.push(nextParserContext);
+    }
+
+    public Grammar getGrammar() {
+        return grammar;
+    }
+
+    @Override
+    public Lexer getLexer() {
+        if (defaultLexer == null) {
+            defaultLexer = Lexer.forLexemes(getGrammar().getTerminals());
+        }
+        return defaultLexer;
+    }
+
+    @Override
+    public void setLexer(Lexer lexer) {
+        this.defaultLexer = lexer;
+    }
+
+    @Override
+    public ParserListener getParserListener() {
+        return parserListener;
+    }
+
+    @Override
+    public void setParserListener(ParserListener parserListener) {
+        this.parserListener = parserListener;
+    }
+
+    @Override
+    public AstNodeFactory getAstNodeFactory() {
+        return astNodeFactory;
+    }
+
+    @Override
+    public void setAstNodeFactory(AstNodeFactory astNodeFactory) {
+        this.astNodeFactory = astNodeFactory;
     }
 
     private static class AstNodeLeaf implements AstNode {
@@ -252,83 +298,32 @@ public class LRParser implements Parser {
         }
     }
 
-    private static boolean isEofNode(AstNode astNode) {
-        Token token = astNode.asToken();
-        return token != null && token.getTokenType().equals(Lexemes.eof());
-    }
+    private class Context {
 
-    private AstNode makeNode(Stack<Context> stack, final LexerStream lexerStream, Rule rule) {
-        // for each symbol on the left side of the rule, a state is removed from the stack
-        getLog().trace("      - reducing rule : " + rule);
-        AstNode astNode = astNodeFactory.newNonLeafNode(rule);
-        List<AstNode> children = astNode.getChildren();
-        for (int i = 0; i < rule.getClause().length; i++) {
-            AstNode popped = stack.pop().getAstNode();
-            if (!isEofNode(popped)) {
-                children.add(popped);
-            }
+        private int state;
+
+        private AstNode astNode;
+
+        Context(AstNode astNode) {
+            this.astNode = astNode;
         }
 
-        Collections.reverse(children);
-
-        ParsingContextImpl parsingContext = new ParsingContextImpl(this, lexerStream, astNode);
-        if (((BaseRule) rule).getAction() != null) {
-            ((BaseRule) rule).getAction().accept(parsingContext);
-        }
-        if (parserListener != null) {
-            parserListener.onReduce(rule, parsingContext);
+        public Context(AstNode astNode, int state) {
+            this(astNode);
+            this.state = state;
         }
 
-        return astNode;
-    }
-
-    private void reduce(Stack<Context> stack, final LexerStream lexerStream, int ruleIndex) {
-        Rule rule = grammar.getRuleById(ruleIndex);
-        AstNode astNode = makeNode(stack, lexerStream, rule);
-        Context nextParserContext = new Context(astNode);
-        // depending on the state that is now on the top of stack, and the target of the rule,
-        // a new state is searched in the goto table and becomes the current state
-        int newState = actionTable.getNextState(stack.peek().getState(), rule.getTarget());
-        nextParserContext.setState(newState);
-        getLog().trace("      - goto " + newState);
-        stack.push(nextParserContext);
-    }
-
-    public Grammar getGrammar() {
-        return grammar;
-    }
-
-    @Override
-    public Lexer getLexer() {
-        if (defaultLexer == null) {
-            defaultLexer = Lexer.forLexemes(getGrammar().getTerminals());
+        int getState() {
+            return state;
         }
-        return defaultLexer;
-    }
 
-    @Override
-    public void setLexer(Lexer lexer) {
-        this.defaultLexer = lexer;
-    }
+        void setState(int state) {
+            this.state = state;
+        }
 
-    @Override
-    public void setParserListener(ParserListener parserListener) {
-        this.parserListener = parserListener;
-    }
-
-    @Override
-    public ParserListener getParserListener() {
-        return parserListener;
-    }
-
-    @Override
-    public void setAstNodeFactory(AstNodeFactory astNodeFactory) {
-        this.astNodeFactory = astNodeFactory;
-    }
-
-    @Override
-    public AstNodeFactory getAstNodeFactory() {
-        return astNodeFactory;
+        AstNode getAstNode() {
+            return astNode;
+        }
     }
 
 }

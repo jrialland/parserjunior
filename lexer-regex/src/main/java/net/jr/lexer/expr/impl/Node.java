@@ -15,13 +15,13 @@ public class Node implements State {
 
     private Terminal terminal = null;
 
-    public void setTerminal(Terminal terminal) {
-        this.terminal = terminal;
-    }
-
     @Override
     public Terminal getTerminal() {
         return terminal;
+    }
+
+    public void setTerminal(Terminal terminal) {
+        this.terminal = terminal;
     }
 
     public Transition addTransition(CharConstraint charConstraint) {
@@ -33,10 +33,10 @@ public class Node implements State {
 
     public void disconnect() {
         for (net.jr.lexer.automaton.Transition outTransition : outgoingTransitions) {
-            ((Transition)outTransition).getTarget().getIncomingTransitions().remove(outTransition);
+            ((Transition) outTransition).getTarget().getIncomingTransitions().remove(outTransition);
         }
         for (net.jr.lexer.automaton.Transition inTransition : incomingTransitions) {
-            ((Transition)inTransition).getSource().getOutgoingTransitions().remove(inTransition);
+            ((Transition) inTransition).getSource().getOutgoingTransitions().remove(inTransition);
         }
     }
 

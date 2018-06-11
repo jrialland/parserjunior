@@ -1,11 +1,11 @@
 package net.jr.parser;
 
 import net.jr.common.Symbol;
-import net.jr.lexer.Terminal;
 import net.jr.lexer.Lexemes;
+import net.jr.lexer.Terminal;
 import net.jr.parser.ast.AstNode;
-import net.jr.parser.ast.annotations.After;
 import net.jr.parser.ast.VisitorHelper;
+import net.jr.parser.ast.annotations.After;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -123,6 +123,13 @@ public class MarshallingTest {
             this.s = s;
         }
 
+        @SuppressWarnings("unused")
+        public static TestObject unMarshall(DataInputStream in) throws IOException {
+            int a = in.readInt();
+            String s = in.readUTF();
+            return new TestObject(a, s);
+        }
+
         public int getA() {
             return a;
         }
@@ -154,13 +161,6 @@ public class MarshallingTest {
         public void marshall(DataOutputStream dataOutputStream) throws IOException {
             dataOutputStream.writeInt(a);
             dataOutputStream.writeUTF(s);
-        }
-
-        @SuppressWarnings("unused")
-        public static TestObject unMarshall(DataInputStream in) throws IOException {
-            int a = in.readInt();
-            String s = in.readUTF();
-            return new TestObject(a, s);
         }
     }
 }

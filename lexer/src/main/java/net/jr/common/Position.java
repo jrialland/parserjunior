@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class Position implements MarshallingCapable {
 
-    private static final Position INITIAL = new Position(1,1);
+    private static final Position INITIAL = new Position(1, 1);
 
     private int line;
 
@@ -17,6 +17,17 @@ public class Position implements MarshallingCapable {
     public Position(int line, int column) {
         this.line = line;
         this.column = column;
+    }
+
+    @SuppressWarnings("unused")
+    public static Position unMarshall(DataInputStream in) throws IOException {
+        int line = in.readInt();
+        int column = in.readInt();
+        return new Position(line, column);
+    }
+
+    public static Position start() {
+        return INITIAL;
     }
 
     public int getLine() {
@@ -62,16 +73,5 @@ public class Position implements MarshallingCapable {
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
         dataOutputStream.writeInt(line);
         dataOutputStream.writeInt(column);
-    }
-
-    @SuppressWarnings("unused")
-    public static Position unMarshall(DataInputStream in) throws IOException {
-        int line = in.readInt();
-        int column = in.readInt();
-        return new Position(line, column);
-    }
-
-    public static Position start() {
-        return INITIAL;
     }
 }

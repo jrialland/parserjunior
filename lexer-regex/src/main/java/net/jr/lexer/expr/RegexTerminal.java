@@ -1,9 +1,9 @@
 package net.jr.lexer.expr;
 
+import net.jr.lexer.automaton.Automaton;
 import net.jr.lexer.expr.impl.RegexAutomaton;
 import net.jr.lexer.expr.impl.RegexGrammar;
 import net.jr.lexer.expr.impl.RegexVisitor;
-import net.jr.lexer.automaton.Automaton;
 import net.jr.lexer.impl.TerminalImpl;
 import net.jr.parser.Parser;
 import net.jr.parser.ast.AstNode;
@@ -43,6 +43,13 @@ public class RegexTerminal extends TerminalImpl {
         this.automaton.setTokenType(this);
     }
 
+    @SuppressWarnings("unused")
+    public static RegexTerminal unMarshall(DataInputStream in) throws IOException {
+        String expression = in.readUTF();
+        int priority = in.readInt();
+        return new RegexTerminal(expression, priority);
+    }
+
     @Override
     public int hashCode() {
         return super.hashCode();
@@ -70,13 +77,6 @@ public class RegexTerminal extends TerminalImpl {
         dataOutputStream.writeInt(priority);
     }
 
-    @SuppressWarnings("unused")
-    public static RegexTerminal unMarshall(DataInputStream in) throws IOException {
-        String expression = in.readUTF();
-        int priority = in.readInt();
-        return new RegexTerminal(expression, priority);
-    }
-
     @Override
     public boolean isTerminal() {
         return true;
@@ -87,12 +87,12 @@ public class RegexTerminal extends TerminalImpl {
         return priority;
     }
 
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+
     @Override
     public Automaton getAutomaton() {
         return automaton;
-    }
-
-    public void setPriority(int priority) {
-        this.priority = priority;
     }
 }

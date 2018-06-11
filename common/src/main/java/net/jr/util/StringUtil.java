@@ -25,7 +25,7 @@ public final class StringUtil {
         for (char c : Long.toString(number).toCharArray()) {
             switch (c) {
                 case '-':
-                    sw.append(c);
+                    sw.append('\u208B');
                     break;
                 default:
                     sw.append((char) (SUBSCRIPT_BLOCK_START + (c - '0')));
@@ -45,16 +45,16 @@ public final class StringUtil {
         for (char c : Long.toString(number).toCharArray()) {
             switch (c) {
                 case '-':
-                    sw.append(c);
+                    sw.append('\u207B');
                     break;
                 case '1':
                     sw.append('\u00B9');
                     break;
                 case '2':
-                    sw.append('\u00b2');
+                    sw.append('\u00B2');
                     break;
                 case '3':
-                    sw.append('\u00b3');
+                    sw.append('\u00B3');
                     break;
                 default:
                     sw.append((char) (SUPERSCRIPT_BLOCK_START + (c - '0')));

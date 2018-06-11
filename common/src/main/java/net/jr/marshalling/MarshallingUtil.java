@@ -22,17 +22,7 @@ public class MarshallingUtil {
     private static final char MAP = 'm';
 
     private static final char STRING = 'z';
-
-    private interface Marshaller {
-        void marshall(Object obj, DataOutputStream dataOutputStream) throws IOException;
-    }
-
-    private interface UnMarshaller {
-        Object unMarshall(DataInputStream dataInputStream) throws IOException;
-    }
-
     private static final Map<Character, Marshaller> marshallers = new TreeMap<>();
-
     private static final Map<Character, UnMarshaller> unMarshallers = new TreeMap<>();
 
     static {
@@ -355,5 +345,13 @@ public class MarshallingUtil {
 
     public static <T> T copyOf(T obj) {
         return fromByteArray(toByteArray(obj, false), false);
+    }
+
+    private interface Marshaller {
+        void marshall(Object obj, DataOutputStream dataOutputStream) throws IOException;
+    }
+
+    private interface UnMarshaller {
+        Object unMarshall(DataInputStream dataInputStream) throws IOException;
     }
 }

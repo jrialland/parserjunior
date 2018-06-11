@@ -11,24 +11,16 @@ public class MapCache<K, V> implements Cache<K, V> {
 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MapCache.class);
-
-    private static final Logger getLog() {
-        return LOGGER;
-    }
-
-    private class CacheEntry {
-        V data;
-        long lastUpdate;
-    }
-
     private long maxAge;
-
     private int maxItems;
-
     private Map<K, CacheEntry> entries = new HashMap<>();
 
     public MapCache(int ttl, TimeUnit timeUnit) {
         maxAge = timeUnit.toMillis(ttl);
+    }
+
+    private static final Logger getLog() {
+        return LOGGER;
     }
 
     @Override
@@ -71,5 +63,10 @@ public class MapCache<K, V> implements Cache<K, V> {
     public void evictAll() {
         getLog().trace("MapCache EvictAll");
         entries.clear();
+    }
+
+    private class CacheEntry {
+        V data;
+        long lastUpdate;
     }
 }

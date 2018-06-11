@@ -40,6 +40,19 @@ public class QuotedString extends TerminalImpl {
         this.automaton = builder.build();
     }
 
+    @SuppressWarnings("unused")
+    public static QuotedString unMarshall(DataInputStream in) throws IOException {
+        char starChar = in.readChar();
+        char endChar = in.readChar();
+        char escapeChar = in.readChar();
+        int len = in.readInt();
+        char[] forbiddenChars = new char[len];
+        for (int i = 0; i < forbiddenChars.length; i++) {
+            forbiddenChars[i] = in.readChar();
+        }
+        return new QuotedString(starChar, endChar, escapeChar, forbiddenChars);
+    }
+
     @Override
     public int getPriority() {
         return 1;
@@ -49,7 +62,6 @@ public class QuotedString extends TerminalImpl {
     public Automaton getAutomaton() {
         return automaton;
     }
-
 
     @Override
     public boolean equals(Object obj) {
@@ -91,18 +103,5 @@ public class QuotedString extends TerminalImpl {
         for (int i = 0; i < forbiddenChars.length; i++) {
             dataOutputStream.writeChar(forbiddenChars[i]);
         }
-    }
-
-    @SuppressWarnings("unused")
-    public static QuotedString unMarshall(DataInputStream in) throws IOException {
-        char starChar = in.readChar();
-        char endChar = in.readChar();
-        char escapeChar = in.readChar();
-        int len = in.readInt();
-        char[] forbiddenChars = new char[len];
-        for (int i = 0; i < forbiddenChars.length; i++) {
-            forbiddenChars[i] = in.readChar();
-        }
-        return new QuotedString(starChar, endChar, escapeChar, forbiddenChars);
     }
 }

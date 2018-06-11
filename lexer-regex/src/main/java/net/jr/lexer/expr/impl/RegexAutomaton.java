@@ -6,7 +6,10 @@ import net.jr.lexer.automaton.State;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Stack;
+import java.util.TreeMap;
 
 public class RegexAutomaton implements Automaton {
 
@@ -50,7 +53,7 @@ public class RegexAutomaton implements Automaton {
             if (!nodes.containsValue(n)) {
                 nodes.put(Integer.toString(i++), n);
                 for (net.jr.lexer.automaton.Transition _t : n.getOutgoingTransitions()) {
-                    Transition t = (Transition)_t;
+                    Transition t = (Transition) _t;
                     Node target = t.getTarget();
                     s.push(target);
                 }
@@ -75,7 +78,7 @@ public class RegexAutomaton implements Automaton {
                 pw.println(String.format("%s [ peripheries = 2 ];", nodeName));
             }
             for (net.jr.lexer.automaton.Transition _t : entry.getValue().getOutgoingTransitions()) {
-                Transition t = (Transition)_t;
+                Transition t = (Transition) _t;
                 String targetName = rev.get(t.getTarget());
                 pw.println(String.format("%s -> %s [ label = \"%s\" ];", nodeName, targetName, t.getCharConstraint().toString()));
             }

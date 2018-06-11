@@ -17,6 +17,14 @@ import java.util.*;
 
 public abstract class AbstractLexerTestCases {
 
+    private static List<Token> asList(Iterator<Token> it) {
+        List<Token> list = new ArrayList<>();
+        while (it.hasNext()) {
+            list.add(it.next());
+        }
+        return list;
+    }
+
     protected abstract <L extends Symbol> Lexer getLexer(L... tokenTypes);
 
     protected <L extends Symbol> Lexer getLexer(Collection<L> tokenTypes) {
@@ -253,15 +261,6 @@ public abstract class AbstractLexerTestCases {
         Assert.assertEquals(10, toks.size());
     }
 
-
-    private static List<Token> asList(Iterator<Token> it) {
-        List<Token> list = new ArrayList<>();
-        while (it.hasNext()) {
-            list.add(it.next());
-        }
-        return list;
-    }
-
     @Test
     public void testSingleChar() {
         String txt = "()))())()()())((";
@@ -317,7 +316,7 @@ public abstract class AbstractLexerTestCases {
         lexer.setFilteredOut(Lexemes.whitespace());
         List<Token> tokens = lexer.tokenize("'a' 'b' '\\t' '\\n' 'C'");
         Assert.assertEquals(6, tokens.size());
-        Assert.assertEquals(Lexemes.eof(), tokens.get(tokens.size()-1).getTokenType());
+        Assert.assertEquals(Lexemes.eof(), tokens.get(tokens.size() - 1).getTokenType());
     }
 
     @Test
@@ -340,7 +339,7 @@ public abstract class AbstractLexerTestCases {
         Lexer lexer = getLexer(Lexemes.cInteger());
         List<Token> tokens = lexer.tokenize("0");
         Assert.assertEquals(2, tokens.size());
-        Assert.assertEquals(Lexemes.eof(), tokens.get(tokens.size()-1).getTokenType());
+        Assert.assertEquals(Lexemes.eof(), tokens.get(tokens.size() - 1).getTokenType());
         Assert.assertEquals("0", tokens.get(0).getText());
     }
 
@@ -389,7 +388,7 @@ public abstract class AbstractLexerTestCases {
         try {
             getLexer(Lexemes.literal("bar")).tokenize("ba");
             Assert.fail();
-        } catch(LexicalError e) {
+        } catch (LexicalError e) {
             Assert.assertEquals(-1, e.getOffendingChar());
         }
     }

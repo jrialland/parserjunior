@@ -1,14 +1,14 @@
 package net.jr.lexer.expr.impl;
 
 import net.jr.common.Symbol;
-import net.jr.lexer.Terminal;
 import net.jr.lexer.Lexemes;
 import net.jr.lexer.Lexer;
+import net.jr.lexer.Terminal;
 import net.jr.lexer.Token;
 import net.jr.lexer.basicterminals.Literal;
 import net.jr.lexer.basicterminals.QuotedString;
-import net.jr.parser.NonTerminal;
 import net.jr.parser.Grammar;
+import net.jr.parser.NonTerminal;
 import net.jr.parser.Parser;
 
 /**
@@ -28,40 +28,11 @@ import net.jr.parser.Parser;
  */
 public class RegexGrammar extends Grammar {
 
-    public static final class Tokens {
-
-        public static final Terminal LeftBrace = Lexemes.singleChar('(');
-
-        public static final Terminal RightBrace = Lexemes.singleChar(')');
-
-        public static final Terminal Dot = Lexemes.singleChar('.');
-
-        public static final Terminal Plus = Lexemes.singleChar('+');
-
-        public static final Terminal Pipe = Lexemes.singleChar('|');
-
-        public static final Terminal QuestionMark = Lexemes.singleChar('?');
-
-        public static final Terminal Star = Lexemes.singleChar('*');
-
-        public static final Terminal ThreePoints = new Literal("..");
-
-        public static final Terminal Char = Lexemes.cCharacter();
-
-        public static final Terminal SingleQuotedString = new QuotedString('\'', '\'', '\\', "\n\r".toCharArray());
-
-    }
-
     public static final NonTerminal OneOrMoreExpr = new NonTerminal("OneOrMoreExpr");
-
     public static final NonTerminal Regex = new NonTerminal("Regex");
-
     public static final NonTerminal Expr = new NonTerminal("Expr");
-
     public static final NonTerminal Sequence = new NonTerminal("Sequence");
-
     public static final NonTerminal CharacterRange = new NonTerminal("CharacterRange");
-
     private Lexer lexer;
 
     public RegexGrammar() {
@@ -111,6 +82,30 @@ public class RegexGrammar extends Grammar {
         Parser parser = super.createParser(symbol, useActionTableCache);
         parser.setLexer(lexer);
         return parser;
+    }
+
+    public static final class Tokens {
+
+        public static final Terminal LeftBrace = Lexemes.singleChar('(');
+
+        public static final Terminal RightBrace = Lexemes.singleChar(')');
+
+        public static final Terminal Dot = Lexemes.singleChar('.');
+
+        public static final Terminal Plus = Lexemes.singleChar('+');
+
+        public static final Terminal Pipe = Lexemes.singleChar('|');
+
+        public static final Terminal QuestionMark = Lexemes.singleChar('?');
+
+        public static final Terminal Star = Lexemes.singleChar('*');
+
+        public static final Terminal ThreePoints = new Literal("..");
+
+        public static final Terminal Char = Lexemes.cCharacter();
+
+        public static final Terminal SingleQuotedString = new QuotedString('\'', '\'', '\\', "\n\r".toCharArray());
+
     }
 
 }

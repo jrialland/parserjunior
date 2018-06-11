@@ -36,7 +36,7 @@ public class CFilesTest {
         List<Token> tokens = new CGrammar().createParser().getLexer().tokenize(reader);
         boolean gotToken = false;
         for (Token t : tokens) {
-            if(t.toString().equals("CString@5:26")) {
+            if (t.toString().equals("CString@5:26")) {
                 gotToken = true;
                 Assert.assertEquals("\"\\\"Hello \\n World\\\"\\x0a\"", t.getText());
             }

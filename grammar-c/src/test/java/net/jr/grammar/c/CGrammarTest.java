@@ -10,7 +10,6 @@ import net.jr.parser.Parser;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.ast.VisitorHelper;
 import net.jr.parser.ast.annotations.After;
-import net.jr.parser.impl.ActionTable;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -34,7 +33,7 @@ public class CGrammarTest {
     public void testLex() {
         Lexer l = new CGrammar().createParser().getLexer();
         Iterator<Token> it = l.iterator(new StringReader("for (int i=0;str[i]!='\\0';i+=1) {}"));
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             it.next();
         }
     }
@@ -42,7 +41,7 @@ public class CGrammarTest {
     @Test
     public void testLexTypes() {
         Lexer l = new CGrammar().createParser().getLexer();
-        List<Token> tokens  = l.tokenize("int intish;");
+        List<Token> tokens = l.tokenize("int intish;");
         Assert.assertEquals(4, tokens.size());
         Assert.assertEquals(CGrammar.Tokens.Int, tokens.get(0).getTokenType());
         Assert.assertEquals(CGrammar.Tokens.Identifier, tokens.get(1).getTokenType());

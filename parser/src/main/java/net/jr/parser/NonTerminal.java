@@ -22,12 +22,18 @@ public class NonTerminal implements Symbol {
         this.name = name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    @SuppressWarnings("unused")
+    public static NonTerminal unMarshall(DataInputStream in) throws IOException {
+        String name = in.readUTF();
+        return new NonTerminal(name);
     }
 
     public String getName() {
         return name == null ? super.toString() : name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
@@ -73,11 +79,5 @@ public class NonTerminal implements Symbol {
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
         dataOutputStream.writeUTF(name);
-    }
-
-    @SuppressWarnings("unused")
-    public static NonTerminal unMarshall(DataInputStream in) throws IOException {
-        String name = in.readUTF();
-        return new NonTerminal(name);
     }
 }

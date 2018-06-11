@@ -17,6 +17,16 @@ public class ParseError extends RuntimeException {
 
     private Set<Symbol> expected;
 
+    /**
+     * @param unexpectedToken
+     * @param expected        The basicterminals that were expected according to parser's current state
+     */
+    public ParseError(Token unexpectedToken, Set<Symbol> expected) {
+        super(getDefaultMessage(unexpectedToken, expected));
+        this.token = unexpectedToken;
+        this.expected = expected;
+    }
+
     private static String getDefaultMessage(Token token, Set<Symbol> expected) {
         StringWriter sw = new StringWriter();
         sw.append("Parse error");
@@ -51,16 +61,6 @@ public class ParseError extends RuntimeException {
             sw.append(" instead)");
         }
         return sw.toString();
-    }
-
-    /**
-     * @param unexpectedToken
-     * @param expected        The basicterminals that were expected according to parser's current state
-     */
-    public ParseError(Token unexpectedToken, Set<Symbol> expected) {
-        super(getDefaultMessage(unexpectedToken, expected));
-        this.token = unexpectedToken;
-        this.expected = expected;
     }
 
     /**

@@ -1,7 +1,7 @@
 package net.jr.parser;
 
-import net.jr.lexer.Terminal;
 import net.jr.lexer.Lexemes;
+import net.jr.lexer.Terminal;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.ast.VisitorHelper;
 import net.jr.parser.ast.annotations.After;
@@ -11,6 +11,16 @@ import org.junit.Test;
 import java.util.Stack;
 
 public class FourOpsTest {
+
+    @Test
+    public void test() {
+        FourOps fourOps = new FourOps();
+        Assert.assertEquals(8, fourOps.compute("15-7"));
+        Assert.assertEquals(18, fourOps.compute("3*6"));
+        Assert.assertEquals(5, fourOps.compute("50/10"));
+        Assert.assertEquals(32, fourOps.compute("3*6+2*7"));
+        Assert.assertEquals(4, fourOps.compute("1-2+3-4+5-6+7"));
+    }
 
     static class FourOps extends Grammar {
 
@@ -83,16 +93,6 @@ public class FourOpsTest {
 
             return stack.pop();
         }
-    }
-
-    @Test
-    public void test() {
-        FourOps fourOps = new FourOps();
-        Assert.assertEquals(8, fourOps.compute("15-7"));
-        Assert.assertEquals(18, fourOps.compute("3*6"));
-        Assert.assertEquals(5, fourOps.compute("50/10"));
-        Assert.assertEquals(32, fourOps.compute("3*6+2*7"));
-        Assert.assertEquals(4, fourOps.compute("1-2+3-4+5-6+7"));
     }
 
 

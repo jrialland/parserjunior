@@ -20,30 +20,25 @@ import java.util.Stack;
 
 public class GrammarTest {
 
-    @BeforeClass
-    public static void setupClass() {
-        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
-    }
-
     Symbol S = new NonTerminal("S");
     Symbol N = new NonTerminal("N");
     Symbol E = new NonTerminal("E");
     Symbol V = new NonTerminal("V");
-
     Symbol B = new NonTerminal("B");
-
     SingleChar x = new SingleChar('x');
     SingleChar eq = new SingleChar('=');
-
     SingleChar plus = new SingleChar('+');
     SingleChar minus = new SingleChar('-');
     SingleChar mult = new SingleChar('*');
     SingleChar div = new SingleChar('/');
-
     SingleChar zero = new SingleChar('0');
     SingleChar one = new SingleChar('1');
-
     Grammar grammar;
+
+    @BeforeClass
+    public static void setupClass() {
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
+    }
 
     @Before
     public void setup() {

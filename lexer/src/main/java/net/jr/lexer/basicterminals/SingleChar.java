@@ -18,6 +18,11 @@ public class SingleChar extends TerminalImpl {
         this.character = character;
     }
 
+    @SuppressWarnings("unchecked")
+    public static SingleChar unMarshall(DataInputStream dataInputStream) throws IOException {
+        return new SingleChar(dataInputStream.readChar());
+    }
+
     @Override
     public Automaton getAutomaton() {
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
@@ -28,7 +33,7 @@ public class SingleChar extends TerminalImpl {
     @Override
     public String toString() {
         String name = getName();
-        return name==null?"'" + Character.toString(character) + "'":name;
+        return name == null ? "'" + Character.toString(character) + "'" : name;
     }
 
     @Override
@@ -52,11 +57,6 @@ public class SingleChar extends TerminalImpl {
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
         dataOutputStream.writeChar(character);
-    }
-
-    @SuppressWarnings("unchecked")
-    public static SingleChar unMarshall(DataInputStream dataInputStream) throws IOException {
-        return new SingleChar(dataInputStream.readChar());
     }
 
 }

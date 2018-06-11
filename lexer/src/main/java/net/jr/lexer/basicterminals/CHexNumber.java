@@ -31,6 +31,10 @@ public class CHexNumber extends TerminalImpl {
         setAutomaton(builder.build());
     }
 
+    public static CHexNumber unMarshall(DataInputStream in) throws IOException {
+        return new CHexNumber();
+    }
+
     @Override
     public String toString() {
         return "CHexNumber";
@@ -55,9 +59,5 @@ public class CHexNumber extends TerminalImpl {
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
 
-    }
-
-    public static CHexNumber unMarshall(DataInputStream in) throws IOException {
-        return new CHexNumber();
     }
 }

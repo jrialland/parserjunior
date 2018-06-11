@@ -25,6 +25,10 @@ public class CBinary extends TerminalImpl {
         setAutomaton(builder.build());
     }
 
+    public static CBinary unMarshall(DataInputStream in) throws IOException {
+        return new CBinary();
+    }
+
     @Override
     public String toString() {
         return "CBinary";
@@ -49,9 +53,5 @@ public class CBinary extends TerminalImpl {
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
 
-    }
-
-    public static CBinary unMarshall(DataInputStream in) throws IOException {
-        return new CBinary();
     }
 }

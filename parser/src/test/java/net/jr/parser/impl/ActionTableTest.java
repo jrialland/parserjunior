@@ -3,8 +3,8 @@ package net.jr.parser.impl;
 import net.jr.common.Symbol;
 import net.jr.lexer.Lexemes;
 import net.jr.lexer.basicterminals.SingleChar;
-import net.jr.parser.NonTerminal;
 import net.jr.parser.Grammar;
+import net.jr.parser.NonTerminal;
 import net.jr.parser.ast.AstNode;
 import org.junit.Assert;
 import org.junit.Before;
@@ -14,20 +14,18 @@ import java.util.*;
 
 public class ActionTableTest {
 
-    public static void setupClass() {
-        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
-    }
-
     Symbol S = new NonTerminal("S");
     Symbol N = new NonTerminal("N");
     Symbol E = new NonTerminal("E");
     Symbol V = new NonTerminal("V");
-
     SingleChar x = new SingleChar('x');
     SingleChar eq = new SingleChar('=');
     SingleChar star = new SingleChar('*');
-
     Grammar grammar;
+
+    public static void setupClass() {
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
+    }
 
     @Before
     public void setup() {

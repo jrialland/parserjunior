@@ -21,6 +21,10 @@ public class Literal extends TerminalImpl {
         this.value = value;
     }
 
+    public static Literal unMarshall(DataInputStream in) throws IOException {
+        return new Literal(in.readUTF());
+    }
+
     @Override
     public Automaton getAutomaton() {
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
@@ -71,9 +75,5 @@ public class Literal extends TerminalImpl {
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
         dataOutputStream.writeUTF(value);
-    }
-
-    public static Literal unMarshall(DataInputStream in) throws IOException {
-        return new Literal(in.readUTF());
     }
 }

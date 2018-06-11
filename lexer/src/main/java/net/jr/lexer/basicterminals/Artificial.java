@@ -16,6 +16,10 @@ public class Artificial extends TerminalImpl {
         setAutomaton(FailAutomaton.get(this));
     }
 
+    public static Artificial unMarshall(DataInputStream in) throws IOException {
+        return new Artificial(in.readUTF());
+    }
+
     @Override
     public String toString() {
         return name;
@@ -41,9 +45,5 @@ public class Artificial extends TerminalImpl {
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
         dataOutputStream.writeUTF(name);
-    }
-
-    public static Artificial unMarshall(DataInputStream in) throws IOException {
-        return new Artificial(in.readUTF());
     }
 }

@@ -1,8 +1,8 @@
 package net.jr.lexer.expr.impl;
 
 import net.jr.lexer.Terminal;
-import net.jr.lexer.impl.*;
 import net.jr.lexer.basicterminals.*;
+import net.jr.lexer.impl.OneOf;
 import net.jr.marshalling.MarshallingUtil;
 import org.junit.Assert;
 import org.junit.Test;

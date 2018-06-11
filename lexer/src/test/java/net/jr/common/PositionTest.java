@@ -17,8 +17,8 @@ public class PositionTest {
         Assert.assertEquals("12:21", p.toString());
         Position p2 = new Position(12, 21);
         Assert.assertEquals(p.hashCode(), p2.hashCode());
-        Assert.assertFalse(p.equals(new Position(13,21)));
-        Assert.assertFalse(p.equals(new Position(12,20)));
+        Assert.assertFalse(p.equals(new Position(13, 21)));
+        Assert.assertFalse(p.equals(new Position(12, 20)));
         Assert.assertFalse(p.equals(null));
         Assert.assertFalse(p.equals(new Object()));
         Assert.assertTrue(p.equals(p2));

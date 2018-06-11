@@ -7,14 +7,14 @@ public class StringUtilTest {
 
     @Test
     public void testToSubscript() {
-        String s = StringUtil.toSubscript(-1562);
-        Assert.assertEquals("-₁₅₆₂", s);
+        Assert.assertEquals("₁", StringUtil.toSubscript(1));
+        Assert.assertEquals("₋₁₅₆₂", StringUtil.toSubscript(-1562));
     }
 
     @Test
     public void testSuperscript() {
-        String s = StringUtil.toSuperscript(-123841);
-        Assert.assertEquals("-¹²³⁸⁴¹", s);
+        Assert.assertEquals("¹²³⁴⁵⁶⁷⁸⁹", StringUtil.toSuperscript(123456789));
+        Assert.assertEquals("⁻¹²³⁸⁴¹", StringUtil.toSuperscript(-123841));
     }
 
     @Test
@@ -32,6 +32,11 @@ public class StringUtilTest {
         Assert.assertEquals("  .   ", StringUtil.center(".", 6));
         Assert.assertEquals(" ...  ", StringUtil.center("...", 6));
         Assert.assertEquals(" .... ", StringUtil.center("....", 6));
+    }
+
+    @Test
+    public void testHighlight() {
+        Assert.assertEquals("this is the [te]rminal [Te]st", StringUtil.highlight("this is the terminal Test", "te", "[", "]"));
     }
 
 

@@ -20,6 +20,8 @@ public interface Parser {
 
     void setLexer(Lexer lexer);
 
+    ParserListener getParserListener();
+
     /**
      * Sets a {@link ParserListener} that will be notified on different phases
      *
@@ -27,14 +29,12 @@ public interface Parser {
      */
     void setParserListener(ParserListener parserListener);
 
-    ParserListener getParserListener();
+    AstNodeFactory getAstNodeFactory();
 
     /**
      * The instanciation of the nodes may be delegated to a custom {@link AstNodeFactory}
      */
     void setAstNodeFactory(AstNodeFactory astNodeFactory);
-
-    AstNodeFactory getAstNodeFactory();
 
     /**
      * sugar for parse(getLexer(), new StringReader(txt))

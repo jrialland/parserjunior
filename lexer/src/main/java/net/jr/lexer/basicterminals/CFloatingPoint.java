@@ -52,6 +52,10 @@ public class CFloatingPoint extends TerminalImpl {
         return finalState;
     }
 
+    public static CFloatingPoint unMarshall(DataInputStream in) throws IOException {
+        return new CFloatingPoint();
+    }
+
     @Override
     public String toString() {
         return "CFloatingPoint";
@@ -76,9 +80,5 @@ public class CFloatingPoint extends TerminalImpl {
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
 
-    }
-
-    public static CFloatingPoint unMarshall(DataInputStream in) throws IOException {
-        return new CFloatingPoint();
     }
 }

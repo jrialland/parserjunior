@@ -37,6 +37,10 @@ public class CInteger extends TerminalImpl {
         suffixL.when(or(eq('U'), eq('u'))).goTo(finalState);
     }
 
+    public static CInteger unMarshall(DataInputStream in) throws IOException {
+        return new CInteger();
+    }
+
     @Override
     public String toString() {
         return "CInteger";
@@ -62,9 +66,5 @@ public class CInteger extends TerminalImpl {
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
 
-    }
-
-    public static CInteger unMarshall(DataInputStream in) throws IOException {
-        return new CInteger();
     }
 }

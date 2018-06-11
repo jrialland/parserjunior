@@ -14,13 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class DiskCache implements Cache<String, byte[]> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DiskCache.class);
-
-    private static final Logger getLog() {
-        return LOGGER;
-    }
-
     private Path tmpDir;
-
     private long ageLimit;
 
     public DiskCache(String name, int ttl, TimeUnit timeUnit) {
@@ -34,6 +28,10 @@ public class DiskCache implements Cache<String, byte[]> {
                 tmpDir = null;
             }
         }
+    }
+
+    private static final Logger getLog() {
+        return LOGGER;
     }
 
     private static long getLastModified(Path path) throws IOException {

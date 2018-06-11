@@ -3,7 +3,10 @@ package net.jr.collection.iterators;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 public class IteratorsTest {
 
@@ -42,7 +45,7 @@ public class IteratorsTest {
 
 
         Assert.assertTrue(it2.hasNext());
-        Assert.assertEquals(1, (int)it2.next());
+        Assert.assertEquals(1, (int) it2.next());
 
         it2.remove();
 

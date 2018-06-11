@@ -54,35 +54,6 @@ public class GraphvizViewer extends JFrame implements MouseWheelListener, KeyLis
         addKeyListener(this);
     }
 
-    @Override
-    public void mouseWheelMoved(MouseWheelEvent e) {
-        if (ctrl) {
-            scale += e.getWheelRotation() * e.getScrollAmount() * -0.1;
-            jPanel.setPreferredSize(new Dimension((int) (imageW * scale), (int) (imageH * scale)));
-            jScrollPane.getViewport().setViewSize(jPanel.getPreferredSize());
-            repaint();
-        }
-    }
-
-    @Override
-    public void keyTyped(KeyEvent e) {
-
-    }
-
-    @Override
-    public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
-            ctrl = true;
-        }
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
-            ctrl = false;
-        }
-    }
-
     public static GraphvizViewer show(String graph) throws IOException, InterruptedException {
 
         Process process = new ProcessBuilder()
@@ -121,5 +92,34 @@ public class GraphvizViewer extends JFrame implements MouseWheelListener, KeyLis
         viewer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         viewer.setVisible(true);
         return viewer;
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        if (ctrl) {
+            scale += e.getWheelRotation() * e.getScrollAmount() * -0.1;
+            jPanel.setPreferredSize(new Dimension((int) (imageW * scale), (int) (imageH * scale)));
+            jScrollPane.getViewport().setViewSize(jPanel.getPreferredSize());
+            repaint();
+        }
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
+            ctrl = true;
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
+            ctrl = false;
+        }
     }
 }

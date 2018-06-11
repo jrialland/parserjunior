@@ -2,8 +2,8 @@ package net.jr.grammar.c;
 
 import net.jr.common.Symbol;
 import net.jr.lexer.*;
-import net.jr.parser.NonTerminal;
 import net.jr.parser.Grammar;
+import net.jr.parser.NonTerminal;
 import net.jr.parser.Parser;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.impl.LRParser;
@@ -17,96 +17,6 @@ import java.util.TreeSet;
  * ANSI C Grammar
  */
 public class CGrammar extends Grammar {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(CGrammar.class);
-
-    private static final Logger getLog() {
-        return LOGGER;
-    }
-
-    public static final class Tokens {
-        public static Terminal Volatile = Lexemes.literal("volatile", "volatile");
-        public static Terminal Minus = Lexemes.singleChar('-', "minus");
-        public static Terminal Ne_op = Lexemes.literal("!=", "notEq");
-        public static Terminal Left_op = Lexemes.literal("<<", "shiftLeft");
-        public static Terminal RightBrace = Lexemes.singleChar(')', "rightParen");
-        public static Terminal Mod = Lexemes.singleChar('%', "modulo");
-        public static Terminal Right_op = Lexemes.literal(">>", "shiftRight");
-        public static Terminal Pipe = Lexemes.singleChar('|', "bitwiseOr");
-        public static Terminal Do = Lexemes.literal("do", "do");
-        public static Terminal ExclamationMark = Lexemes.singleChar('!', "exclamationMark");
-        public static Terminal Static = Lexemes.literal("static", "static");
-        public static Terminal Gt = Lexemes.singleChar('>', "gt");
-        public static Terminal LeftSquareBrace = Lexemes.singleChar('[', "leftSquareBracket");
-        public static Terminal DualPoint = Lexemes.singleChar(':', "twoPoints");
-        public static Terminal And_assign = Lexemes.literal("&=", "andEq");
-        public static Terminal Const = Lexemes.literal("const", "const");
-        public static Terminal Break = Lexemes.literal("break", "break");
-        public static Terminal Or_assign = Lexemes.literal("|=", "bitwiseOrEq");
-        public static Terminal Typedef = Lexemes.literal("typedef", "typedef");
-        public static Terminal Else = Lexemes.literal("else", "else");
-        public static Terminal Extern = Lexemes.literal("extern", "extern");
-        public static Terminal If = Lexemes.literal("if", "if");
-        public static Terminal Dot = Lexemes.singleChar('.', "dot");
-        public static Terminal Register = Lexemes.literal("register", "register");
-        public static Terminal Enum = Lexemes.literal("enum", "enum");
-        public static Terminal ShiftRight_assign = Lexemes.literal(">>=", "rightShiftEq");
-        public static Terminal Mul = Lexemes.singleChar('*', "mult");
-        public static Terminal Eq_op = Lexemes.literal("==", "eqEq");
-        public static Terminal And = Lexemes.singleChar('&', "bitwiseAnd");
-        public static Terminal Le_op = Lexemes.literal("<=", "lte");
-        public static Terminal For = Lexemes.literal("for", "for");
-        public static Terminal Dec_op = Lexemes.literal("--", "minusMinus");
-        public static Terminal QuestionMark = Lexemes.singleChar('?', "questionMark");
-        public static Terminal Case = Lexemes.literal("case", "case");
-        public static Terminal Auto = Lexemes.literal("auto", "auto");
-        public static Terminal RightCurlyBrace = Lexemes.singleChar('}', "rightCurlyBrace");
-        public static Terminal DotComma = Lexemes.singleChar(';', "dotComma");
-        public static Terminal Ellipsis = Lexemes.literal("...", "threePoints");
-        public static Terminal Ptr_op = Lexemes.literal("->", "arrow");
-        public static Terminal Switch = Lexemes.literal("switch", "switch");
-        public static Terminal Void = Lexemes.literal("void", "void");
-        public static Terminal Struct = Lexemes.literal("struct", "struct");
-        public static Terminal Div = Lexemes.singleChar('/', "slash");
-        public static Terminal And_op = Lexemes.literal("&&", "logicalAnd");
-        public static Terminal Or_op = Lexemes.literal("||", "logicalOr");
-        public static Terminal Float = Lexemes.literal("float", "float");
-        public static Terminal Goto = Lexemes.literal("goto", "goto");
-        public static Terminal Plus = Lexemes.singleChar('+', "plus");
-        public static Terminal Div_assign = Lexemes.literal("/=", "divAssign");
-        public static Terminal Sub_assign = Lexemes.literal("-=","minusAssign");
-        public static Terminal Unsigned = Lexemes.literal("unsigned", "unsigned");
-        public static Terminal Sizeof = Lexemes.literal("sizeof", "sizeof");
-        public static Terminal Char = Lexemes.literal("char", "char");
-        public static Terminal Int = Lexemes.literal("int", "int");
-        public static Terminal Tilde = Lexemes.singleChar('~', "tilde");
-        public static Terminal RightSquareBrace = Lexemes.singleChar(']', "rightSquareBracket");
-        public static Terminal Return = Lexemes.literal("return", "return");
-        public static Terminal Lt = Lexemes.singleChar('<', "lt");
-        public static Terminal Signed = Lexemes.literal("signed", "signed");
-        public static Terminal Mul_assign = Lexemes.literal("*=", "mulAssign");
-        public static Terminal Identifier = Lexemes.cIdentifier().withPriority(-10);
-        public static Terminal Add_assign = Lexemes.literal("+=", "plusAssign");
-        public static Terminal Double = Lexemes.literal("double", "double");
-        public static Terminal Long = Lexemes.literal("long", "long");
-        public static Terminal Comma = Lexemes.singleChar(',', "comma");
-        public static Terminal Xor_assign = Lexemes.literal("^=", "bitwiseNotAssign");
-        public static Terminal LeftBrace = Lexemes.singleChar('(', "leftParen");
-        public static Terminal Ge_op = Lexemes.literal(">=", "gte");
-        public static Terminal Short = Lexemes.literal("short", "short");
-        public static Terminal Pow = Lexemes.singleChar('^',"bitwiseNot");
-        public static Terminal Continue = Lexemes.literal("continue", "continue");
-        public static Terminal Eq = Lexemes.singleChar('=', "eq");
-        public static Terminal LeftCurlyBrace = Lexemes.singleChar('{', "leftCurlyBrace");
-        public static Terminal Mod_assign = Lexemes.literal("%=", "moduloEq");
-        public static Terminal String_literal = Lexemes.cString();
-        public static Terminal ShiftLeft_assign = Lexemes.literal("<<=", "leftShiftAssign");
-        public static Terminal While = Lexemes.literal("while", "while");
-        public static Terminal Union = Lexemes.literal("union", "union");
-        public static Terminal Inc_op = Lexemes.literal("++", "plusPlus");
-        public static Terminal Default = Lexemes.literal("default", "default");
-        public static Terminal TypeName = Lexemes.artificial("typeName");
-    }
 
     public static final NonTerminal CastExpression = new NonTerminal("CastExpression");
     public static final NonTerminal CompoundStatement = new NonTerminal("CompoundStatement");
@@ -173,13 +83,11 @@ public class CGrammar extends Grammar {
     public static final NonTerminal FunctionDefinition = new NonTerminal("FunctionDefinition");
     public static final NonTerminal CompilationUnit = new NonTerminal("CompilationUnit");
     public static final NonTerminal Constant = new NonTerminal("Constant");
-
     public static final NonTerminal ForDeclaration = new NonTerminal("ForDeclaration");
     public static final NonTerminal ForCondition = new NonTerminal("ForCondition");
     public static final NonTerminal ForExpression = new NonTerminal("ForExpression");
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(CGrammar.class);
     private Lexer lexer;
-
     public CGrammar() {
 
         setName("C");
@@ -461,11 +369,15 @@ public class CGrammar extends Grammar {
 
     }
 
+    private static final Logger getLog() {
+        return LOGGER;
+    }
+
     protected String getDeclaratorName(AstNode declarator) {
         AstNode directDeclarator = declarator.getChildOfType(DirectDeclarator);
-        if(directDeclarator == null) {
+        if (directDeclarator == null) {
             AstNode childDeclarator = declarator.getChildOfType(Declarator);
-            if(childDeclarator != null) {
+            if (childDeclarator != null) {
                 return getDeclaratorName(childDeclarator);
             } else {
                 throw new UnsupportedOperationException(declarator.repr());
@@ -484,6 +396,90 @@ public class CGrammar extends Grammar {
         LRParser parser = (LRParser) super.createParser(targetSymbol, useCache);
         parser.setLexer(lexer);
         return parser;
+    }
+
+    public static final class Tokens {
+        public static Terminal Volatile = Lexemes.literal("volatile", "volatile");
+        public static Terminal Minus = Lexemes.singleChar('-', "minus");
+        public static Terminal Ne_op = Lexemes.literal("!=", "notEq");
+        public static Terminal Left_op = Lexemes.literal("<<", "shiftLeft");
+        public static Terminal RightBrace = Lexemes.singleChar(')', "rightParen");
+        public static Terminal Mod = Lexemes.singleChar('%', "modulo");
+        public static Terminal Right_op = Lexemes.literal(">>", "shiftRight");
+        public static Terminal Pipe = Lexemes.singleChar('|', "bitwiseOr");
+        public static Terminal Do = Lexemes.literal("do", "do");
+        public static Terminal ExclamationMark = Lexemes.singleChar('!', "exclamationMark");
+        public static Terminal Static = Lexemes.literal("static", "static");
+        public static Terminal Gt = Lexemes.singleChar('>', "gt");
+        public static Terminal LeftSquareBrace = Lexemes.singleChar('[', "leftSquareBracket");
+        public static Terminal DualPoint = Lexemes.singleChar(':', "twoPoints");
+        public static Terminal And_assign = Lexemes.literal("&=", "andEq");
+        public static Terminal Const = Lexemes.literal("const", "const");
+        public static Terminal Break = Lexemes.literal("break", "break");
+        public static Terminal Or_assign = Lexemes.literal("|=", "bitwiseOrEq");
+        public static Terminal Typedef = Lexemes.literal("typedef", "typedef");
+        public static Terminal Else = Lexemes.literal("else", "else");
+        public static Terminal Extern = Lexemes.literal("extern", "extern");
+        public static Terminal If = Lexemes.literal("if", "if");
+        public static Terminal Dot = Lexemes.singleChar('.', "dot");
+        public static Terminal Register = Lexemes.literal("register", "register");
+        public static Terminal Enum = Lexemes.literal("enum", "enum");
+        public static Terminal ShiftRight_assign = Lexemes.literal(">>=", "rightShiftEq");
+        public static Terminal Mul = Lexemes.singleChar('*', "mult");
+        public static Terminal Eq_op = Lexemes.literal("==", "eqEq");
+        public static Terminal And = Lexemes.singleChar('&', "bitwiseAnd");
+        public static Terminal Le_op = Lexemes.literal("<=", "lte");
+        public static Terminal For = Lexemes.literal("for", "for");
+        public static Terminal Dec_op = Lexemes.literal("--", "minusMinus");
+        public static Terminal QuestionMark = Lexemes.singleChar('?', "questionMark");
+        public static Terminal Case = Lexemes.literal("case", "case");
+        public static Terminal Auto = Lexemes.literal("auto", "auto");
+        public static Terminal RightCurlyBrace = Lexemes.singleChar('}', "rightCurlyBrace");
+        public static Terminal DotComma = Lexemes.singleChar(';', "dotComma");
+        public static Terminal Ellipsis = Lexemes.literal("...", "threePoints");
+        public static Terminal Ptr_op = Lexemes.literal("->", "arrow");
+        public static Terminal Switch = Lexemes.literal("switch", "switch");
+        public static Terminal Void = Lexemes.literal("void", "void");
+        public static Terminal Struct = Lexemes.literal("struct", "struct");
+        public static Terminal Div = Lexemes.singleChar('/', "slash");
+        public static Terminal And_op = Lexemes.literal("&&", "logicalAnd");
+        public static Terminal Or_op = Lexemes.literal("||", "logicalOr");
+        public static Terminal Float = Lexemes.literal("float", "float");
+        public static Terminal Goto = Lexemes.literal("goto", "goto");
+        public static Terminal Plus = Lexemes.singleChar('+', "plus");
+        public static Terminal Div_assign = Lexemes.literal("/=", "divAssign");
+        public static Terminal Sub_assign = Lexemes.literal("-=", "minusAssign");
+        public static Terminal Unsigned = Lexemes.literal("unsigned", "unsigned");
+        public static Terminal Sizeof = Lexemes.literal("sizeof", "sizeof");
+        public static Terminal Char = Lexemes.literal("char", "char");
+        public static Terminal Int = Lexemes.literal("int", "int");
+        public static Terminal Tilde = Lexemes.singleChar('~', "tilde");
+        public static Terminal RightSquareBrace = Lexemes.singleChar(']', "rightSquareBracket");
+        public static Terminal Return = Lexemes.literal("return", "return");
+        public static Terminal Lt = Lexemes.singleChar('<', "lt");
+        public static Terminal Signed = Lexemes.literal("signed", "signed");
+        public static Terminal Mul_assign = Lexemes.literal("*=", "mulAssign");
+        public static Terminal Identifier = Lexemes.cIdentifier().withPriority(-10);
+        public static Terminal Add_assign = Lexemes.literal("+=", "plusAssign");
+        public static Terminal Double = Lexemes.literal("double", "double");
+        public static Terminal Long = Lexemes.literal("long", "long");
+        public static Terminal Comma = Lexemes.singleChar(',', "comma");
+        public static Terminal Xor_assign = Lexemes.literal("^=", "bitwiseNotAssign");
+        public static Terminal LeftBrace = Lexemes.singleChar('(', "leftParen");
+        public static Terminal Ge_op = Lexemes.literal(">=", "gte");
+        public static Terminal Short = Lexemes.literal("short", "short");
+        public static Terminal Pow = Lexemes.singleChar('^', "bitwiseNot");
+        public static Terminal Continue = Lexemes.literal("continue", "continue");
+        public static Terminal Eq = Lexemes.singleChar('=', "eq");
+        public static Terminal LeftCurlyBrace = Lexemes.singleChar('{', "leftCurlyBrace");
+        public static Terminal Mod_assign = Lexemes.literal("%=", "moduloEq");
+        public static Terminal String_literal = Lexemes.cString();
+        public static Terminal ShiftLeft_assign = Lexemes.literal("<<=", "leftShiftAssign");
+        public static Terminal While = Lexemes.literal("while", "while");
+        public static Terminal Union = Lexemes.literal("union", "union");
+        public static Terminal Inc_op = Lexemes.literal("++", "plusPlus");
+        public static Terminal Default = Lexemes.literal("default", "default");
+        public static Terminal TypeName = Lexemes.artificial("typeName");
     }
 
     /**

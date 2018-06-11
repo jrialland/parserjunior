@@ -11,6 +11,10 @@ public class CString extends QuotedString {
         setName("cString");
     }
 
+    public static CString unMarshall(DataInputStream in) throws IOException {
+        return new CString();
+    }
+
     @Override
     public String toString() {
         return "CString";
@@ -33,9 +37,5 @@ public class CString extends QuotedString {
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
 
-    }
-
-    public static CString unMarshall(DataInputStream in) throws IOException {
-        return new CString();
     }
 }

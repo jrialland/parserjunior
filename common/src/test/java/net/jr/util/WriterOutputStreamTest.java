@@ -13,7 +13,7 @@ public class WriterOutputStreamTest {
         StringWriter sw = new StringWriter();
         WriterOutputStream wos = new WriterOutputStream(sw);
 
-        wos.write((int)'H');
+        wos.write((int) 'H');
         wos.write("ello ".getBytes());
         wos.write("XXXWorld".getBytes(), 3, 5);
 

@@ -11,13 +11,7 @@ import java.util.concurrent.TimeUnit;
 public class ActionTableCaching {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionTableCaching.class);
-
-    private static final Logger getLog() {
-        return LOGGER;
-    }
-
     private static final Cache<Grammar, ActionTable> cache;
-
     private static boolean enabled = true;
 
     static {
@@ -36,12 +30,16 @@ public class ActionTableCaching {
 
     }
 
-    public static void setEnabled(boolean enabled) {
-        ActionTableCaching.enabled = enabled;
+    private static final Logger getLog() {
+        return LOGGER;
     }
 
     public static boolean isEnabled() {
         return enabled;
+    }
+
+    public static void setEnabled(boolean enabled) {
+        ActionTableCaching.enabled = enabled;
     }
 
     public static ActionTable get(Grammar grammar) {

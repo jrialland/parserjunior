@@ -11,23 +11,6 @@ import java.util.concurrent.TimeUnit;
 
 public class CacheTest {
 
-    public static class TestObj implements MarshallingCapable {
-        private String id;
-
-        public TestObj(String id) {
-            this.id = id;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        @Override
-        public void marshall(DataOutputStream dataOutputStream) throws IOException {
-            dataOutputStream.writeUTF(id);
-        }
-    }
-
     private Cache<TestObj, TestObj> getCache() {
 
         Cache.Builder<String, byte[]> onDisk = Cache.Builder.onDisk(TestObj.class.getName())
@@ -54,6 +37,23 @@ public class CacheTest {
         cache.evict(k1);
         cache.evict(new TestObj("3"));
         cache.evictAll();
+    }
+
+    public static class TestObj implements MarshallingCapable {
+        private String id;
+
+        public TestObj(String id) {
+            this.id = id;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        @Override
+        public void marshall(DataOutputStream dataOutputStream) throws IOException {
+            dataOutputStream.writeUTF(id);
+        }
     }
 
 

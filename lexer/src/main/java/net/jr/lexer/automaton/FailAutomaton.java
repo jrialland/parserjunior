@@ -20,6 +20,16 @@ public class FailAutomaton implements Automaton, MarshallingCapable {
         this.terminal = terminal;
     }
 
+    @SuppressWarnings("unused")
+    public static Automaton unMarshall(DataInputStream in) throws IOException {
+        Terminal l = MarshallingUtil.unMarshall(in);
+        return get(l);
+    }
+
+    public static FailAutomaton get(Terminal terminal) {
+        return failAutomatonMap.computeIfAbsent(terminal, l -> new FailAutomaton(l));
+    }
+
     @Override
     public Terminal getTokenType() {
         return terminal;
@@ -33,12 +43,6 @@ public class FailAutomaton implements Automaton, MarshallingCapable {
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
         terminal.marshall(dataOutputStream);
-    }
-
-    @SuppressWarnings("unused")
-    public static Automaton unMarshall(DataInputStream in) throws IOException {
-        Terminal l = MarshallingUtil.unMarshall(in);
-        return get(l);
     }
 
     @Override
@@ -58,10 +62,6 @@ public class FailAutomaton implements Automaton, MarshallingCapable {
 
         final FailAutomaton o = (FailAutomaton) obj;
         return o.terminal.equals(terminal);
-    }
-
-    public static FailAutomaton get(Terminal terminal) {
-        return failAutomatonMap.computeIfAbsent(terminal, l -> new FailAutomaton(l));
     }
 
     @Override

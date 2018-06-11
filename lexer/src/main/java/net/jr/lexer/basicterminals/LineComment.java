@@ -26,6 +26,11 @@ public class LineComment extends TerminalImpl {
         setAutomaton(builder.build());
     }
 
+    @SuppressWarnings("unused")
+    public static LineComment unMarshall(DataInputStream in) throws IOException {
+        return new LineComment(in.readUTF());
+    }
+
     @Override
     public String toString() {
         return String.format("LineComment('%s')", commentStart);
@@ -51,10 +56,5 @@ public class LineComment extends TerminalImpl {
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
         dataOutputStream.writeUTF(commentStart);
-    }
-
-    @SuppressWarnings("unused")
-    public static LineComment unMarshall(DataInputStream in) throws IOException {
-        return new LineComment(in.readUTF());
     }
 }

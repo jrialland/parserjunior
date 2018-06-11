@@ -60,6 +60,10 @@ public class CCharacter extends TerminalImpl {
         return current;
     }
 
+    public static CCharacter unMarshall(DataInputStream in) throws IOException {
+        return new CCharacter();
+    }
+
     @Override
     public String toString() {
         return "CCharacter";
@@ -84,9 +88,5 @@ public class CCharacter extends TerminalImpl {
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
 
-    }
-
-    public static CCharacter unMarshall(DataInputStream in) throws IOException {
-        return new CCharacter();
     }
 }

@@ -17,11 +17,6 @@ public class Word extends TerminalImpl {
 
     private String possibleFirstChar, possibleNextChars;
 
-    @Override
-    public String toString() {
-        return name;
-    }
-
     public Word(String possibleChars) {
         this(possibleChars, possibleChars);
     }
@@ -47,6 +42,19 @@ public class Word extends TerminalImpl {
         } else {
             this.name = name;
         }
+    }
+
+    @SuppressWarnings("unused")
+    public static Word unMarshall(DataInputStream dataInputStream) throws IOException {
+        String name = dataInputStream.readUTF();
+        String possibleFirstChar = dataInputStream.readUTF();
+        String possibleNextChars = dataInputStream.readUTF();
+        return new Word(possibleFirstChar, possibleNextChars, name);
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 
     @Override
@@ -81,13 +89,5 @@ public class Word extends TerminalImpl {
         dataOutputStream.writeUTF(name);
         dataOutputStream.writeUTF(possibleFirstChar);
         dataOutputStream.writeUTF(possibleNextChars);
-    }
-
-    @SuppressWarnings("unused")
-    public static Word unMarshall(DataInputStream dataInputStream) throws IOException {
-        String name = dataInputStream.readUTF();
-        String possibleFirstChar = dataInputStream.readUTF();
-        String possibleNextChars = dataInputStream.readUTF();
-        return new Word(possibleFirstChar, possibleNextChars, name);
     }
 }

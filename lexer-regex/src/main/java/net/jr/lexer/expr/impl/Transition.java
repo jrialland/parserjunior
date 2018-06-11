@@ -3,8 +3,6 @@ package net.jr.lexer.expr.impl;
 import net.jr.lexer.automaton.State;
 import net.jr.lexer.impl.CharConstraint;
 
-import java.util.function.Function;
-
 public class Transition implements net.jr.lexer.automaton.Transition<Character> {
 
     private CharConstraint charConstraint;
@@ -18,12 +16,12 @@ public class Transition implements net.jr.lexer.automaton.Transition<Character> 
         this.source = source;
     }
 
-    public void setCharConstraint(CharConstraint charConstraint) {
-        this.charConstraint = charConstraint;
-    }
-
     public CharConstraint getCharConstraint() {
         return charConstraint;
+    }
+
+    public void setCharConstraint(CharConstraint charConstraint) {
+        this.charConstraint = charConstraint;
     }
 
     public void toNode(Node n) {

@@ -18,7 +18,7 @@ public final class ZipUtil {
      */
     public static void unzip(Path archiveFile, Path outputFolder) throws IOException {
 
-        if(!Files.isRegularFile(archiveFile)) {
+        if (!Files.isRegularFile(archiveFile)) {
             throw new IllegalArgumentException("not a regular file : " + archiveFile);
         }
 

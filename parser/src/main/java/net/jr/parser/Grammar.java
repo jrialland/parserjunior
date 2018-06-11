@@ -19,24 +19,11 @@ import java.util.stream.Collectors;
 public class Grammar {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Grammar.class);
-
-    private static final Logger getLog() {
-        return LOGGER;
-    }
-
     private String name;
-
     private List<Rule> rules = new ArrayList<>();
-
     private Map<Symbol, Integer> precedenceLevels = new HashMap<>();
-
     private Symbol targetSymbol;
-
     private int counter = 0;
-
-    private String makeName(String prefix) {
-        return prefix + "_" + Base58Util.encode(Integer.toString(counter++).getBytes());
-    }
 
     public Grammar() {
         this(null);
@@ -46,17 +33,26 @@ public class Grammar {
         this.name = name;
     }
 
-    public List<Rule> getRules() {
-        return Collections.unmodifiableList(rules);
+    private static final Logger getLog() {
+        return LOGGER;
     }
 
-    public interface ComponentsSpecifier {
+    private static final String ruleToString(Rule rule) {
+        StringWriter sw = new StringWriter();
+        sw.append(rule.getTarget().toString());
+        for (Symbol s : rule.getClause()) {
+            sw.append(" ");
+            sw.append(s.toString());
+        }
+        return sw.toString();
+    }
 
-        /**
-         * Ends specifying a rule by giving its left side
-         */
-        RuleSpecifier def(Symbol... symbols);
+    private String makeName(String prefix) {
+        return prefix + "_" + Base58Util.encode(Integer.toString(counter++).getBytes());
+    }
 
+    public List<Rule> getRules() {
+        return Collections.unmodifiableList(rules);
     }
 
     /**
@@ -67,71 +63,6 @@ public class Grammar {
      */
     public ComponentsSpecifier target(Symbol symbol) {
         return symbols -> addRule(symbol, symbols);
-    }
-
-    /**
-     * Ends by specifying extrans infos about the rule
-     */
-    public interface RuleSpecifier {
-
-        /**
-         * Code to be executed each time the rule is matched during parsing
-         *
-         * @param consumer
-         * @return
-         */
-        RuleSpecifier withAction(Consumer<ParsingContext> consumer);
-
-        /**
-         * Give a non-default (i.e non-zero) precedence level to the rule.
-         *
-         * @param level precedence level
-         * @return this
-         * @see Grammar#getConflictResolutionHint(Rule, Symbol)
-         */
-        RuleSpecifier withPrecedenceLevel(int level);
-
-        /**
-         * Sets a custom name for this rule
-         *
-         * @param name
-         * @return this
-         */
-        RuleSpecifier withName(String name);
-
-        /**
-         * Sets a comment that documents the rule
-         */
-        RuleSpecifier withComment(String name);
-
-        /**
-         * Sets the conflict arbitration strategy
-         *
-         * @return this
-         */
-        RuleSpecifier preferShiftOverReduce();
-
-        /**
-         * Sets the conflict arbitration strategy
-         *
-         * @return this
-         */
-        RuleSpecifier preferReduceOverShift();
-
-        /**
-         * sets the associativity of the rule
-         *
-         * @param associativity
-         * @return this
-         */
-        RuleSpecifier withAssociativity(Associativity associativity);
-
-        /**
-         * gets the rule itself
-         *
-         * @return
-         */
-        Rule get();
     }
 
     /**
@@ -300,6 +231,15 @@ public class Grammar {
     }
 
     /**
+     * sets the name of the grammar
+     *
+     * @param name
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
      * Set the target rule, i.e. the rule that has to be accepted by the parser.
      *
      * @param rule the rule
@@ -335,15 +275,6 @@ public class Grammar {
             r.setId(i++);
         }
         rules = lRules;
-    }
-
-    /**
-     * sets the name of the grammar
-     *
-     * @param name
-     */
-    public void setName(String name) {
-        this.name = name;
     }
 
     /**
@@ -719,16 +650,6 @@ public class Grammar {
         return tmp;
     }
 
-    private static final String ruleToString(Rule rule) {
-        StringWriter sw = new StringWriter();
-        sw.append(rule.getTarget().toString());
-        for (Symbol s : rule.getClause()) {
-            sw.append(" ");
-            sw.append(s.toString());
-        }
-        return sw.toString();
-    }
-
     public String getFingerprint() {
         List<String> ruleNames = getRules().stream().map(rule -> ruleToString(rule)).collect(Collectors.toList());
         Collections.sort(ruleNames);
@@ -761,6 +682,80 @@ public class Grammar {
 
         final Grammar o = (Grammar) obj;
         return getFingerprint().equals(o.getFingerprint());
+    }
+
+    public interface ComponentsSpecifier {
+
+        /**
+         * Ends specifying a rule by giving its left side
+         */
+        RuleSpecifier def(Symbol... symbols);
+
+    }
+
+    /**
+     * Ends by specifying extrans infos about the rule
+     */
+    public interface RuleSpecifier {
+
+        /**
+         * Code to be executed each time the rule is matched during parsing
+         *
+         * @param consumer
+         * @return
+         */
+        RuleSpecifier withAction(Consumer<ParsingContext> consumer);
+
+        /**
+         * Give a non-default (i.e non-zero) precedence level to the rule.
+         *
+         * @param level precedence level
+         * @return this
+         * @see Grammar#getConflictResolutionHint(Rule, Symbol)
+         */
+        RuleSpecifier withPrecedenceLevel(int level);
+
+        /**
+         * Sets a custom name for this rule
+         *
+         * @param name
+         * @return this
+         */
+        RuleSpecifier withName(String name);
+
+        /**
+         * Sets a comment that documents the rule
+         */
+        RuleSpecifier withComment(String name);
+
+        /**
+         * Sets the conflict arbitration strategy
+         *
+         * @return this
+         */
+        RuleSpecifier preferShiftOverReduce();
+
+        /**
+         * Sets the conflict arbitration strategy
+         *
+         * @return this
+         */
+        RuleSpecifier preferReduceOverShift();
+
+        /**
+         * sets the associativity of the rule
+         *
+         * @param associativity
+         * @return this
+         */
+        RuleSpecifier withAssociativity(Associativity associativity);
+
+        /**
+         * gets the rule itself
+         *
+         * @return
+         */
+        Rule get();
     }
 }
 
