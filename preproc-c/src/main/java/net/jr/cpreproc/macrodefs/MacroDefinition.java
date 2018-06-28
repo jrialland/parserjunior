@@ -14,10 +14,5 @@ public interface MacroDefinition {
 
     List<String> getFormalParameters();
 
-    List<Token> getReplacement();
-
-    default String getReplacementAsString() {
-        return getReplacement().stream().map(t -> t.getText()).reduce("", (a, b) -> a + b);
-    }
-
+    List<? extends Token> getReplacement(Token originalToken);
 }

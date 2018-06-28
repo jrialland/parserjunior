@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,6 +54,16 @@ public class PipeableProcessor<In, Out> implements Supplier<Out> {
             @Override
             public Out2 get() {
                 return converter.convert(that.get());
+            }
+        };
+    }
+
+    public <Out2> PipeableProcessor<In, Out2> convert(Function<Out, Out2> converter) {
+        final PipeableProcessor<In, Out> that = this;
+        return new PipeableProcessor<In, Out2>() {
+            @Override
+            public Out2 get() {
+                return converter.apply(that.get());
             }
         };
     }

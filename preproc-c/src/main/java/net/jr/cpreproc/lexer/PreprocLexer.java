@@ -1,5 +1,6 @@
-package net.jr.cpreproc.macrodefs;
+package net.jr.cpreproc.lexer;
 
+import net.jr.common.Position;
 import net.jr.cpreproc.procs.PreprocessorLine;
 import net.jr.lexer.Lexemes;
 import net.jr.lexer.Terminal;
@@ -22,9 +23,22 @@ public class PreprocLexer {
         public static Terminal StringifyOperator = Lexemes.singleChar('#', "StringifyOperator");
     }
 
-    public static List<PreprocToken> tokenize(String line) {
+    private enum State {
+        Default,
+        StringLiteral,
+        StringEscape,
+        WhiteSpace,
+        Identifier,
+        SharpOperator
+    }
+
+    public static List<PreprocToken> tokenize(String txt) {
+        return tokenize(new PreprocessorLine(Position.start(), txt));
+    }
+
+    public static List<PreprocToken> tokenize(PreprocessorLine line) {
         List<PreprocToken> tokens = new ArrayList<>();
-        tokenize(line, (token) -> tokens.add(token));
+        tokenize(line, t -> tokens.add(t));
         return tokens;
     }
 
@@ -175,13 +189,4 @@ public class PreprocLexer {
         return isIdentifierStart(c) || (c >= '0' && c <= '9');
     }
 
-
-    private enum State {
-        Default,
-        StringLiteral,
-        StringEscape,
-        WhiteSpace,
-        Identifier,
-        SharpOperator
-    }
 }

@@ -42,4 +42,9 @@ public class Sinks {
         }
 
     }
+
+    public WriterSink writerSink(Writer writer) {
+        return new WriterSink(writer);
+    }
+
 }

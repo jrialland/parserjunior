@@ -1,12 +1,12 @@
 package net.jr.cpreproc;
 
-import net.jr.common.Position;
 import net.jr.cpreproc.macrodefs.DateMacroDefinition;
 import net.jr.cpreproc.macrodefs.MacroDefinition;
 import net.jr.cpreproc.macrodefs.NoArgsMacroDefinition;
 import net.jr.cpreproc.pipe.Sinks;
 import net.jr.cpreproc.pipe.Suppliers;
 import net.jr.cpreproc.procs.*;
+import net.jr.cpreproc.reporting.Reporter;
 import net.jr.pipes.PipeableProcessor;
 import net.jr.test.Assert;
 
@@ -41,11 +41,11 @@ public class Preprocessor {
     }
 
     public Preprocessor() {
-        this(defaultDefinitions());
+        this(defaultDefinitions(), null);
     }
 
-    public Preprocessor(Map<String, MacroDefinition> definitions) {
-        this.directivesInterpreter = new DirectivesInterpreter(definitions);
+    public Preprocessor(Map<String, MacroDefinition> definitions, Reporter reporter) {
+        this.directivesInterpreter = new DirectivesInterpreter(definitions, reporter);
     }
 
     public void setInput(Reader reader, String filename) {

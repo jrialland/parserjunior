@@ -34,7 +34,7 @@ public class Lexemes {
     private static final Word cIdentifier = new Word("_" + Alpha, "_" + AlphaNum, "CIdentifier");
 
     private static final CString cString = new CString();
-    private static final Terminal whitespaces = new Word(WhitespacesNonNewLine);
+    private static final Terminal whitespaces = new Word(WhitespacesNonNewLine, WhitespacesNonNewLine, "Whitespace");
     private static final Terminal lowercaseWord = new Word(LowercaseLetters);
     private static final Map<String, Terminal> Artificials = new TreeMap<>();
     private static final Terminal Eof = artificial("ᵉᵒᶠ");

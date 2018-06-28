@@ -1,6 +1,6 @@
 package net.jr.cpreproc.macrodefs;
 
-import net.jr.grammar.c.CStringUtil;
+import net.jr.grammar.c.CGrammar;
 import net.jr.lexer.Token;
 
 import java.text.SimpleDateFormat;
@@ -30,11 +30,14 @@ public class DateMacroDefinition extends NoArgsMacroDefinition {
         this.pattern = pattern;
     }
 
+    public Date getDate() {
+        return new Date();
+    }
+
     @Override
-    public List<Token> getReplacement() {
-        String value = new SimpleDateFormat(pattern, Locale.US).format(new Date());
-        Token t = null;//new Token(CStringUtil.escapeC(value.getBytes())); FIXME FIXME FIXME
-        //t.setType(Token.Type.StringLiteral);
+    public List<Token> getReplacement(Token originalToken) {
+        String value = new SimpleDateFormat(pattern, Locale.US).format(getDate());
+        Token t = new Token(CGrammar.Tokens.String_literal, originalToken.getPosition(), value);
         return Arrays.asList(t);
     }
 }

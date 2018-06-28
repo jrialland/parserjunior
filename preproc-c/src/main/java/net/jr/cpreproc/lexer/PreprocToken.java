@@ -1,4 +1,4 @@
-package net.jr.cpreproc.macrodefs;
+package net.jr.cpreproc.lexer;
 
 import net.jr.cpreproc.procs.PreprocessorLine;
 import net.jr.lexer.Terminal;
@@ -12,6 +12,10 @@ public class PreprocToken extends Token {
 
     private int endIndex;
 
+    public PreprocToken(Terminal tokenType) {
+        super(tokenType, null, null);
+    }
+
     public PreprocToken(Terminal tokenType, PreprocessorLine line, int startIndex, int endIndex) {
         super(tokenType, line.getPosition(startIndex), null);
         this.preprocessorLine = line;
@@ -22,5 +26,13 @@ public class PreprocToken extends Token {
     @Override
     public String getText() {
         return preprocessorLine.getText().substring(startIndex, endIndex);
+    }
+
+    public int getStartIndex() {
+        return startIndex;
+    }
+
+    public int getEndIndex() {
+        return endIndex;
     }
 }
