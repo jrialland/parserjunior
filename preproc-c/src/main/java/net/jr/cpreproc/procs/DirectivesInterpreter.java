@@ -4,21 +4,20 @@ import net.jr.common.Position;
 import net.jr.cpreproc.lexer.PreprocLexer;
 import net.jr.cpreproc.lexer.PreprocToken;
 import net.jr.cpreproc.macrodefs.MacroDefinition;
+import net.jr.cpreproc.macrodefs.NoArgsMacroDefinition;
 import net.jr.cpreproc.reporting.Reporter;
 import net.jr.lexer.Token;
 import net.jr.pipes.PipeableProcessor;
 import net.jr.types.ProxyUtil;
+import net.jr.util.StringUtil;
+import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class DirectivesInterpreter extends PipeableProcessor<PreprocessorLine, PreprocessorLine> {
-
-    private static final Pattern PDirective = Pattern.compile("^\\p{Blank}*#\\p{Blank}*(.+)");
 
     Map<String, MacroDefinition> definitions;
 
@@ -86,60 +85,38 @@ public class DirectivesInterpreter extends PipeableProcessor<PreprocessorLine, P
         }
     }
 
-    private enum DirectiveType {
-        Define,
-        Elif,
-        Else,
-        Endif,
-        Error,
-        If,
-        Ifdef,
-        Ifndef,
-        Include,
-        Info,
-        Line,
-        Pragma,
-        Undef,
-        Warning;
-
-        private static TreeMap<String, DirectiveType> byNames = new TreeMap<>();
-
-        static {
-            for (DirectiveType d : values()) {
-                byNames.put(d.name().toLowerCase(), d);
-            }
-        }
-
-        public static DirectiveType forString(String s) {
-            return byNames.get(s);
-        }
-
-    }
-
     private ControlFlow RootState = new ControlFlow(null, null, true);
 
     private ControlFlow controlFlow = RootState;
+
+    /**
+     * Add a newline at end of file
+     *
+     * @param out
+     */
+    @Override
+    public void afterLast(Consumer<PreprocessorLine> out) {
+        out.accept(new PreprocessorLine(currentPosition == null ? Position.start() : currentPosition.nextLine()));
+    }
 
     @Override
     public void generate(PreprocessorLine preprocessorLine, Consumer<PreprocessorLine> out) {
         currentPosition = preprocessorLine.getPosition();
         String text = preprocessorLine.getText();
+        Pair<DirectiveType, String> detectedDirective = DirectiveType.detectDirective(text);
 
-        Matcher matcher;
-        if ((matcher = PDirective.matcher(text)).matches()) {
-
-            text = matcher.group(1);
-            List<PreprocToken> tokens = PreprocLexer.tokenize(text);
-            DirectiveType directiveType = DirectiveType.forString(tokens.get(0).getText());
-
-            switch (directiveType) {
+        if (detectedDirective != null) {
+            List<PreprocToken> tokens = PreprocLexer.tokenize(detectedDirective.getValue());
+            switch (detectedDirective.getKey()) {
 
                 case Define:
                     handleDefine(tokens);
+                    //generate an empty line
+                    out.accept(new PreprocessorLine(currentPosition));
                     break;
 
                 case If:
-                    handleIf(tokens, text);
+                    handleIf(tokens);
                     break;
 
                 case Else:
@@ -148,7 +125,7 @@ public class DirectivesInterpreter extends PipeableProcessor<PreprocessorLine, P
 
                 case Elif:
                     handleElse();
-                    handleIf(tokens, text);
+                    handleIf(tokens);
                     break;
 
                 case Ifdef:
@@ -198,7 +175,7 @@ public class DirectivesInterpreter extends PipeableProcessor<PreprocessorLine, P
 
         } else {
             if (!controlFlow.isIgnoring()) {
-                out.accept(preprocessorLine);//TODO macro expansion
+                out.accept(MacroExpander.expand(definitions, preprocessorLine));
             }
         }
     }
@@ -206,11 +183,20 @@ public class DirectivesInterpreter extends PipeableProcessor<PreprocessorLine, P
     private void handleDefine(List<PreprocToken> tokens) {
         if (!controlFlow.isIgnoring()) {
 
+            //TODO handle defines with args
+
+            String key = tokens.get(0).getText();
+            String value = "";
+
+            if (tokens.size() > 2) {
+                value = tokens.subList(2, tokens.size()).stream().map(t -> t.getText()).reduce("", (s1, s2) -> s1 + s2);
+            }
+            definitions.put(key, new NoArgsMacroDefinition(key, value));
         }
     }
 
-    private void handleIf(List<PreprocToken> tokens, String text) {
-        String expression = text.substring(tokens.get(0).getEndIndex() + 1);
+    private void handleIf(List<PreprocToken> tokens) {
+        String expression = StringUtil.ltrim(toText(tokens));
         boolean cond = ExpressionEval.eval(expression, definitions);
         controlFlow = controlFlow.enterIf(cond);
     }
@@ -230,9 +216,12 @@ public class DirectivesInterpreter extends PipeableProcessor<PreprocessorLine, P
 
     protected void handleUndef(List<PreprocToken> tokens) {
         if (!controlFlow.isIgnoring()) {
-            String definitionName = tokens.get(1).getText();
+            String definitionName = tokens.get(0).getText();
             getDefinitions().remove(definitionName);
         }
     }
 
+    private static final String toText(Collection<PreprocToken> tokens) {
+        return tokens.stream().map(Token::getText).reduce("", (s1, s2) -> s1 + s2);
+    }
 }

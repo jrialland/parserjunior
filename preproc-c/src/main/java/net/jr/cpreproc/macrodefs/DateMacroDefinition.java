@@ -1,13 +1,9 @@
 package net.jr.cpreproc.macrodefs;
 
-import net.jr.grammar.c.CGrammar;
-import net.jr.lexer.Token;
+import net.jr.cpreproc.lexer.PreprocToken;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class DateMacroDefinition extends NoArgsMacroDefinition {
 
@@ -25,6 +21,13 @@ public class DateMacroDefinition extends NoArgsMacroDefinition {
 
     private String pattern;
 
+    public static Map<String, MacroDefinition> addDefinitions(Map<String, MacroDefinition> defs) {
+        defs.put(TimeStamp, TimeStampDefinition);
+        defs.put(Time, TimeDefinition);
+        defs.put(Date, DateDefinition);
+        return defs;
+    }
+
     private DateMacroDefinition(String name, String pattern) {
         super(name);
         this.pattern = pattern;
@@ -35,9 +38,9 @@ public class DateMacroDefinition extends NoArgsMacroDefinition {
     }
 
     @Override
-    public List<Token> getReplacement(Token originalToken) {
+    public List<PreprocToken> getReplacement(PreprocToken originalToken) {
         String value = new SimpleDateFormat(pattern, Locale.US).format(getDate());
-        Token t = new Token(CGrammar.Tokens.String_literal, originalToken.getPosition(), value);
+        PreprocToken t = new PreprocToken(PreprocToken.NoMeaning, value);
         return Arrays.asList(t);
     }
 }

@@ -2,10 +2,11 @@ package net.jr.cpreproc.procs;
 
 import net.jr.cpreproc.macrodefs.MacroDefinition;
 
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
+import javax.script.*;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 public class ExpressionEval {
@@ -17,11 +18,13 @@ public class ExpressionEval {
 
     private static final ScriptEngine scriptEngine = new ScriptEngineManager().getEngineByName("JavaScript");
 
+    private static final Bindings engineBindings = scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE);
+
     public static boolean eval(String expression, Map<String, MacroDefinition> macroDefs) {
 
         //'defined' may appear as keyword an not a function (i.e 'defined FOO' instead of 'defined(FOO)')
         //so we shamelessly use a regex to force the function-style syntax
-        expression = expression.replaceAll("defined\\p{Blank}+([_a-zA-Z][_a-zA-Z0-9]*)", "defined(\"$1\")");
+        expression = expression.replaceAll("defined\\p{Blank}+([_a-zA-Z][_a-zA-Z0-9]*)", "defined($1)");
 
 
         //FIXME we should definitely use a custom C-style interpreter for that
@@ -38,6 +41,25 @@ public class ExpressionEval {
                 }
             }, ScriptContext.ENGINE_SCOPE);
 
+
+            scriptEngine.setBindings(new SimpleBindings(){
+                @Override
+                public boolean containsKey(Object o) {
+                    if(Arrays.asList("nashorn.global").contains(o)) {
+                        return engineBindings.containsKey(o);
+                    } else {
+                        return true;
+                    }
+                }
+
+                @Override
+                public Object get(Object o) {
+                    if(Arrays.asList("nashorn.global", "defined").contains(o)) {
+                        return engineBindings.get(o);
+                    }
+                    return o;
+                }
+            }, ScriptContext.ENGINE_SCOPE);
 
             Object obj = scriptEngine.eval("!!function(){return(" + expression + ");}();");
             return obj != null && ((Boolean) obj).booleanValue();

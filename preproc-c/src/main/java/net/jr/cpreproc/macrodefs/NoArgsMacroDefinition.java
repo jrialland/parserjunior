@@ -2,7 +2,7 @@ package net.jr.cpreproc.macrodefs;
 
 
 import net.jr.cpreproc.lexer.PreprocLexer;
-import net.jr.lexer.Token;
+import net.jr.cpreproc.lexer.PreprocToken;
 
 import java.util.Collections;
 import java.util.List;
@@ -11,7 +11,7 @@ public class NoArgsMacroDefinition implements MacroDefinition {
 
     private String name;
 
-    private List<? extends Token> replacement;
+    private List<PreprocToken> replacement;
 
     protected NoArgsMacroDefinition(String name) {
         this.name = name;
@@ -43,7 +43,7 @@ public class NoArgsMacroDefinition implements MacroDefinition {
     }
 
     @Override
-    public List<? extends Token> getReplacement(Token original) {
+    public List<PreprocToken> getReplacement(PreprocToken original) {
         return replacement;
     }
 }

@@ -47,7 +47,7 @@ public class DateMacroDefinitionTest {
         when(mocked.getDate()).thenReturn(TEST_DATE);
 
         List<PreprocToken> tokens = PreprocLexer.tokenize("__DATE__");
-        List<Token> replacement = mocked.getReplacement(tokens.get(0));
+        List<PreprocToken> replacement = mocked.getReplacement(tokens.get(0));
 
         Assert.assertTrue(replacement.size() == 1);
         Assert.assertEquals(expectedString, replacement.get(0).getText());

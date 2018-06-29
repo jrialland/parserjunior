@@ -48,24 +48,31 @@ public class PipeableProcessor<In, Out> implements Supplier<Out> {
         return processor;
     }
 
-    public <Out2> PipeableProcessor<In, Out2> convert(Converter<Out, Out2> converter) {
-        final PipeableProcessor<In, Out> that = this;
-        return new PipeableProcessor<In, Out2>() {
+    public PipeableProcessor<Out, Out> callForEach(Consumer<Out> callable) {
+        return this.pipeTo(new PipeableProcessor<Out, Out>() {
             @Override
-            public Out2 get() {
-                return converter.convert(that.get());
+            public Out get() {
+                Out item = getSource().get();
+                if (item != null) {
+                    callable.accept(item);
+                }
+                return item;
             }
-        };
+        });
     }
 
-    public <Out2> PipeableProcessor<In, Out2> convert(Function<Out, Out2> converter) {
-        final PipeableProcessor<In, Out> that = this;
-        return new PipeableProcessor<In, Out2>() {
+    public <Out2> PipeableProcessor<Out, Out2> convert(Converter<Out, Out2> converter) {
+        return convert(converter::convert);
+    }
+
+    public <Out2> PipeableProcessor<Out, Out2> convert(Function<Out, Out2> converter) {
+        return this.pipeTo(new PipeableProcessor<Out, Out2>() {
             @Override
             public Out2 get() {
-                return converter.apply(that.get());
+                Out item = getSource().get();
+                return item == null ? null : converter.apply(item);
             }
-        };
+        });
     }
 
     public Stream<Out> stream() {

@@ -1,0 +1,16 @@
+
+#define foo
+
+#if defined(foo)
+    foo was defined
+#else
+    foo was not defined
+#endif
+
+#undef foo
+
+#if defined(foo)
+    foo still defined
+#else
+    foo not defined any more
+#endif

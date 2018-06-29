@@ -23,7 +23,8 @@ public class Suppliers {
         @Override
         public String get() {
             try {
-                return reader.readLine();
+                String s = reader.readLine();
+                return s;
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

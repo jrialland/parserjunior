@@ -119,4 +119,13 @@ public final class StringUtil {
         sw.append(s.substring(offset));
         return sw.toString();
     }
+
+    public static String ltrim(String txt) {
+        return txt.replaceFirst("^\\p{Blank}*", "");
+    }
+
+    public static String rtrim(String txt) {
+        return txt.replaceFirst("\\p{Blank}*$", "");
+    }
+
 }

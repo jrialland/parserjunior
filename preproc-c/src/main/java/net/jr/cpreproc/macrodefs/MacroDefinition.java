@@ -1,5 +1,6 @@
 package net.jr.cpreproc.macrodefs;
 
+import net.jr.cpreproc.lexer.PreprocToken;
 import net.jr.lexer.Token;
 
 import java.util.List;
@@ -14,5 +15,5 @@ public interface MacroDefinition {
 
     List<String> getFormalParameters();
 
-    List<? extends Token> getReplacement(Token originalToken);
+    List<PreprocToken> getReplacement(PreprocToken originalToken);
 }

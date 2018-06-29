@@ -10,6 +10,8 @@ public class Position implements MarshallingCapable {
 
     public static final String UNKNOWN_FILENAME = "<?>";
 
+    private static final Position UNKNOWN = new Position(-1, -1, UNKNOWN_FILENAME);
+
     private int line;
 
     private int column;
@@ -32,6 +34,10 @@ public class Position implements MarshallingCapable {
         int column = in.readInt();
         String position = in.readUTF();
         return new Position(line, column, position);
+    }
+
+    public static Position unknown() {
+        return UNKNOWN;
     }
 
     public static Position beforeStart() {

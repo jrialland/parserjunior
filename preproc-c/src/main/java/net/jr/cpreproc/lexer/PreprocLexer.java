@@ -2,7 +2,6 @@ package net.jr.cpreproc.lexer;
 
 import net.jr.common.Position;
 import net.jr.cpreproc.procs.PreprocessorLine;
-import net.jr.lexer.Lexemes;
 import net.jr.lexer.Terminal;
 
 import java.util.ArrayList;
@@ -11,17 +10,6 @@ import java.util.function.Consumer;
 
 public class PreprocLexer {
 
-    public static class TokenType {
-        public static Terminal NoMeaning = Lexemes.artificial("NoMeaning");
-        public static Terminal Comma = Lexemes.singleChar(',');
-        public static Terminal LeftParen = Lexemes.singleChar('(');
-        public static Terminal RightParen = Lexemes.singleChar(')');
-        public static Terminal StringLiteral = Lexemes.cString();
-        public static Terminal WhiteSpace = Lexemes.whitespace();
-        public static Terminal Identifier = Lexemes.cIdentifier();
-        public static Terminal ConcatOperator = Lexemes.literal("##", "ConcatOperator");
-        public static Terminal StringifyOperator = Lexemes.singleChar('#', "StringifyOperator");
-    }
 
     private enum State {
         Default,
@@ -53,34 +41,34 @@ public class PreprocLexer {
                 case Default:
                     switch (c) {
                         case '"':
-                            startIndex = push(line, startIndex, i, TokenType.NoMeaning, consumer);
+                            startIndex = push(line, startIndex, i, PreprocToken.NoMeaning, consumer);
                             state = State.StringLiteral;
                             break;
                         case '\u00a0':
                         case '\t':
                         case ' ':
-                            startIndex = push(line, startIndex, i, TokenType.NoMeaning, consumer);
+                            startIndex = push(line, startIndex, i, PreprocToken.NoMeaning, consumer);
                             state = State.WhiteSpace;
                             break;
                         case '#':
-                            startIndex = push(line, startIndex, i, TokenType.NoMeaning, consumer);
+                            startIndex = push(line, startIndex, i, PreprocToken.NoMeaning, consumer);
                             state = State.SharpOperator;
                             break;
                         case '(':
-                            startIndex = push(line, startIndex, i, TokenType.NoMeaning, consumer);
-                            startIndex = push(line, startIndex, i + 1, TokenType.LeftParen, consumer);
+                            startIndex = push(line, startIndex, i, PreprocToken.NoMeaning, consumer);
+                            startIndex = push(line, startIndex, i + 1, PreprocToken.LeftParen, consumer);
                             break;
                         case ')':
-                            startIndex = push(line, startIndex, i, TokenType.NoMeaning, consumer);
-                            startIndex = push(line, startIndex, i + 1, TokenType.RightParen, consumer);
+                            startIndex = push(line, startIndex, i, PreprocToken.NoMeaning, consumer);
+                            startIndex = push(line, startIndex, i + 1, PreprocToken.RightParen, consumer);
                             break;
                         case ',':
-                            startIndex = push(line, startIndex, i, TokenType.NoMeaning, consumer);
-                            startIndex = push(line, startIndex, i + 1, TokenType.Comma, consumer);
+                            startIndex = push(line, startIndex, i, PreprocToken.NoMeaning, consumer);
+                            startIndex = push(line, startIndex, i + 1, PreprocToken.Comma, consumer);
                             break;
                         default:
                             if (isIdentifierStart(c)) {
-                                startIndex = push(line, startIndex, i, TokenType.NoMeaning, consumer);
+                                startIndex = push(line, startIndex, i, PreprocToken.NoMeaning, consumer);
                                 state = State.Identifier;
                             }
                             break;
@@ -92,7 +80,7 @@ public class PreprocLexer {
                             state = State.StringEscape;
                             break;
                         case '"':
-                            startIndex = push(line, startIndex, i + 1, TokenType.StringLiteral, consumer);
+                            startIndex = push(line, startIndex, i + 1, PreprocToken.StringLiteral, consumer);
                             state = State.Default;
                             break;
                     }
@@ -107,7 +95,7 @@ public class PreprocLexer {
                         case ' ':
                             break;
                         default:
-                            startIndex = push(line, startIndex, i, TokenType.WhiteSpace, consumer);
+                            startIndex = push(line, startIndex, i, PreprocToken.WhiteSpace, consumer);
                             state = State.Default;
                             i--;
                             break;
@@ -115,7 +103,7 @@ public class PreprocLexer {
                     break;
                 case Identifier:
                     if (!isIdentifierChar(c)) {
-                        startIndex = push(line, startIndex, i, TokenType.Identifier, consumer);
+                        startIndex = push(line, startIndex, i, PreprocToken.Identifier, consumer);
                         state = State.Default;
                         i--;
                     }
@@ -124,11 +112,11 @@ public class PreprocLexer {
                     switch (c) {
                         case '#':
                             //double sharp = concat operator(remove whitespaces)
-                            startIndex = push(line, startIndex, i + 1, TokenType.ConcatOperator, consumer);
+                            startIndex = push(line, startIndex, i + 1, PreprocToken.ConcatOperator, consumer);
                             state = State.Default;
                             break;
                         default:
-                            startIndex = push(line, startIndex, i, TokenType.StringifyOperator, consumer);
+                            startIndex = push(line, startIndex, i, PreprocToken.StringifyOperator, consumer);
                             state = State.Default;
                             i--;
                             break;
@@ -139,35 +127,35 @@ public class PreprocLexer {
 
         if (startIndex < i) {
             if (state == State.Identifier) {
-                push(line, startIndex, i, TokenType.Identifier, consumer);
+                push(line, startIndex, i, PreprocToken.Identifier, consumer);
             } else if (state == State.WhiteSpace) {
-                push(line, startIndex, i, TokenType.WhiteSpace, consumer);
+                push(line, startIndex, i, PreprocToken.WhiteSpace, consumer);
             } else {
                 char c = txt.charAt(i - 1);
                 switch (c) {
                     case '\u00a0':
                     case '\t':
                     case ' ':
-                        push(line, startIndex, i - 1, TokenType.NoMeaning, consumer);
-                        push(line, i - 1, i, TokenType.WhiteSpace, consumer);
+                        push(line, startIndex, i - 1, PreprocToken.NoMeaning, consumer);
+                        push(line, i - 1, i, PreprocToken.WhiteSpace, consumer);
                     case '(':
-                        push(line, startIndex, i - 1, TokenType.NoMeaning, consumer);
-                        push(line, i - 1, i, TokenType.LeftParen, consumer);
+                        push(line, startIndex, i - 1, PreprocToken.NoMeaning, consumer);
+                        push(line, i - 1, i, PreprocToken.LeftParen, consumer);
                         break;
                     case ')':
-                        push(line, startIndex, i - 1, TokenType.NoMeaning, consumer);
-                        push(line, i - 1, i, TokenType.RightParen, consumer);
+                        push(line, startIndex, i - 1, PreprocToken.NoMeaning, consumer);
+                        push(line, i - 1, i, PreprocToken.RightParen, consumer);
                         break;
                     case ',':
-                        push(line, startIndex, i - 1, TokenType.NoMeaning, consumer);
-                        push(line, i - 1, i, TokenType.Comma, consumer);
+                        push(line, startIndex, i - 1, PreprocToken.NoMeaning, consumer);
+                        push(line, i - 1, i, PreprocToken.Comma, consumer);
                         break;
                     case '#':
-                        push(line, startIndex, i - 1, TokenType.NoMeaning, consumer);
-                        push(line, i - 1, i, TokenType.StringifyOperator, consumer);
+                        push(line, startIndex, i - 1, PreprocToken.NoMeaning, consumer);
+                        push(line, i - 1, i, PreprocToken.StringifyOperator, consumer);
                         break;
                     default:
-                        push(line, startIndex, i, TokenType.NoMeaning, consumer);
+                        push(line, startIndex, i, PreprocToken.NoMeaning, consumer);
                 }
             }
         }
