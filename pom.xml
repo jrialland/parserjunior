@@ -178,6 +178,7 @@
         <module>grammar-c</module>
         <module>preproc-c</module>
         <module>codegenerator</module>
+        <module>plz</module>
     </modules>
 
 </project>
