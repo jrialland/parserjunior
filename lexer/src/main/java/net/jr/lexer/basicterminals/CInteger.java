@@ -23,7 +23,9 @@ public class CInteger extends TerminalImpl {
         init.when(inList(Lexemes.NumbersExceptZero)).goTo(finalState);
         finalState.when(inList(Lexemes.Numbers)).goTo(finalState);
 
+        addIntegerSuffix(builder, got0);
         addIntegerSuffix(builder, finalState);
+
         setAutomaton(builder.build());
     }
 
