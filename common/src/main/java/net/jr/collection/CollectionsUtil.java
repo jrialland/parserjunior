@@ -19,6 +19,55 @@ public final class CollectionsUtil {
         return map;
     }
 
+    public static List<Integer> fromArray(int[] array) {
+        List<Integer> list = new ArrayList<>(array.length);
+        for (int i = 0; i < array.length; i++) {
+            list.add(array[i]);
+        }
+        return list;
+    }
+
+    public static List<Boolean> fromArray(boolean[] array) {
+        List<Boolean> list = new ArrayList<>(array.length);
+        for (int i = 0; i < array.length; i++) {
+            list.add(array[i]);
+        }
+        return list;
+    }
+
+    public static List<Character> fromArray(char[] array) {
+        List<Character> list = new ArrayList<>(array.length);
+        for (int i = 0; i < array.length; i++) {
+            list.add(array[i]);
+        }
+        return list;
+    }
+
+    public static List<Short> fromArray(short[] array) {
+        List<Short> list = new ArrayList<>(array.length);
+        for (int i = 0; i < array.length; i++) {
+            list.add(array[i]);
+        }
+        return list;
+    }
+
+    public static List<Float> fromArray(float[] array) {
+        List<Float> list = new ArrayList<>(array.length);
+        for (int i = 0; i < array.length; i++) {
+            list.add(array[i]);
+        }
+        return list;
+    }
+
+    public static List<Double> fromArray(double[] array) {
+        List<Double> list = new ArrayList<>(array.length);
+        for (int i = 0; i < array.length; i++) {
+            list.add(array[i]);
+        }
+        return list;
+    }
+
+
     public static <T> List<T> prependedList(T head, List<T> tail) {
         return Collections.unmodifiableList(new List<T>() {
             @Override

@@ -1,14 +1,3 @@
-
-const rle_decode = (array) => {
-    const out = [];
-    for(var i=0; i< array.length; i++) {
-        for(var j=0; j < array[i+1]; j++){
-            out.push(array[i]);
-        }
-    }
-    return out;
-};
-
 export class {{grammar.name}}Lexer {
 
     const Token = Object.freeze({
@@ -27,10 +16,15 @@ export class {{grammar.name}}Parser {
     {% endfor %}
     });
 
-    let _actions = {{ actionTypes }};
-    let _actionParams = {{ actionParams }};
-    let _emptyActions = rle_decode({{ emptyActions }});
+    let _actions = {{ actionTypes_fnct }};
+
+    let _actionParams = {{ actionParams_fnct }};
+
+    let _emptyActions = {{ emptyActions_fnct }};
+
     let _targetRule = {{ targetRuleIndex }};
+
+    const _nextState = {{ nextStates }};
 
     parse(lexer) {
         const stack = [];
@@ -40,9 +34,9 @@ export class {{grammar.name}}Parser {
         });
         while(true) {
             {currentRule, currentState} = stack[stack.length-1];
-            var actionType = _actions[currentState];
+            var actionType = _actions(currentState);
             if(actionType == -1) {
-                actionType = _emptyActions[currentState];
+                actionType = _emptyActions(currentState);
                 if(actionType != -1) {
                     lexerStream.pushBack(token);
                 } else {
@@ -51,14 +45,19 @@ export class {{grammar.name}}Parser {
             }
             switch(actionType) {
                 case Parser.ActionType.ACCEPT:
-                    _accept(stack, lexerStream);
-                    return stack.pop().getAstNode();
+                    return stack.pop();
                 case Parser.ActionType.SHIFT:
-                    _shift(stack, token, _actionsParams[currentState]);
+                    stack.push({
+                        token:token,
+                        state:_actionsParams(currentState)
+                    });
                     break;
                 case Parser.ActionType.REDUCE:
-                    this._reduce(stack, lexerStream, _actionsParams[currentState]);
-                    lexer.pushBack(token)
+                    stack.push({
+                         node:{},
+                         state : this._actionsParams(currentState)
+                    });
+                    lexer.pushBack(token);
                     break;
                 case Parser.ActionType.FAIL:
                 default:
@@ -66,15 +65,6 @@ export class {{grammar.name}}Parser {
                     break;
             }
         }
-    }
-
-    _accept(stack, lexer) {
-    }
-
-    _shift(stack, token, action) {
-    }
-
-    _reduce(stack, lexer, param) {
     }
 
 }

@@ -58,7 +58,7 @@ public class LRParser implements Parser {
         Rule targetRule = grammar.getRulesTargeting(grammar.getTargetSymbol()).iterator().next();
         stack.push(new Context(astNodeFactory.newNonLeafNode(targetRule), 0));
 
-        //repeat until done
+        //repeatUntilSize until done
         while (true) {
 
             Context currentContext = stack.peek();
@@ -131,7 +131,7 @@ public class LRParser implements Parser {
      */
     private void shift(Token token, final Stack<Context> stack, final int nextState) {
         //add a node that represents the terminal
-        stack.add(new Context(astNodeFactory.newLeafNode(token), nextState));
+        stack.push(new Context(astNodeFactory.newLeafNode(token), nextState));
     }
 
     private AstNode makeNode(Stack<Context> stack, final LexerStream lexerStream, Rule rule) {

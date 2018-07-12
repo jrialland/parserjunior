@@ -15,17 +15,18 @@
  */
 package net.jr.util;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import net.jr.collection.CollectionsUtil;
+
+import java.util.*;
 
 /**
  * @author jrialland
  */
 public class Rle {
 
-    public static int[] encode(Collection<Integer> coll) {
-        return coll.stream().mapToInt(i -> i).toArray();
+    public static Collection<Integer> encode(Collection<Integer> coll) {
+        int[] encoded = encode(coll.stream().mapToInt(i->i).toArray());
+        return CollectionsUtil.fromArray(encoded);
     }
 
     public static int[] encode(int[] array) {

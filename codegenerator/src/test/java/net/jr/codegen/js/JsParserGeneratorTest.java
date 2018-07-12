@@ -1,5 +1,6 @@
 package net.jr.codegen.js;
 
+import net.jr.codegen.js.JsParserGenerator;
 import net.jr.grammar.c.CGrammar;
 import org.junit.Test;
 

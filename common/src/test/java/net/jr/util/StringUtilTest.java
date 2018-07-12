@@ -19,8 +19,8 @@ public class StringUtilTest {
 
     @Test
     public void testRepeat() {
-        Assert.assertEquals("xxx", StringUtil.repeat("x", 3));
-        Assert.assertEquals("nahna", StringUtil.repeat("nah", 5));
+        Assert.assertEquals("xxx", StringUtil.repeatUntilSize("x", 3));
+        Assert.assertEquals("nahna", StringUtil.repeatUntilSize("nah", 5));
     }
 
     @Test

@@ -63,7 +63,7 @@ public final class StringUtil {
         return sw.toString();
     }
 
-    public static String repeat(String s, int size) {
+    public static String repeatUntilSize(String s, int size) {
         assert s != null;
         assert s.length() > 0;
         String result = "";
@@ -73,12 +73,22 @@ public final class StringUtil {
         return result.substring(0, size);
     }
 
+    public static String repeatTimes(String s, int times) {
+        assert s != null;
+        assert times >= 0;
+        String result = "";
+        while (times-- > 0) {
+            result += s;
+        }
+        return result;
+    }
+
     public static String center(String s, int size) {
         if (s.length() > size) {
             return s.substring(0, size);
         }
-        String result = repeat(" ", (size - s.length()) / 2) + s;
-        return result + repeat(" ", size - result.length());
+        String result = repeatUntilSize(" ", (size - s.length()) / 2) + s;
+        return result + repeatUntilSize(" ", size - result.length());
     }
 
     /**
@@ -128,4 +138,21 @@ public final class StringUtil {
         return txt.replaceFirst("\\p{Blank}*$", "");
     }
 
+    public static String lpad(String txt, String padding, int len) {
+        int missing = len - txt.length();
+        if (missing > 0) {
+            return repeatUntilSize(padding, missing) + txt;
+        } else {
+            return txt.substring(-1 * missing, txt.length());
+        }
+    }
+
+    public String rpad(String txt, String padding, int len) {
+        int missing = len - txt.length();
+        if (missing > 0) {
+            return txt + repeatUntilSize(padding, missing);
+        } else {
+            return txt.substring(0, len);
+        }
+    }
 }
