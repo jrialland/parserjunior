@@ -1,5 +1,6 @@
 package net.jr.codegen.java;
 
+import net.jr.common.Symbol;
 import net.jr.parser.Grammar;
 import net.jr.parser.impl.Action;
 import net.jr.parser.impl.ActionTable;
@@ -57,79 +58,49 @@ public class JavaParserGenerator {
         pw.println("private int getNextState(int state, int symbol) {");
         pw.indent();
 
-        pw.println("switch(symbol) {");
-        pw.indent();
-
-        for (int symbol : bySymbol.keySet()) {
-
-            pw.println("case " + symbol + ":");
-            pw.indent();
-
-            Map<Integer, Integer> byState = bySymbol.get(symbol);
-            if (byState.size() == 1) {
-                pw.println("return " + byState.values().iterator().next() + ";");
-            } else {
-                pw.println("switch(state) {");
-                pw.indent();
-                for (Map.Entry<Integer, Integer> entry : byState.entrySet()) {
-                    int state = entry.getKey();
-                    pw.println("case " + state + ":");
-                    pw.indent();
-                    pw.println("return " + entry.getValue() + ";");
-                    pw.deindent();
-                }
-                pw.deindent();
-                pw.println("}");
-                pw.println("break;");
-            }
-            pw.deindent();
+        int i=0;
+        Map<Symbol, Integer> syms = new HashMap<>();
+        for(Symbol t : grammar.getSymbols()) {
+            syms.put(t, i++);
         }
 
-        pw.println("throw new IllegalArgumentException();");
+        List<Integer> symbols = new ArrayList<>();
+        List<Integer> states = new ArrayList<>();
+        List<Integer> nextStates = new ArrayList<>();
 
-        pw.deindent();
-        pw.println("}");
+        forActions(grammar.getNonTerminals(), actionTable, (symbol, state, action) -> {
+            symbols.add(syms.get(symbol));
+            states.add(state);
+            nextStates.add(action.getActionParameter());
+        });
+
+        SearchFn.generate(symbols, states, nextStates, pw);
+
+        pw.println("throw new IllegalArgumentException();");
         pw.deindent();
         pw.println("}");
         pw.println();
     }
 
+    private interface ActionCb {
+        void apply(Symbol symbol, int state, Action action);
+    }
+
+    private void forActions(Collection<Symbol> symbols, ActionTable actionTable, ActionCb cb) {
+        for(int i=0, max=actionTable.getStatesCount(); i<max; i++) {
+            for(Symbol t : symbols) {
+                Action action = actionTable.getAction(i, t);
+                if(action != null) {
+                    cb.apply(t, i, action);
+                }
+            }
+        }
+    }
+
     private void writeGetActionMethod(IndentPrintWriter pw, Grammar grammar, ActionTable actionTable) {
         pw.println("private void getAction(int state, int symbol) {");
         pw.indent();
-
-        pw.println("switch(symbol) {");
-        pw.indent();
-
-        for (int symbol : map.keySet()) {
-            pw.println("case " + symbol + ":");
-            pw.indent();
-
-            Map<Integer, Action> possibleActions = map.get(symbol);
-            if (possibleActions.size() == 1) {
-                pw.println("return /*" + possibleActions.values().iterator().next() + "*/;");
-            } else {
-                pw.println("switch(state) {");
-                pw.indent();
-                for (Map.Entry<Integer, Action> entry : possibleActions.entrySet()) {
-                    int state = entry.getKey();
-                    Action action = entry.getValue();
-                    pw.println("case " + state + ":");
-                    pw.indent();
-                    pw.println("return /*" + action + "*/;");
-                    pw.deindent();
-                }
-                pw.deindent();
-                pw.println("}");
-                pw.println("break;");
-            }
-            pw.deindent();
-        }
-
-        pw.deindent();
-        pw.println("}");
         pw.println("throw new IllegalStateException();");
-
         pw.deindent();
         pw.println("}");
         pw.println();

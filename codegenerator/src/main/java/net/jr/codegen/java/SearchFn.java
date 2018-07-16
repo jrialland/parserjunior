@@ -1,93 +1,120 @@
 package net.jr.codegen.java;
 
-import net.jr.text.IndentPrintWriter;
-
 import java.io.Writer;
 import java.util.*;
 
 public class SearchFn {
 
-    private static class Xyz {
-        private int x, y, z;
-        public Xyz(int x, int y, int z) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
+    static class Link {
+        private Node from;
+        private Integer x, y;
+        static Link whenDefineX( Node from, int x) {
+            Link l = new Link();
+            l.x = x;
+            l.from = from;
+            return l;
+        }
+        static Link whenDefineY( Node from, int y) {
+            Link l = new Link();
+            l.y = y;
+            l.from = from;
+            return l;
+        }
+
+        @Override
+        public String toString() {
+            String var = x!= null ? "x" : "y";
+            return "define " + var + " " + (x!=null?x:y)+ ", " + from.toString();
         }
     }
 
+    static class Node {
 
-    private interface Zone {
-        Zone extend(int x, int y);
-    }
+        private Set<Link> from;
 
-    private static class Cell implements Zone {
+        private Integer x, y, z;
 
-        private int x, y;
-
-        public Cell(int x, int y) {
-            this.x = x;
-            this.y = y;
+        static Node forX(int x) {
+            Node n = new Node();
+            n.from = fromStartNode;
+            n.x = x;
+            return n;
         }
 
-        public Zone extend(int x, int y) {
-            if(x == this.x) {
-                if(y == this.y) {
-                    return this;
-                }
+        static Node forY(int y) {
+            Node n = new Node();
+            n.from = fromStartNode;
+            n.y = y;
+            return n;
+        }
+
+        static Node forZ(int z) {
+            Node n = new Node();
+            n.z = z;
+            n.from = new HashSet<>();
+            return n;
+        }
+
+        @Override
+        public String toString() {
+            String var = "???";
+            int val = 0;
+            if(x != null) {
+                var = "x";
+                val = x;
             }
-            if(y == this.y) {
-
+            else if(x != null) {
+                var = "y";
+                val = y;
             }
-
-        }
-
-    }
-
-    private class Rect implements Zone {
-
-        private int x1, y1, x2, y2;
-
-        public Zone extend(int x, int y) {
-            if()
+            else if(z != null) {
+                var = "z";
+                val = z;
+            }
+            return "define " + var + " " + val;
         }
     }
 
-    private static class Region {
+    static Node START_NODE = new Node();
 
-        private int z;
-
-        private List<Zone> zones = new ArrayList<>();
-
-        public Region(int x, int y, int z) {
-            zones.add(new Cell(x, y));
-            this.z = z;
-        }
-
-        public void extend(List<Xyz> all, int x, int y) {
-
-        }
-
+    static Set<Link> fromStartNode = new HashSet<>(Arrays.asList(new Link()));
+    static {
+        fromStartNode.iterator().next().from = START_NODE;
     }
 
     public static void generate(List<Integer> lx, List<Integer> ly, List<Integer> lz, Writer writer) {
-        int len = lx.size();
-        assert len == ly.size() && len == lz.size();
+        assert lx.size() == ly.size();
+        assert lx.size() == lz.size();
 
-        Map<Integer, Region> byZ = new HashMap<>();
         Iterator<Integer> itX = lx.iterator();
         Iterator<Integer> itY = ly.iterator();
         Iterator<Integer> itZ = lz.iterator();
-        List<Xyz> lxyz = new ArrayList<>(len);
 
-        int i = 0;
-        while(i<len) {
-            lxyz.add(new Xyz(itX.next(), itY.next(), itZ.next()));
+
+        Map<String, Node> nodes = new TreeMap<>();
+        Set<Node> zSet = new HashSet<>();
+
+        for(int i=0, max = lx.size(); i<max; i++) {
+
+            int x = itX.next();
+            int y = itY.next();
+            int z = itZ.next();
+
+            Node nx = nodes.computeIfAbsent("x"+x, k -> Node.forX(x));
+            Node ny = nodes.computeIfAbsent("y"+y, k -> Node.forY(y));
+            Node nz = nodes.computeIfAbsent("z"+z, k -> Node.forZ(z));
+            nz.from.add(Link.whenDefineX(ny, x));
+            nz.from.add(Link.whenDefineY(nx, y));
+            zSet.add(nz);
         }
 
-        Collections.sort(lxyz, Comparator.comparingInt(c->c.x));
-        lxyz.stream().forEach((c -> byZ.computeIfAbsent(c.z, z->new Region(c.x, c.y, c.z)).extend(lxyz, c.x, c.y)));
-        IndentPrintWriter ipw = new IndentPrintWriter(writer);
-        ipw.flush();
+        List<Node> zList = new ArrayList<>(zSet);
+        Collections.sort(zList, Comparator.comparingInt(n -> n.z));
+
+        for(Node zn : zList) {
+            for(Link l : zn.from){
+                System.out.println(zn.z + "  <=  " + l.toString());
+            }
+        }
     }
 }
