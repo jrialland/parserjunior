@@ -123,19 +123,6 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
                 .limit(1)
                 .collect(Collectors.toList());
 
-
-//        if(posssibleFinals.size() > 1) {
-//            StringWriter sw = new StringWriter();
-//            sw.append("Input can be matched by several tokens");
-//            sw.append(" : ");
-//            sw.append(posssibleFinals.stream().map(state -> state.getTerminal()).collect(Collectors.toList()).toString());
-//            sw.append('\n');
-//            sw.append("(matched input :\n");
-//            sw.append("\t" + matched.toString().replaceAll("\n", "\t\n"));
-//            sw.append("\n)");
-//            LOGGER.warn(sw.toString());
-//        }
-
         State<Character> finalState = posssibleFinals.isEmpty() ? null : posssibleFinals.get(0);
 
         if (finalState != null) {
@@ -171,5 +158,9 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
         public void setTerminal(Terminal terminal) {
             this.terminal = terminal;
         }
+    }
+
+    public State<Character> getInitialState() {
+        return initial;
     }
 }

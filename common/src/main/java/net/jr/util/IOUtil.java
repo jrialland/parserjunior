@@ -105,4 +105,8 @@ public final class IOUtil {
     public static Writer devNull() {
         return NULL_WRITER;
     }
+
+    public static Reader emptyReader() {
+        return new StringReader("");
+    }
 }

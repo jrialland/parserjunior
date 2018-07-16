@@ -4,7 +4,6 @@ import net.jr.lexer.Terminal;
 import net.jr.lexer.impl.CharConstraint;
 
 import java.util.*;
-import java.util.function.Function;
 
 public class DefaultAutomaton implements Automaton {
 
@@ -94,13 +93,13 @@ public class DefaultAutomaton implements Automaton {
         }
     }
 
-    private static class TransitionImpl implements Transition<Character> {
+    public static class TransitionImpl implements Transition<Character> {
 
-        private Function<Character, Boolean> condition = x -> false;
+        private CharConstraint condition;
 
         private StateImpl nextState;
 
-        TransitionImpl(Function<Character, Boolean> condition, StateImpl nextState) {
+        TransitionImpl(CharConstraint condition, StateImpl nextState) {
             this.condition = condition;
             this.nextState = nextState;
         }
@@ -111,6 +110,10 @@ public class DefaultAutomaton implements Automaton {
 
         public StateImpl getNextState() {
             return nextState;
+        }
+
+        public CharConstraint getCondition() {
+            return condition;
         }
 
     }

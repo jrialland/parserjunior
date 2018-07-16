@@ -379,6 +379,11 @@ public class Grammar {
         return createParser(getTargetSymbol(), useActionTableCache);
     }
 
+    public ActionTable getActionTable() {
+        Grammar grammar = getSubGrammar(getTargetSymbol());
+        return ActionTableCaching.get(grammar);
+    }
+
     /**
      * Create a parser for a subset of this grammar's rules, that can parse a particular symbol.
      * useful for tests.

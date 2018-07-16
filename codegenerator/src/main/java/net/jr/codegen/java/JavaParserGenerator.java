@@ -26,7 +26,7 @@ public class JavaParserGenerator {
 
     public void generate(Grammar grammar, Writer writer) {
 
-        ActionTable actionTable = ActionTable.lalr1(grammar);
+        final ActionTable actionTable = grammar.getActionTable();
 
         IndentPrintWriter pw = new IndentPrintWriter(writer, "  ");
         JtwigModel model = JtwigModel.newModel();
@@ -53,8 +53,6 @@ public class JavaParserGenerator {
     }
 
     private void writeNextStateMethod(IndentPrintWriter pw, Grammar grammar, ActionTable actionTable) {
-        Map<Integer, Map<Integer, Integer>> bySymbol = new TreeMap<>();
-
         pw.println("private int getNextState(int state, int symbol) {");
         pw.indent();
 
@@ -75,8 +73,6 @@ public class JavaParserGenerator {
         });
 
         SearchFn.generate(symbols, states, nextStates, pw);
-
-        pw.println("throw new IllegalArgumentException();");
         pw.deindent();
         pw.println("}");
         pw.println();
@@ -86,7 +82,7 @@ public class JavaParserGenerator {
         void apply(Symbol symbol, int state, Action action);
     }
 
-    private void forActions(Collection<Symbol> symbols, ActionTable actionTable, ActionCb cb) {
+    private void forActions(Collection< ? extends Symbol> symbols, ActionTable actionTable, ActionCb cb) {
         for(int i=0, max=actionTable.getStatesCount(); i<max; i++) {
             for(Symbol t : symbols) {
                 Action action = actionTable.getAction(i, t);
@@ -98,9 +94,45 @@ public class JavaParserGenerator {
     }
 
     private void writeGetActionMethod(IndentPrintWriter pw, Grammar grammar, ActionTable actionTable) {
-        pw.println("private void getAction(int state, int symbol) {");
+        pw.println("private void _shift(Iterator<Symbol> lexer, int state) {");
         pw.indent();
-        pw.println("throw new IllegalStateException();");
+        pw.println("final Symbol token = lexer.next();");
+        pw.println("final int x = token.getTokenType();");
+
+        int i=0;
+        Map<Symbol, Integer> syms = new HashMap<>();
+        for(Symbol t : grammar.getSymbols()) {
+            syms.put(t, i++);
+        }
+
+        List<Integer> symbols = new ArrayList<>();
+        List<Integer> states = new ArrayList<>();
+        List<String> actions = new ArrayList<>();
+
+        forActions(grammar.getTerminals(), actionTable, (symbol, state, action) -> {
+            symbols.add(syms.get(symbol));
+            states.add(state);
+
+            String methodCall;
+            switch (action.getActionType()) {
+                case Accept:
+                    methodCall = "stack.pop();";
+                    break;
+                case Reduce:
+                    methodCall = "_reduce("+action.getActionParameter()+")";
+                    break;
+                case Shift:
+                    methodCall = "_shift("+action.getActionParameter()+")";
+                    break;
+                default:
+                    throw new IllegalStateException();
+            }
+
+            actions.add(methodCall);
+        });
+
+        SearchFn.generate(symbols, states, actions, pw);
+
         pw.deindent();
         pw.println("}");
         pw.println();

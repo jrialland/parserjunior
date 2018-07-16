@@ -35,6 +35,10 @@ public class IndentPrintWriter extends PrintWriter {
 
     private IndentWriter indentWriter;
 
+    public IndentPrintWriter(Writer writer) {
+        this(writer, "  ");
+    }
+
     public IndentPrintWriter(Writer writer, String indentStr) {
         super(new WriterDelegate(new IndentWriter(writer, indentStr)));
         indentWriter = (IndentWriter) tlHolder.get().wrapped;
