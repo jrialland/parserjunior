@@ -14,6 +14,21 @@ public class NonTerminal implements Symbol {
 
     private String name;
 
+    private Integer id;
+
+    @Override
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    @Override
+    public int getId() {
+        if(id == null) {
+            throw new IllegalStateException("This terminal has not be assigned an id yet. Call setId(int) first !");
+        }
+        return id;
+    }
+
     public NonTerminal() {
         this(null);
     }

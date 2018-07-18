@@ -1,6 +1,7 @@
 package net.jr.parser.impl;
 
 import net.jr.common.Symbol;
+import net.jr.common.SymbolBase;
 import net.jr.marshalling.MarshallingUtil;
 import net.jr.parser.Rule;
 import net.jr.util.StringUtil;
@@ -16,7 +17,7 @@ import java.util.Set;
  *
  * @see ActionTable.LALR1Builder#makeExtendedGrammar(Rule, Set)
  */
-public class ExtendedSymbol implements Symbol {
+public class ExtendedSymbol extends SymbolBase {
 
     private int from;
 

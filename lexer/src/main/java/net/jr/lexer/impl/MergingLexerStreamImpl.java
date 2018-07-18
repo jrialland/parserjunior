@@ -16,6 +16,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -33,9 +34,21 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
     private Token candidate;
     private StringWriter matched = new StringWriter();
 
+    private void reAssignIds(State<Character> initial) {
+        AtomicInteger idCounter = new AtomicInteger(0);
+        StatesVisitor.visit(initial, (state) -> {
+            int id = idCounter.getAndIncrement();
+            if (state.isFinalState()) {
+                id = -1 * id;
+            }
+            state.setId(id);
+        });
+    }
+
     public MergingLexerStreamImpl(Lexer lexer, List<Automaton> automatons, Function<Token, Token> tokenListener, Reader reader) {
         super(lexer, tokenListener, reader);
-        initial = new StateImpl();
+
+        initial = new StateImpl(0);
         for (Automaton a : automatons) {
             State s = a.getInitialState();
             if (s != null) {
@@ -45,6 +58,9 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
                 }
             }
         }
+
+        reAssignIds(initial);
+
         activeStates.add(initial);
         startPosition = Position.start();
         position = startPosition;
@@ -139,6 +155,22 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
         private Set<Transition<Character>> outgoingTransitions = new HashSet<>();
 
         private Terminal terminal;
+
+        private int id;
+
+        @Override
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        @Override
+        public int getId() {
+            return id;
+        }
+
+        public StateImpl(int id) {
+            setId(id);
+        }
 
         @Override
         public Set<Transition<Character>> getOutgoingTransitions() {

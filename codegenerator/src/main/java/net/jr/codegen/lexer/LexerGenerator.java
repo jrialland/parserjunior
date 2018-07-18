@@ -1,70 +1,50 @@
 package net.jr.codegen.lexer;
 
 import net.jr.lexer.Lexer;
-import net.jr.lexer.automaton.DefaultAutomaton;
 import net.jr.lexer.automaton.State;
-import net.jr.lexer.automaton.Transition;
-import net.jr.lexer.impl.CharConstraint;
 import net.jr.lexer.impl.MergingLexerStreamImpl;
+import net.jr.lexer.impl.StatesVisitor;
 import net.jr.text.IndentPrintWriter;
 import net.jr.util.IOUtil;
+import net.jr.util.WriterOutputStream;
+import org.jtwig.JtwigModel;
+import org.jtwig.JtwigTemplate;
 
 import java.io.Writer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LexerGenerator {
 
-    private Map<Integer, State<Character>> getStates(Lexer lexer) {
-        Map<Integer, State<Character>> allStates = new TreeMap<>();
-        Set<State<Character>> viewed = new HashSet<>();
+    private static final JtwigTemplate templateStart, templateEnd;
+
+    static {
+        String path = LexerGenerator.class.getPackage().getName().replace('.', '/');
+        templateStart = JtwigTemplate.classpathTemplate(path + "/lexer_start.twig");
+        templateEnd = JtwigTemplate.classpathTemplate(path + "/lexer_end.twig");
+
+    }
+
+    private List<State<Character>> getStates(Lexer lexer) {
         State<Character> initialState = ((MergingLexerStreamImpl) lexer.iterator(IOUtil.emptyReader())).getInitialState();
-        Stack<State<Character>> stack = new Stack<>();
-        stack.push(initialState);
-        int i = 0;
-        while (!stack.isEmpty()) {
-            State<Character> state = stack.pop();
-            if(!viewed.contains(state)) {
-                allStates.put(i++, state);
-                viewed.add(state);
-                for(Transition t : state.getOutgoingTransitions()) {
-                    stack.push(t.getNextState());
-                }
-            }
-        }
+        List<State<Character>> allStates = new ArrayList<>();
+        StatesVisitor.visit(initialState, (state) -> {
+            allStates.add(state);
+        });
         return allStates;
     }
 
     public void generate(Lexer lexer, Writer writer) {
 
-        IndentPrintWriter ipw = writer instanceof IndentPrintWriter ? (IndentPrintWriter) writer : new IndentPrintWriter(writer);
+        WriterOutputStream os = new WriterOutputStream(writer);
+        IndentPrintWriter ipw = new IndentPrintWriter(writer);
 
-        ipw.println("switch(state) {");
-        ipw.indent();
+        JtwigModel model = JtwigModel.newModel();
+        model.with("lexer", lexer);
+        model.with("states", getStates(lexer));
 
-        for(Map.Entry<Integer, State<Character>> entry : getStates(lexer).entrySet()) {
-            int id = entry.getKey();
-            State<Character> state = entry.getValue();
-            ipw.println("case " + id + ":");
-            ipw.indent();
-
-            boolean first = true;
-            for(Transition<Character> t : state.getOutgoingTransitions()) {
-                CharConstraint constraint = ((DefaultAutomaton.TransitionImpl)t).getCondition();
-                ipw.println((first?"":"else ") + "if("+constraint.toString()+") {");
-                ipw.indent();
-                ipw.println("state = " + t.getNextState());
-                ipw.deindent();
-                ipw.println("}");
-                first = false;
-            }
-
-            ipw.println("break;");
-            ipw.deindent();
-
-        }
-
-        ipw.deindent();
-        ipw.println("}");
+        templateStart.render(model, os);
+        templateEnd.render(model, os);
 
         ipw.flush();
     }

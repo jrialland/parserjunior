@@ -1,0 +1,30 @@
+
+Set<Integer> currentStates = new TreeSet<Integer>();
+Set<Integer> nextStates = new TreeSet<Integer>();
+
+int priority, candidate = -1;
+
+while(true) {
+
+    priority = -1;
+    nextStates.clear();
+
+    for(int state : currentStates) {
+        switch(state) {
+            {% for state in states %}
+            case {{ state.id }} :
+                {% for transition in state.outgoingTransitions %}
+                {% if loop.first %}{%else%}else {%endif%}if({{ transition.condition}}) {
+                    nextStates.add({{ transition.nextState.id }});
+                }
+                {% endfor %}
+                break;
+            {% endfor %}
+        }
+    }
+
+    //swap the two sets so we avoid to instanciate a new one
+    Set<Integer> tmpSet = currentStates;
+    currentStates = nextStates;
+    nextStates = tmpSet;
+}

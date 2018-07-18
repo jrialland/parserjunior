@@ -1,7 +1,6 @@
 package net.jr.lexer;
 
 import net.jr.lexer.basicterminals.*;
-import net.jr.lexer.impl.TerminalImpl;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -31,27 +30,20 @@ public class Lexemes {
 
     public static final String HexDigit = Numbers + "abcdef" + "ABCDEF";
 
-    private static final Word cIdentifier = new Word("_" + Alpha, "_" + AlphaNum, "CIdentifier");
-
-    private static final CString cString = new CString();
-    private static final Terminal whitespaces = new Word(WhitespacesNonNewLine, WhitespacesNonNewLine, "Whitespace");
-    private static final Terminal lowercaseWord = new Word(LowercaseLetters);
     private static final Map<String, Terminal> Artificials = new TreeMap<>();
+
     private static final Terminal Eof = artificial("ᵉᵒᶠ");
+
     private static final Terminal Empty = artificial("ε");
-    private static TerminalImpl CHexNumber = new CHexNumber();
-    private static TerminalImpl CSimpleFloat = new CFloatingPoint();
-    private static TerminalImpl NewLine = new NewLine();
-    private static Map<Character, SingleChar> SingleChars = new TreeMap<>();
-    private static Map<String, Literal> Literals = new TreeMap<>();
-    private static TerminalImpl CInteger = new CInteger();
-    private static TerminalImpl COctal = new COctal();
-    private static TerminalImpl CBinary = new CBinary();
-    private static TerminalImpl CCharacter = new CCharacter();
 
     static {
-        cIdentifier.setName("cIdentifier");
+        Eof.setId(-1);
+        Empty.setId(-2);
     }
+
+    private static Map<Character, SingleChar> SingleChars = new TreeMap<>();
+
+    private static Map<String, Literal> Literals = new TreeMap<>();
 
     /**
      * returns a new lexeme that matches nothing, ie a lexeme that will never be encountered.
@@ -70,6 +62,8 @@ public class Lexemes {
      * @return The lexeme for a C identifier
      */
     public static final Terminal cIdentifier() {
+        Word cIdentifier = new Word("_" + Alpha, "_" + AlphaNum, "CIdentifier");
+        cIdentifier.setName("cIdentifier");
         return cIdentifier;
     }
 
@@ -77,18 +71,18 @@ public class Lexemes {
      * @return The Terminal for a C string (with double-quotes)
      */
     public static final Terminal cString() {
-        return cString;
+        return new CString();
     }
 
     /**
      * @return a whitespace
      */
     public static final Terminal whitespace() {
-        return whitespaces;
+        return new Word(WhitespacesNonNewLine, WhitespacesNonNewLine, "Whitespace");
     }
 
     public static final Terminal lowercaseWord() {
-        return lowercaseWord;
+        return new Word(LowercaseLetters);
     }
 
     /**
@@ -136,18 +130,18 @@ public class Lexemes {
      * '0x'- prefixed hexadecimal number : 0x[0-9A-Fa-f]+
      */
     public static final Terminal cHexNumber() {
-        return CHexNumber;
+        return new CHexNumber();
     }
 
     /**
      * [0-9]+ DOT [0-9]* or DOT [0-9]+ (fF|lL)?
      */
     public static Terminal cFloatingPoint() {
-        return CSimpleFloat;
+        return new CFloatingPoint();
     }
 
     public static Terminal newLine() {
-        return NewLine;
+        return new NewLine();
     }
 
     public static Terminal singleChar(char c) {
@@ -175,11 +169,11 @@ public class Lexemes {
     }
 
     public static Terminal cInteger() {
-        return CInteger;
+        return new CInteger();
     }
 
     public static Terminal cOctal() {
-        return COctal;
+        return new COctal();
     }
 
     /**
@@ -188,11 +182,11 @@ public class Lexemes {
      * @return
      */
     public static Terminal cBinary() {
-        return CBinary;
+        return new CBinary();
     }
 
     public static Terminal cCharacter() {
-        return CCharacter;
+        return new CCharacter();
     }
 
 }

@@ -10,6 +10,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * {@link Lexer} reference all the valid Terminal that can be scanned, and can produce tokens by analyzing input text, searching
@@ -26,20 +27,30 @@ public class Lexer {
     private Map<Symbol, Integer> priorities = new HashMap<>();
 
     private <L extends Symbol> Lexer(Collection<L> tokenTypes) {
+        int counter = 0;
         automatons = new ArrayList<>(tokenTypes.size());
+
         for (Symbol tokenType : tokenTypes) {
             if (!tokenType.isTerminal()) {
                 throw new IllegalArgumentException("Not a terminal : " + tokenType);
             }
+
             if (!tokenType.equals(Lexemes.eof())) {
+                tokenType.setId(counter++);
                 Automaton a = ((TerminalImpl) tokenType).getAutomaton();
                 automatons.add(a);
             }
         }
+
         priorities = new HashMap<>();
+
         for (Automaton a : automatons) {
             priorities.put(a.getTokenType(), a.getTokenType().getPriority());
         }
+    }
+
+    public List<Terminal> getTokenTypes() {
+        return automatons.stream().map(a -> a.getTokenType()).collect(Collectors.toList());
     }
 
     /**

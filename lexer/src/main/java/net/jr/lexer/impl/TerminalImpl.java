@@ -1,10 +1,11 @@
 package net.jr.lexer.impl;
 
+import net.jr.common.SymbolBase;
 import net.jr.lexer.Terminal;
 import net.jr.lexer.automaton.Automaton;
 import net.jr.marshalling.MarshallingUtil;
 
-public abstract class TerminalImpl implements Terminal {
+public abstract class TerminalImpl extends SymbolBase implements Terminal {
 
     private Automaton automaton;
 

@@ -48,8 +48,18 @@ public class IndentPrintWriter extends PrintWriter {
         indentWriter.indent();
     }
 
+    public void indent(String s) {
+        println(s);
+        indent();
+    }
+
     public void deindent() {
         indentWriter.deindent();
+    }
+
+    public void deindent(String s) {
+        deindent();
+        println(s);
     }
 
     public void setIndentationLevel(int lvl) {

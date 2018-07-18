@@ -1,5 +1,7 @@
 package net.jr.lexer.impl;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,7 +49,7 @@ public class CharConstraint implements Function<Character, Boolean> {
         }
 
         public static Builder eq(int c) {
-            return new Builder(String.format("c==%d", c), x -> x == c);
+            return new Builder("c==" + "'" + StringEscapeUtils.escapeJava(Character.toString((char) c)) + "'", x -> x == c);
         }
 
         public static Builder inRange(int min, int max) {
@@ -55,7 +57,8 @@ public class CharConstraint implements Function<Character, Boolean> {
         }
 
         public static Builder inList(String possibleChars) {
-            return new Builder(String.format("\"%s\".contains(Character.toString(c))", possibleChars), x -> possibleChars.contains(Character.toString(x)));
+            String expression = String.format("\"%s\".contains(Character.toString(c))", StringEscapeUtils.escapeJava(possibleChars));
+            return new Builder(expression, x -> possibleChars.contains(Character.toString(x)));
         }
 
         public static Builder inList(char[] possibleChars) {

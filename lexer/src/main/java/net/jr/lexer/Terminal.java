@@ -17,4 +17,5 @@ public interface Terminal extends Symbol {
     }
 
     Terminal withPriority(int priority);
+
 }

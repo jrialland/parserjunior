@@ -7,4 +7,7 @@ public interface Symbol extends MarshallingCapable {
 
     boolean isTerminal();
 
+    void setId(int id);
+
+    int getId();
 }

@@ -40,6 +40,21 @@ public class DefaultAutomaton implements Automaton {
 
         private Terminal terminal;
 
+        private Integer id;
+
+        @Override
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        @Override
+        public int getId() {
+            if (id == null) {
+                throw new IllegalStateException("No id has been assigned to this state. setId(int) must be called first");
+            }
+            return id;
+        }
+
         private StateImpl(Set<Transition> transitions, boolean finalState, Terminal terminal) {
             this.outgoingTransitions = transitions;
             this.finalState = finalState;

@@ -11,4 +11,8 @@ public interface State<T> {
     boolean isFinalState();
 
     Terminal getTerminal();
+
+    int getId();
+
+    void setId(int id);
 }
