@@ -13,6 +13,7 @@ import static net.jr.lexer.impl.CharConstraint.Builder.*;
 public class CInteger extends TerminalImpl {
 
     public CInteger() {
+        setName("cInteger");
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
         DefaultAutomaton.Builder.BuilderState init = builder.initialState();
         DefaultAutomaton.Builder.BuilderState got0 = builder.newFinalState();
@@ -40,7 +41,7 @@ public class CInteger extends TerminalImpl {
     }
 
     public static CInteger unMarshall(DataInputStream in) throws IOException {
-        return new CInteger();
+        return TerminalImpl.unMarshall(new CInteger(), in);
     }
 
     @Override
@@ -65,8 +66,4 @@ public class CInteger extends TerminalImpl {
         return 8515468;
     }
 
-    @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
-
-    }
 }

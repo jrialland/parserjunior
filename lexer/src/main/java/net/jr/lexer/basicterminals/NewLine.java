@@ -12,6 +12,7 @@ import static net.jr.lexer.impl.CharConstraint.Builder.eq;
 public class NewLine extends TerminalImpl {
 
     public NewLine() {
+        setName("newLine");
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
         DefaultAutomaton.Builder.BuilderState init = builder.initialState();
         DefaultAutomaton.Builder.BuilderState gotCR = builder.newNonFinalState();
@@ -24,7 +25,7 @@ public class NewLine extends TerminalImpl {
 
     @SuppressWarnings("unused")
     public static NewLine unMarshall(DataInputStream in) throws IOException {
-        return new NewLine();
+        return TerminalImpl.unMarshall(new NewLine(), in);
     }
 
     @Override
@@ -48,8 +49,4 @@ public class NewLine extends TerminalImpl {
         return -48141;
     }
 
-    @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
-
-    }
 }

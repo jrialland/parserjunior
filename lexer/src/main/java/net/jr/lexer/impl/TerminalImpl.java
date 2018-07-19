@@ -3,15 +3,20 @@ package net.jr.lexer.impl;
 import net.jr.common.SymbolBase;
 import net.jr.lexer.Terminal;
 import net.jr.lexer.automaton.Automaton;
+import net.jr.lexer.basicterminals.Artificial;
 import net.jr.marshalling.MarshallingUtil;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public abstract class TerminalImpl extends SymbolBase implements Terminal {
 
     private Automaton automaton;
 
-    private int priority;
+    protected Integer priority;
 
-    private String name;
+    protected String name;
 
     public TerminalImpl() {
         this(null);
@@ -24,9 +29,10 @@ public abstract class TerminalImpl extends SymbolBase implements Terminal {
 
     @Override
     public int getPriority() {
-        return priority;
+        return priority == null ? 0 : priority;
     }
 
+    @Override
     public void setPriority(int priority) {
         this.priority = priority;
     }
@@ -60,10 +66,28 @@ public abstract class TerminalImpl extends SymbolBase implements Terminal {
     public Terminal withPriority(int priority) {
         try {
             TerminalImpl clone = MarshallingUtil.copyOf(this);
+            clone.setPriority(priority);
             return clone;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    @Override
+    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+        dataOutputStream.writeInt(priority);
+        dataOutputStream.writeBoolean(name != null);
+        if(name != null) {
+            dataOutputStream.writeUTF(name);
+        }
+    }
+
+    public static <T extends TerminalImpl> T unMarshall(T impl, DataInputStream in) throws IOException {
+        impl.priority = in.readInt();
+        boolean hasName = in.readBoolean();
+        if(hasName) {
+            impl.name = in.readUTF();
+        }
+        return impl;
+    }
 }

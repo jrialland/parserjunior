@@ -6,13 +6,12 @@ import net.jr.lexer.impl.CharConstraint;
 import net.jr.lexer.impl.TerminalImpl;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class CFloatingPoint extends TerminalImpl {
 
-
     public CFloatingPoint() {
+        setName("cFloatingPoint");
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
         DefaultAutomaton.Builder.BuilderState initialState = builder.initialState();
         DefaultAutomaton.Builder.BuilderState beforeDot = builder.newNonFinalState();
@@ -53,7 +52,7 @@ public class CFloatingPoint extends TerminalImpl {
     }
 
     public static CFloatingPoint unMarshall(DataInputStream in) throws IOException {
-        return new CFloatingPoint();
+        return TerminalImpl.unMarshall(new CFloatingPoint(), in);
     }
 
     @Override
@@ -77,8 +76,4 @@ public class CFloatingPoint extends TerminalImpl {
         return 1747474;
     }
 
-    @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
-
-    }
 }

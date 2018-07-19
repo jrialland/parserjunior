@@ -15,6 +15,23 @@ public class Node implements State {
 
     private Terminal terminal = null;
 
+    private Integer id = null;
+
+    @Override
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    @Override
+    public int getId() {
+        if (id == null) {
+            throw new IllegalStateException("Id has not been assigned. setId(int) must be called first");
+        } else {
+            return id;
+        }
+
+    }
+
     @Override
     public Terminal getTerminal() {
         return terminal;

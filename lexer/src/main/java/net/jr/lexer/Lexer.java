@@ -24,29 +24,23 @@ public class Lexer {
 
     private TokenListener tokenListener = t -> t;
 
-    private Map<Symbol, Integer> priorities = new HashMap<>();
+    private int maxId = 0;
 
     private <L extends Symbol> Lexer(Collection<L> tokenTypes) {
-        int counter = 0;
         automatons = new ArrayList<>(tokenTypes.size());
-
         for (Symbol tokenType : tokenTypes) {
+
             if (!tokenType.isTerminal()) {
                 throw new IllegalArgumentException("Not a terminal : " + tokenType);
             }
 
             if (!tokenType.equals(Lexemes.eof())) {
-                tokenType.setId(counter++);
+                tokenType.setId(maxId++);
                 Automaton a = ((TerminalImpl) tokenType).getAutomaton();
                 automatons.add(a);
             }
         }
 
-        priorities = new HashMap<>();
-
-        for (Automaton a : automatons) {
-            priorities.put(a.getTokenType(), a.getTokenType().getPriority());
-        }
     }
 
     public List<Terminal> getTokenTypes() {
@@ -77,24 +71,6 @@ public class Lexer {
      */
     public static <L extends Symbol> Lexer forLexemes(Collection<L> tokenTypes) {
         return new Lexer(tokenTypes);
-    }
-
-    /**
-     * A given text may match several basicterminals (for example 'int' may be recognized both by {@link Lexemes#literal(String)}  and {@link Lexemes#cIdentifier()})
-     * The priority can make the difference by choosing the right type when there is such conflict.
-     * <p>
-     * In the given example priority(literal('int')) > priority(cIdentifier)
-     *
-     * @param s
-     * @param priority 0 is best, Integer.MAX_VALUE is lowest priority
-     */
-    public void setPriority(Symbol s, int priority) {
-        priorities.put(s, priority);
-    }
-
-    public int getPriority(Symbol s) {
-        Integer p = priorities.get(s);
-        return p == null ? 0 : p;
     }
 
     /**
@@ -140,6 +116,7 @@ public class Lexer {
             }
         }
 
+        tokenType.setId(maxId++);
         Automaton added = ((TerminalImpl) tokenType).getAutomaton();
         automatons.add(added);
         filteredOut.add(tokenType);

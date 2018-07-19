@@ -13,6 +13,7 @@ import static net.jr.lexer.impl.CharConstraint.Builder.or;
 public class CBinary extends TerminalImpl {
 
     public CBinary() {
+        setName("cBinary");
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
         DefaultAutomaton.Builder.BuilderState init = builder.initialState();
         DefaultAutomaton.Builder.BuilderState got0 = builder.newNonFinalState();
@@ -26,7 +27,7 @@ public class CBinary extends TerminalImpl {
     }
 
     public static CBinary unMarshall(DataInputStream in) throws IOException {
-        return new CBinary();
+        return TerminalImpl.unMarshall(new CBinary(), in);
     }
 
     @Override
@@ -50,8 +51,4 @@ public class CBinary extends TerminalImpl {
         return 1686118;
     }
 
-    @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
-
-    }
 }

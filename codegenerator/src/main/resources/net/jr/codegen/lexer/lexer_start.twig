@@ -1,30 +1,162 @@
+{% if packageName %}
+package {{packageName}};
+{% endif %}
 
-Set<Integer> currentStates = new TreeSet<Integer>();
-Set<Integer> nextStates = new TreeSet<Integer>();
+import java.io.Reader;
+import java.io.PushbackReader;
+import java.io.IOException;
 
-int priority, candidate = -1;
+import java.util.function.Consumer;
 
-while(true) {
+import java.util.Set;
+import java.util.TreeSet;
+import javax.annotation.Generated;
 
-    priority = -1;
-    nextStates.clear();
+@Generated("parserjunior-codegenerator:1.0-SNAPSHOT")
+public class Lexer {
 
-    for(int state : currentStates) {
-        switch(state) {
-            {% for state in states %}
-            case {{ state.id }} :
-                {% for transition in state.outgoingTransitions %}
-                {% if loop.first %}{%else%}else {%endif%}if({{ transition.condition}}) {
-                    nextStates.add({{ transition.nextState.id }});
-                }
-                {% endfor %}
-                break;
-            {% endfor %}
+    public enum TokenType {
+        tok_eof,
+        {% for t in lexer.tokenTypes %}
+        tok_{{t.name}}{{(loop.last)?'':','}}
+        {% endfor %}
+        ;
+    }
+
+    public static class Token {
+
+        private TokenType tokenType;
+
+        private String matchedText;
+
+        private int line;
+
+        private int column;
+
+        public Token(TokenType tokenType, String matchedText, int line, int column) {
+            this.tokenType = tokenType;
+            this.matchedText = matchedText;
+            this.line = line;
+            this.column = column;
+        }
+
+        TokenType getTokenType() {
+            return tokenType;
+        }
+
+        String getMatchedText() {
+            return matchedText;
+        }
+
+        public int getLine() {
+            return line;
+        }
+
+        public int getColumn() {
+            return column;
+        }
+
+        public String toString() {
+            return tokenType.name()+"@"+line+":"+column;
         }
     }
 
-    //swap the two sets so we avoid to instanciate a new one
-    Set<Integer> tmpSet = currentStates;
-    currentStates = nextStates;
-    nextStates = tmpSet;
+    private static class LexerState {
+        Set<Integer> currentStates = new TreeSet<Integer>();
+        Set<Integer> nextStates = new TreeSet<Integer>();
+        int line = 1;
+        int column=1;
+        TokenType candidate = null;
+        String matchedText = "";
+
+        public LexerState() {
+            currentStates.add(0);
+        }
+
+        public Token makeToken() {
+            Token t = new Token(candidate, matchedText, line, column);
+            matchedText = "";
+            return t;
+        }
+
+        public void prepareNextStep() {
+            Set<Integer> tmp = currentStates;
+            currentStates = nextStates;
+            tmp.clear();
+            nextStates = tmp;
+        }
+    }
+
+    public void lex(Reader reader, Consumer<Token> consumer) throws IOException {
+        final PushbackReader pbReader = reader instanceof PushbackReader ? (PushbackReader) reader : new PushbackReader(reader);
+        final LexerState lexerState = new LexerState();
+        while(step(pbReader, lexerState, consumer)) {
+            lexerState.prepareNextStep();
+        }
+    }
+
+    private boolean step(PushbackReader reader, LexerState lexerState, Consumer<Token> consumer) throws IOException {
+        int line = lexerState.line;
+        int column = lexerState.column;
+        int priority = -1;
+        int c = reader.read();
+
+        if (c == -1) {
+            if (lexerState.candidate == null) {
+                if (lexerState.currentStates.size() != 1 || lexerState.currentStates.iterator().next() != 0) {
+                    throw new RuntimeException("lex error");
+                }
+            } else {
+                consumer.accept(lexerState.makeToken());
+            }
+            consumer.accept(new Token(TokenType.tok_eof, null, line, column));
+            return false;
+        } else if( c == '\n') {
+            lexerState.line += 1;
+            lexerState.column = 1;
+        } else {
+            lexerState.column += 1;
+        }
+
+        for(int state : lexerState.currentStates) {
+            switch(state) {
+                {% for state in states %}
+                {% if not (state.outgoingTransitions is empty) %}
+                case {{ state.id }} :
+                    {% for transition in state.outgoingTransitions %}
+                    {% if loop.first %}{%else%}else {%endif%}if({{ transition.condition}}) {
+                        lexerState.nextStates.add({{ transition.nextState.id }});
+                        {% if transition.nextState.finalState %}
+                        if(priority <= {{transition.nextState.terminal.priority}}) {
+                            priority = {{transition.nextState.terminal.priority}};
+                            lexerState.candidate = TokenType.tok_{{ transition.nextState.terminal.name }};
+                        }
+                        {% endif %}
+                    }
+                    {% endfor %}
+                    break;
+                {% endif %}
+                {% endfor %}
+            }
+        }
+
+        if (lexerState.nextStates.isEmpty()) {
+            if (lexerState.candidate == null) {
+                throw new IllegalStateException();
+            } else {
+                consumer.accept(lexerState.makeToken());
+                lexerState.candidate = null;
+                lexerState.nextStates.clear();
+                lexerState.nextStates.add(0);
+                lexerState.line = line;
+                lexerState.column = column;
+                reader.unread(c);
+            }
+        } else {
+            lexerState.matchedText += (char)c;
+        }
+
+        return true;
+
+    }
 }

@@ -8,6 +8,7 @@ import net.jr.lexer.basicterminals.Literal;
 import net.jr.lexer.basicterminals.MultilineComment;
 import net.jr.lexer.basicterminals.SingleChar;
 import net.jr.lexer.basicterminals.Word;
+import net.jr.util.StringUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -360,10 +361,10 @@ public abstract class AbstractLexerTestCases {
 
     @Test
     public void testInt2() {
-        Lexer lexer = getLexer(Lexemes.literal("int"), Lexemes.cIdentifier());
-
-        //give a low priority to cIdentifier
-        lexer.setPriority(Lexemes.cIdentifier(), 100);
+        Lexer lexer = getLexer(
+                Lexemes.literal("int"),
+                Lexemes.cIdentifier().withPriority(100)
+        );
 
         Terminal l = lexer.tokenize("int").get(0).getTokenType();
         Assert.assertEquals(l, Lexemes.cIdentifier());
@@ -391,6 +392,40 @@ public abstract class AbstractLexerTestCases {
         } catch (LexicalError e) {
             Assert.assertEquals(-1, e.getOffendingChar());
         }
+    }
+
+    @Test
+    public void testPriority() {
+
+        Lexer lexer;
+
+        lexer = getLexer(
+                Lexemes.lowercaseWord().withPriority(27),
+                Lexemes.literal("if").withPriority(100)
+        );
+
+        Assert.assertEquals(27, lexer.getTokenTypes().get(0).getPriority());
+        Assert.assertEquals(27, lexer.getTokenTypes().get(0).getPriority());
+
+        Assert.assertEquals(1, lexer.tokenize("if").get(0).getTokenType().getId());
+
+        lexer = getLexer(
+                Lexemes.lowercaseWord().withPriority(100),
+                Lexemes.literal("if").withPriority(11)
+        );
+        Assert.assertEquals(100, lexer.getTokenTypes().get(0).getPriority());
+        Assert.assertEquals(11, lexer.getTokenTypes().get(1).getPriority());
+
+        Assert.assertEquals(0, lexer.tokenize("if").get(0).getTokenType().getId());
+
+        for(int i=0; i< 100; i++) {
+            lexer = getLexer(
+                    Lexemes.lowercaseWord(),
+                    Lexemes.literal("if")
+            );
+            Assert.assertEquals(1, lexer.tokenize("if").get(0).getTokenType().getId());
+        }
+
     }
 
     @Test

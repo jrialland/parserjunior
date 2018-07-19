@@ -361,8 +361,8 @@ public class CGrammar extends Grammar {
         addRule(FunctionDefinition, Declarator, CompoundStatement);
 
         lexer = Lexer.forLexemes(getTerminals());
-        lexer.setFilteredOut(Lexemes.multilineComment("/*", "*/"));
-        lexer.setFilteredOut(Lexemes.lineComment("//"));
+        lexer.setFilteredOut(Lexemes.multilineComment("/*", "*/").withName("multilineComment"));
+        lexer.setFilteredOut(Lexemes.lineComment("//").withName("lineComment"));
         lexer.setFilteredOut(Lexemes.whitespace());
         lexer.setFilteredOut(Lexemes.newLine());
         lexer.setTokenListener(new LexerHack());

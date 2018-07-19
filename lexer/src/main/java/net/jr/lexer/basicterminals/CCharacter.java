@@ -6,12 +6,12 @@ import net.jr.lexer.impl.CharConstraint;
 import net.jr.lexer.impl.TerminalImpl;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class CCharacter extends TerminalImpl {
 
     public CCharacter() {
+        setName("cCharacter");
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
         DefaultAutomaton.Builder.BuilderState init = builder.initialState();
         DefaultAutomaton.Builder.BuilderState gotFirstQuote = builder.newNonFinalState();
@@ -61,7 +61,7 @@ public class CCharacter extends TerminalImpl {
     }
 
     public static CCharacter unMarshall(DataInputStream in) throws IOException {
-        return new CCharacter();
+        return TerminalImpl.unMarshall(new CCharacter(), in);
     }
 
     @Override
@@ -85,8 +85,4 @@ public class CCharacter extends TerminalImpl {
         return -14814475;
     }
 
-    @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
-
-    }
 }

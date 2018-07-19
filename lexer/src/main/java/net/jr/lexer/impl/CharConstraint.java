@@ -49,7 +49,13 @@ public class CharConstraint implements Function<Character, Boolean> {
         }
 
         public static Builder eq(int c) {
-            return new Builder("c==" + "'" + StringEscapeUtils.escapeJava(Character.toString((char) c)) + "'", x -> x == c);
+            String s;
+            if(c == '\'') {
+                s = "\\'";
+            } else {
+                s = StringEscapeUtils.escapeJava(Character.toString((char) c));
+            }
+            return new Builder("c==" + "'" + s + "'", x -> x == c);
         }
 
         public static Builder inRange(int min, int max) {
@@ -57,17 +63,12 @@ public class CharConstraint implements Function<Character, Boolean> {
         }
 
         public static Builder inList(String possibleChars) {
-            String expression = String.format("\"%s\".contains(Character.toString(c))", StringEscapeUtils.escapeJava(possibleChars));
+            String expression = String.format("\"%s\".indexOf((char)c)>-1", StringEscapeUtils.escapeJava(possibleChars));
             return new Builder(expression, x -> possibleChars.contains(Character.toString(x)));
         }
 
         public static Builder inList(char[] possibleChars) {
-            List<Character> list = new ArrayList<>();
-            for (char c : possibleChars) {
-                list.add(c);
-            }
-            String str = "[" + String.join(", ", list.stream().map(x -> Integer.toString(x)).collect(Collectors.toList())) + "]";
-            return new Builder(String.format("Arrays.binarySearch(%s, c)>-1", str), x -> Arrays.binarySearch(possibleChars, x) > -1);
+            return inList(new String(possibleChars));
         }
 
         public static Builder not(Builder builder) {

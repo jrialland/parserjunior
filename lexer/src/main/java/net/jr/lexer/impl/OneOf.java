@@ -14,6 +14,11 @@ public class OneOf extends TerminalImpl {
     private String chars;
 
     public OneOf(final String chars) {
+        init(chars);
+        setName(String.format("OneOf('%s')", chars));
+    }
+
+    private void init(final String chars) {
         this.chars = chars;
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
         DefaultAutomaton.Builder.BuilderState initialState = builder.initialState();
@@ -21,10 +26,15 @@ public class OneOf extends TerminalImpl {
         setAutomaton(builder.build());
     }
 
+    private OneOf() {
+        super();
+    }
+
     @SuppressWarnings("unused")
     public static OneOf unMarshall(DataInputStream in) throws IOException {
-        String chars = in.readUTF();
-        return new OneOf(chars);
+        OneOf o = TerminalImpl.unMarshall(new OneOf(), in);
+        o.init(in.readUTF());
+        return o;
     }
 
     @Override
@@ -49,13 +59,10 @@ public class OneOf extends TerminalImpl {
         return -17 * chars.hashCode();
     }
 
-    @Override
-    public int getPriority() {
-        return 0;
-    }
 
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
+        super.marshall(dataOutputStream);
         dataOutputStream.writeUTF(chars);
     }
 }

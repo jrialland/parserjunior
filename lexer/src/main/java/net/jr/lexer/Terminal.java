@@ -12,10 +12,18 @@ public interface Terminal extends Symbol {
         return true;
     }
 
-    default int getPriority() {
-        return 1;
-    }
+    void setPriority(int priority);
+
+    int getPriority();
 
     Terminal withPriority(int priority);
 
+    void setName(String name);
+
+    String getName();
+
+    default Terminal withName(String name) {
+        setName(name);
+        return this;
+    }
 }

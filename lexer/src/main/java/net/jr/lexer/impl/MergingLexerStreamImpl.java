@@ -12,14 +12,10 @@ import java.io.IOException;
 import java.io.PushbackReader;
 import java.io.Reader;
 import java.io.StringWriter;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Alternative algorithm for token recognition that involves creating a 'big' automaton, that can have several
@@ -28,10 +24,15 @@ import java.util.stream.Collectors;
 public class MergingLexerStreamImpl extends AbstractLexerStream {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MergingLexerStreamImpl.class);
+
     private Position startPosition, position;
+
     private StateImpl initial;
+
     private Set<State<Character>> activeStates = new HashSet<>();
+
     private Token candidate;
+
     private StringWriter matched = new StringWriter();
 
     private void reAssignIds(State<Character> initial) {
@@ -69,11 +70,10 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
     protected void emit(PushbackReader reader, int c, Consumer<Token> callback) throws IOException {
 
         if (!getLexer().isFilteredOut(candidate.getTokenType())) {
-
-            if (getLexer().getTokenListener() != null) {
-                candidate = getLexer().getTokenListener().onNewToken(candidate);
+            TokenListener tokenListener = getLexer().getTokenListener();
+            if (tokenListener != null) {
+                candidate = tokenListener.onNewToken(candidate);
             }
-
             callback.accept(candidate);
         }
         candidate = null;
@@ -87,7 +87,10 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
     protected void emitEof(Consumer<Token> callback) {
         Token eof = new Token(Lexemes.eof(), position, "");
         if (!getLexer().isFilteredOut(eof.getTokenType())) {
-            eof = getLexer().getTokenListener().onNewToken(eof);
+            TokenListener tokenListener = getLexer().getTokenListener();
+            if (tokenListener != null) {
+                eof = tokenListener.onNewToken(eof);
+            }
             callback.accept(eof);
         }
     }
@@ -133,16 +136,14 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
         }
 
         //find the state that is final with the highest priority
-        List<State> posssibleFinals = newStates.stream()
+        Optional<State<Character>> finalState = newStates.stream()
                 .filter(s -> s.isFinalState())
-                .sorted(Comparator.comparingInt(s -> -getLexer().getPriority(s.getTerminal())))
+                .sorted(Comparator.comparingInt(s -> - s.getTerminal().getPriority()))
                 .limit(1)
-                .collect(Collectors.toList());
+                .findFirst();
 
-        State<Character> finalState = posssibleFinals.isEmpty() ? null : posssibleFinals.get(0);
-
-        if (finalState != null) {
-            candidate = new Token(finalState.getTerminal(), startPosition, matched.toString());
+        if (finalState.isPresent()) {
+            candidate = new Token(finalState.get().getTerminal(), startPosition, matched.toString());
         }
 
         this.position = this.position.updated((char) c);

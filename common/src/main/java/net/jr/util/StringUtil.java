@@ -1,6 +1,8 @@
 package net.jr.util;
 
+import java.io.IOException;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.List;
@@ -147,12 +149,35 @@ public final class StringUtil {
         }
     }
 
-    public String rpad(String txt, String padding, int len) {
+    public static String rpad(String txt, String padding, int len) {
         int missing = len - txt.length();
         if (missing > 0) {
             return txt + repeatUntilSize(padding, missing);
         } else {
             return txt.substring(0, len);
         }
+    }
+
+    public static void nl(String txt, Writer out) throws IOException {
+        String[] parts = txt.split("\n");
+        int padLen = Integer.toString(parts.length).length();
+        int i = 1;
+        for (String part : parts) {
+            out.write(rpad(Integer.toString(i++), " ", padLen));
+            out.write(". ");
+            out.write(part);
+            out.write('\n');
+        }
+        out.flush();
+    }
+
+    public static String nl(String txt) {
+        StringWriter sw = new StringWriter();
+        try {
+            nl(txt, sw);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return sw.toString();
     }
 }

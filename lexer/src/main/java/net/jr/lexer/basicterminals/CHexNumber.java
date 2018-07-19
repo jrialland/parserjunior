@@ -6,12 +6,12 @@ import net.jr.lexer.impl.CharConstraint;
 import net.jr.lexer.impl.TerminalImpl;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class CHexNumber extends TerminalImpl {
 
     public CHexNumber() {
+        setName("cHexNumber");
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
         DefaultAutomaton.Builder.BuilderState currentState = builder.initialState();
         DefaultAutomaton.Builder.BuilderState nextState;
@@ -32,7 +32,7 @@ public class CHexNumber extends TerminalImpl {
     }
 
     public static CHexNumber unMarshall(DataInputStream in) throws IOException {
-        return new CHexNumber();
+        return TerminalImpl.unMarshall(new CHexNumber(), in);
     }
 
     @Override
@@ -56,8 +56,4 @@ public class CHexNumber extends TerminalImpl {
         return -1785154;
     }
 
-    @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
-
-    }
 }

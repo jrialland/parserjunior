@@ -7,13 +7,17 @@ import net.jr.marshalling.MarshallingUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.Callable;
 
 public class TestLexemes {
 
     private static Map<Class<?>, Callable<? extends Terminal>> types = new HashMap<>();
+
+    private static final Random random = new Random();
 
     static {
         types.put(Artificial.class, () -> new Artificial("Test"));
@@ -67,15 +71,31 @@ public class TestLexemes {
         });
     }
 
+    private static final String randomWord(int size) {
+        StringWriter sw = new StringWriter();
+        sw.append((char) ('a' + random.nextInt(26)));
+        return sw.toString();
+    }
+
     @Test
     public void testMarshall() {
         types.entrySet().forEach(entry -> {
             try {
+                //System.out.println(entry.getKey().getName());
+                int priority = random.nextInt();
+                String name = randomWord(256);
+
                 Terminal l = entry.getValue().call();
+                l.setPriority(priority);
+                l.setName(name);
+
                 byte[] bytes = MarshallingUtil.toByteArray(l, true);
                 Assert.assertFalse(bytes.length == 0);
                 Terminal l2 = MarshallingUtil.fromByteArray(bytes, true);
                 Assert.assertEquals(l, l2);
+                Assert.assertEquals(l.getPriority(), l2.getPriority());
+                Assert.assertEquals(l.getName(), l2.getName());
+
             } catch (Exception e) {
                 throw new RuntimeException(entry.getKey().getName(), e);
             }

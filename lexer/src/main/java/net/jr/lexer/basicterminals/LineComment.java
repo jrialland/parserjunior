@@ -13,6 +13,15 @@ public class LineComment extends TerminalImpl {
     private String commentStart;
 
     public LineComment(String commentStart) {
+        this();
+        init(commentStart);
+    }
+
+    private LineComment() {
+        super();
+    }
+
+    private void init(String commentStart) {
         this.commentStart = commentStart;
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
         DefaultAutomaton.Builder.BuilderState currentState = builder.initialState();
@@ -28,7 +37,9 @@ public class LineComment extends TerminalImpl {
 
     @SuppressWarnings("unused")
     public static LineComment unMarshall(DataInputStream in) throws IOException {
-        return new LineComment(in.readUTF());
+        LineComment l = TerminalImpl.unMarshall(new LineComment(), in);
+        l.init(in.readUTF());
+        return l;
     }
 
     @Override
@@ -55,6 +66,7 @@ public class LineComment extends TerminalImpl {
 
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
+        super.marshall(dataOutputStream);
         dataOutputStream.writeUTF(commentStart);
     }
 }

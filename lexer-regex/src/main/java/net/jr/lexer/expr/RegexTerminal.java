@@ -87,6 +87,7 @@ public class RegexTerminal extends TerminalImpl {
         return priority;
     }
 
+    @Override
     public void setPriority(int priority) {
         this.priority = priority;
     }

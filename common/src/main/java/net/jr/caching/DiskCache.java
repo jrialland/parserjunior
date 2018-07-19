@@ -97,7 +97,7 @@ public class DiskCache implements Cache<String, byte[]> {
         try {
             if (Files.isRegularFile(tmpFile)) {
                 getLog().trace("DiskCache Evict : " + key);
-                Files.delete(Paths.get(tmpDir.toString(), key));
+                Files.delete(tmpFile);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

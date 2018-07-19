@@ -24,6 +24,15 @@ public class QuotedString extends TerminalImpl {
     private char[] forbiddenChars;
 
     public QuotedString(char startChar, char endChar, char escapeChar, char[] forbiddenChars) {
+        init(startChar, endChar, escapeChar, forbiddenChars);
+        setPriority(1);
+    }
+
+    private QuotedString() {
+
+    }
+
+    private void init(char startChar, char endChar, char escapeChar, char[] forbiddenChars) {
         this.starChar = startChar;
         this.endChar = endChar;
         this.escapeChar = escapeChar;
@@ -42,6 +51,7 @@ public class QuotedString extends TerminalImpl {
 
     @SuppressWarnings("unused")
     public static QuotedString unMarshall(DataInputStream in) throws IOException {
+        QuotedString q = TerminalImpl.unMarshall(new QuotedString(), in);
         char starChar = in.readChar();
         char endChar = in.readChar();
         char escapeChar = in.readChar();
@@ -50,12 +60,8 @@ public class QuotedString extends TerminalImpl {
         for (int i = 0; i < forbiddenChars.length; i++) {
             forbiddenChars[i] = in.readChar();
         }
-        return new QuotedString(starChar, endChar, escapeChar, forbiddenChars);
-    }
-
-    @Override
-    public int getPriority() {
-        return 1;
+        q.init(starChar, endChar, escapeChar, forbiddenChars);
+        return q;
     }
 
     @Override
@@ -96,6 +102,7 @@ public class QuotedString extends TerminalImpl {
 
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
+        super.marshall(dataOutputStream);
         dataOutputStream.writeChar(starChar);
         dataOutputStream.writeChar(endChar);
         dataOutputStream.writeChar(escapeChar);

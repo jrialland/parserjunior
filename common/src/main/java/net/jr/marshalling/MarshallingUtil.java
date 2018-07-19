@@ -64,7 +64,7 @@ public class MarshallingUtil {
 
         unMarshallers.put(LIST, (in) -> {
             int size = in.readInt();
-            List<?> list = new ArrayList<>();
+            List<?> list = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
                 list.add(unMarshall(in));
             }

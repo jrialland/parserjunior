@@ -17,6 +17,14 @@ public class MultilineComment extends TerminalImpl {
     private String commentEnd;
 
     public MultilineComment(String commentStart, String commentEnd) {
+        init(commentStart, commentEnd);
+    }
+
+    private MultilineComment() {
+        super();
+    }
+
+    private void init(String commentStart, String commentEnd) {
         this.commentStart = commentStart;
         this.commentEnd = commentEnd;
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
@@ -39,7 +47,11 @@ public class MultilineComment extends TerminalImpl {
     }
 
     public static MultilineComment unMarshall(DataInputStream in) throws IOException {
-        return new MultilineComment(in.readUTF(), in.readUTF());
+        MultilineComment m = TerminalImpl.unMarshall(new MultilineComment(), in);
+        String commentStart = in.readUTF();
+        String commentEnd = in.readUTF();
+        m.init(commentStart, commentEnd);
+        return m;
     }
 
     @Override
@@ -66,6 +78,7 @@ public class MultilineComment extends TerminalImpl {
 
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
+        super.marshall(dataOutputStream);
         dataOutputStream.writeUTF(commentStart);
         dataOutputStream.writeUTF(commentEnd);
     }

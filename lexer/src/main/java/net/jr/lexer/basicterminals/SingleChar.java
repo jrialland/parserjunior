@@ -18,9 +18,14 @@ public class SingleChar extends TerminalImpl {
         this.character = character;
     }
 
-    @SuppressWarnings("unchecked")
+    private SingleChar() {
+
+    }
+
     public static SingleChar unMarshall(DataInputStream dataInputStream) throws IOException {
-        return new SingleChar(dataInputStream.readChar());
+        SingleChar s = TerminalImpl.unMarshall(new SingleChar(), dataInputStream);
+        s.character = dataInputStream.readChar();
+        return s;
     }
 
     @Override
@@ -50,12 +55,8 @@ public class SingleChar extends TerminalImpl {
     }
 
     @Override
-    public int getPriority() {
-        return 0;
-    }
-
-    @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
+        super.marshall(dataOutputStream);
         dataOutputStream.writeChar(character);
     }
 

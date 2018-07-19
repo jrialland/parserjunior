@@ -6,12 +6,12 @@ import net.jr.lexer.impl.CharConstraint;
 import net.jr.lexer.impl.TerminalImpl;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class COctal extends TerminalImpl {
 
     public COctal() {
+        setName("cOctal");
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
         DefaultAutomaton.Builder.BuilderState init = builder.initialState();
         DefaultAutomaton.Builder.BuilderState got0 = builder.initialState();
@@ -24,7 +24,7 @@ public class COctal extends TerminalImpl {
     }
 
     public static COctal unMarshall(DataInputStream in) throws IOException {
-        return new COctal();
+        return TerminalImpl.unMarshall(new COctal(), in);
     }
 
     @Override
@@ -49,8 +49,4 @@ public class COctal extends TerminalImpl {
         return 0x514145;
     }
 
-    @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
-
-    }
 }

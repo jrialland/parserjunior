@@ -13,9 +13,11 @@ public class Word extends TerminalImpl {
 
     private Automaton automaton;
 
-    private String name;
-
     private String possibleFirstChar, possibleNextChars;
+
+    private Word() {
+
+    }
 
     public Word(String possibleChars) {
         this(possibleChars, possibleChars);
@@ -26,6 +28,11 @@ public class Word extends TerminalImpl {
     }
 
     public Word(String possibleFirstChar, String possibleNextChars, String name) {
+        setName(name);
+        init(possibleFirstChar, possibleNextChars);
+    }
+
+    private void init(String possibleFirstChar, String possibleNextChars) {
         this.possibleFirstChar = possibleFirstChar;
         this.possibleNextChars = possibleNextChars;
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
@@ -42,14 +49,18 @@ public class Word extends TerminalImpl {
         } else {
             this.name = name;
         }
+        if (priority == null) {
+            setPriority(1);
+        }
     }
 
     @SuppressWarnings("unused")
     public static Word unMarshall(DataInputStream dataInputStream) throws IOException {
-        String name = dataInputStream.readUTF();
+        Word w = TerminalImpl.unMarshall(new Word(), dataInputStream);
         String possibleFirstChar = dataInputStream.readUTF();
         String possibleNextChars = dataInputStream.readUTF();
-        return new Word(possibleFirstChar, possibleNextChars, name);
+        w.init(possibleFirstChar, possibleNextChars);
+        return w;
     }
 
     @Override
@@ -75,18 +86,13 @@ public class Word extends TerminalImpl {
     }
 
     @Override
-    public int getPriority() {
-        return 1;
-    }
-
-    @Override
     public Automaton getAutomaton() {
         return automaton;
     }
 
     @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
-        dataOutputStream.writeUTF(name);
+        super.marshall(dataOutputStream);
         dataOutputStream.writeUTF(possibleFirstChar);
         dataOutputStream.writeUTF(possibleNextChars);
     }

@@ -18,11 +18,18 @@ public class Literal extends TerminalImpl {
     private String value;
 
     public Literal(String value) {
+        this();
         this.value = value;
     }
 
+    private Literal() {
+        setPriority(2);
+    }
+
     public static Literal unMarshall(DataInputStream in) throws IOException {
-        return new Literal(in.readUTF());
+        Literal l = TerminalImpl.unMarshall(new Literal(), in);
+        l.value = in.readUTF();
+        return l;
     }
 
     @Override
@@ -68,12 +75,8 @@ public class Literal extends TerminalImpl {
     }
 
     @Override
-    public int getPriority() {
-        return 2;
-    }
-
-    @Override
     public void marshall(DataOutputStream dataOutputStream) throws IOException {
+        super.marshall(dataOutputStream);
         dataOutputStream.writeUTF(value);
     }
 }
