@@ -5,6 +5,7 @@ import net.jr.lexer.automaton.DefaultAutomaton;
 import net.jr.lexer.impl.TerminalImpl;
 
 import java.io.DataInputStream;
+import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -26,7 +27,7 @@ public class Literal extends TerminalImpl {
         setPriority(2);
     }
 
-    public static Literal unMarshall(DataInputStream in) throws IOException {
+    public static  Literal  unMarshall(java.io.DataInput in) throws IOException {
         Literal l = TerminalImpl.unMarshall(new Literal(), in);
         l.value = in.readUTF();
         return l;
@@ -75,7 +76,7 @@ public class Literal extends TerminalImpl {
     }
 
     @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+    public void marshall(DataOutput dataOutputStream) throws IOException {
         super.marshall(dataOutputStream);
         dataOutputStream.writeUTF(value);
     }

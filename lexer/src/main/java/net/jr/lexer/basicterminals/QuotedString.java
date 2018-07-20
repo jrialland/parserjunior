@@ -4,9 +4,7 @@ import net.jr.lexer.automaton.Automaton;
 import net.jr.lexer.automaton.DefaultAutomaton;
 import net.jr.lexer.impl.TerminalImpl;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 
 import static net.jr.lexer.impl.CharConstraint.Builder.*;
@@ -32,7 +30,7 @@ public class QuotedString extends TerminalImpl {
 
     }
 
-    private void init(char startChar, char endChar, char escapeChar, char[] forbiddenChars) {
+    protected void init(char startChar, char endChar, char escapeChar, char[] forbiddenChars) {
         this.starChar = startChar;
         this.endChar = endChar;
         this.escapeChar = escapeChar;
@@ -50,8 +48,13 @@ public class QuotedString extends TerminalImpl {
     }
 
     @SuppressWarnings("unused")
-    public static QuotedString unMarshall(DataInputStream in) throws IOException {
+    public static QuotedString unMarshall(DataInput in) throws IOException {
         QuotedString q = TerminalImpl.unMarshall(new QuotedString(), in);
+        return unMarshall(q, in);
+    }
+
+    public static <T extends TerminalImpl> T unMarshall(T impl, DataInput in) throws IOException {
+        impl = TerminalImpl.unMarshall(impl, in);
         char starChar = in.readChar();
         char endChar = in.readChar();
         char escapeChar = in.readChar();
@@ -60,8 +63,8 @@ public class QuotedString extends TerminalImpl {
         for (int i = 0; i < forbiddenChars.length; i++) {
             forbiddenChars[i] = in.readChar();
         }
-        q.init(starChar, endChar, escapeChar, forbiddenChars);
-        return q;
+        ((QuotedString)impl).init(starChar, endChar, escapeChar, forbiddenChars);
+        return impl;
     }
 
     @Override
@@ -101,7 +104,7 @@ public class QuotedString extends TerminalImpl {
     }
 
     @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+    public void marshall(DataOutput dataOutputStream) throws IOException {
         super.marshall(dataOutputStream);
         dataOutputStream.writeChar(starChar);
         dataOutputStream.writeChar(endChar);

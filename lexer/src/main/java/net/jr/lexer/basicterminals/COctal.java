@@ -23,7 +23,7 @@ public class COctal extends TerminalImpl {
         setAutomaton(builder.build());
     }
 
-    public static COctal unMarshall(DataInputStream in) throws IOException {
+    public static  COctal  unMarshall(java.io.DataInput in) throws IOException {
         return TerminalImpl.unMarshall(new COctal(), in);
     }
 

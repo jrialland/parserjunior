@@ -3,7 +3,7 @@ package net.jr.common;
 import net.jr.marshalling.MarshallingCapable;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 
 public class Position implements MarshallingCapable {
@@ -29,7 +29,7 @@ public class Position implements MarshallingCapable {
     }
 
     @SuppressWarnings("unused")
-    public static Position unMarshall(DataInputStream in) throws IOException {
+    public static  Position  unMarshall(java.io.DataInput in) throws IOException {
         int line = in.readInt();
         int column = in.readInt();
         String position = in.readUTF();
@@ -88,7 +88,7 @@ public class Position implements MarshallingCapable {
     }
 
     @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+    public void marshall(DataOutput dataOutputStream) throws IOException {
         dataOutputStream.writeInt(line);
         dataOutputStream.writeInt(column);
         dataOutputStream.writeUTF(filename);

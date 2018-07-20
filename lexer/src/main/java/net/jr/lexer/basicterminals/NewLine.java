@@ -24,7 +24,7 @@ public class NewLine extends TerminalImpl {
     }
 
     @SuppressWarnings("unused")
-    public static NewLine unMarshall(DataInputStream in) throws IOException {
+    public static  NewLine  unMarshall(java.io.DataInput in) throws IOException {
         return TerminalImpl.unMarshall(new NewLine(), in);
     }
 

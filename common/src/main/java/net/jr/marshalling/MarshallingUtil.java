@@ -130,7 +130,7 @@ public class MarshallingUtil {
             } else {
                 try {
                     Class<?> clazz = TypeUtil.forBytecodeTypename(className);
-                    Method method = clazz.getMethod("unMarshall", DataInputStream.class);
+                    Method method = clazz.getMethod("unMarshall", DataInput.class);
                     method.setAccessible(true);
                     if (!Modifier.isStatic(method.getModifiers())) {
                         throw new IllegalStateException(String.format("The %s::%s method must be static", clazz.getName(), method.getName()));
@@ -200,7 +200,7 @@ public class MarshallingUtil {
         unMarshallers.put(TypeUtil.CHAR, in -> in.readChar());
     }
 
-    public static void marshall(Object obj, DataOutputStream dataOutputStream) throws IOException {
+    public static void marshall(Object obj, DataOutput dataOutput) throws IOException {
         int type = -1;
 
         //NULL
@@ -282,18 +282,18 @@ public class MarshallingUtil {
         if (type == -1 || (marshaller = marshallers.get((char) type)) == null) {
             throw new UnsupportedOperationException(String.format("Unmarshallable '%s'", obj == null ? "null" : obj.getClass().getName()));
         } else {
-            marshaller.marshall(obj, dataOutputStream);
+            marshaller.marshall(obj, dataOutput);
         }
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T unMarshall(DataInputStream dataInputStream) throws IOException {
-        char type = dataInputStream.readChar();
+    public static <T> T unMarshall(DataInput in) throws IOException {
+        char type = in.readChar();
         UnMarshaller unMarshaller = unMarshallers.get(type);
         if (unMarshaller == null) {
             throw new IllegalStateException(String.format("For type code '%s'", type));
         } else {
-            return (T) unMarshaller.unMarshall(dataInputStream);
+            return (T) unMarshaller.unMarshall(in);
         }
     }
 
@@ -348,10 +348,10 @@ public class MarshallingUtil {
     }
 
     private interface Marshaller {
-        void marshall(Object obj, DataOutputStream dataOutputStream) throws IOException;
+        void marshall(Object obj, DataOutput dataOutput) throws IOException;
     }
 
     private interface UnMarshaller {
-        Object unMarshall(DataInputStream dataInputStream) throws IOException;
+        Object unMarshall(DataInput DataInput) throws IOException;
     }
 }

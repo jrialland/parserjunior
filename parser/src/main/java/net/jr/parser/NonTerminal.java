@@ -3,8 +3,8 @@ package net.jr.parser;
 
 import net.jr.common.Symbol;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 /**
@@ -23,7 +23,7 @@ public class NonTerminal implements Symbol {
 
     @Override
     public int getId() {
-        if(id == null) {
+        if (id == null) {
             throw new IllegalStateException("This terminal has not be assigned an id yet. Call setId(int) first !");
         }
         return id;
@@ -38,7 +38,7 @@ public class NonTerminal implements Symbol {
     }
 
     @SuppressWarnings("unused")
-    public static NonTerminal unMarshall(DataInputStream in) throws IOException {
+    public static NonTerminal unMarshall(DataInput in) throws IOException {
         String name = in.readUTF();
         return new NonTerminal(name);
     }
@@ -92,7 +92,7 @@ public class NonTerminal implements Symbol {
     }
 
     @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+    public void marshall(DataOutput dataOutputStream) throws IOException {
         dataOutputStream.writeUTF(name);
     }
 }

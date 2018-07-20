@@ -29,13 +29,23 @@ public class CGrammarTest {
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
     }
 
-    @Test
-    public void testLex() {
+    protected void testLex(String expr) {
         Lexer l = new CGrammar().createParser().getLexer();
-        Iterator<Token> it = l.iterator(new StringReader("for (int i=0;str[i]!='\\0';i+=1) {}"));
+        Iterator<Token> it = l.iterator(new StringReader(expr));
         while (it.hasNext()) {
-            it.next();
+            Token token = it.next();
+            //System.out.println(token);
         }
+    }
+
+    @Test
+    public void testLex1() {
+        testLex("for (int i=0;str[i]!='\\0';i+=1) {}");
+    }
+
+    @Test
+    public void testLex2() {
+        testLex("int  main( void) { int i; i = 12; return i || 2; }");
     }
 
     @Test

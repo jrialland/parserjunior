@@ -4,8 +4,8 @@ import net.jr.lexer.Terminal;
 import net.jr.marshalling.MarshallingCapable;
 import net.jr.marshalling.MarshallingUtil;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +21,7 @@ public class FailAutomaton implements Automaton, MarshallingCapable {
     }
 
     @SuppressWarnings("unused")
-    public static Automaton unMarshall(DataInputStream in) throws IOException {
+    public static Automaton unMarshall(DataInput in) throws IOException {
         Terminal l = MarshallingUtil.unMarshall(in);
         return get(l);
     }
@@ -41,7 +41,7 @@ public class FailAutomaton implements Automaton, MarshallingCapable {
     }
 
     @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+    public void marshall(DataOutput dataOutputStream) throws IOException {
         terminal.marshall(dataOutputStream);
     }
 

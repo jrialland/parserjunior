@@ -26,6 +26,16 @@ public class LexerGenerator {
         template = JtwigTemplate.classpathTemplate(path + "/lexer_start.twig");
     }
 
+    private String packageName;
+
+    public LexerGenerator() {
+        this(null);
+    }
+
+    public LexerGenerator(String packageName) {
+        this.packageName = packageName;
+    }
+
     private List<State<Character>> getStates(Lexer lexer) {
         State<Character> initialState = ((MergingLexerStreamImpl) lexer.iterator(IOUtil.emptyReader())).getInitialState();
         List<State<Character>> allStates = new ArrayList<>();
@@ -45,6 +55,7 @@ public class LexerGenerator {
         OutputStream os = new ByteArrayOutputStream();
         List<State<Character>> states = getStates(lexer);
         JtwigModel model = JtwigModel.newModel();
+        model.with("packageName", packageName);
         model.with("lexer", lexer);
         model.with("states", states);
         template.render(model, os);

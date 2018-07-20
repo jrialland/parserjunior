@@ -1,8 +1,8 @@
 package net.jr.util;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
+import net.jr.text.ConsoleColors;
+
+import java.io.*;
 import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.List;
@@ -159,13 +159,13 @@ public final class StringUtil {
     }
 
     public static void nl(String txt, Writer out) throws IOException {
-        String[] parts = txt.split("\n");
-        int padLen = Integer.toString(parts.length).length();
+        BufferedReader br = new BufferedReader(new StringReader(txt));
+        String line;
         int i = 1;
-        for (String part : parts) {
-            out.write(rpad(Integer.toString(i++), " ", padLen));
-            out.write(". ");
-            out.write(part);
+        while ((line = br.readLine()) != null) {
+            out.write(lpad(Integer.toString(i++), " ", 5));
+            out.write(ConsoleColors.black("|"));
+            out.write(line);
             out.write('\n');
         }
         out.flush();

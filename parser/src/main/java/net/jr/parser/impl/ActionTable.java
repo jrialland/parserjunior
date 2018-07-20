@@ -11,8 +11,8 @@ import net.jr.util.table.TableModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
@@ -41,7 +41,7 @@ public class ActionTable implements MarshallingCapable {
     }
 
     @SuppressWarnings("unused")
-    public static ActionTable unMarshall(DataInputStream dataInputStream) throws IOException {
+    public static ActionTable unMarshall(DataInput dataInputStream) throws IOException {
         ActionTable actionTable = new ActionTable();
         actionTable.terminals = MarshallingUtil.unMarshall(dataInputStream);
         actionTable.nonTerminals = MarshallingUtil.unMarshall(dataInputStream);
@@ -76,7 +76,7 @@ public class ActionTable implements MarshallingCapable {
     }
 
     @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+    public void marshall(DataOutput dataOutputStream) throws IOException {
         MarshallingUtil.marshall(terminals, dataOutputStream);
         MarshallingUtil.marshall(nonTerminals, dataOutputStream);
         MarshallingUtil.marshall(data, dataOutputStream);

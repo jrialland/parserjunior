@@ -2,8 +2,8 @@ package net.jr.lexer.impl;
 
 import net.jr.lexer.automaton.DefaultAutomaton;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 /**
@@ -31,7 +31,7 @@ public class OneOf extends TerminalImpl {
     }
 
     @SuppressWarnings("unused")
-    public static OneOf unMarshall(DataInputStream in) throws IOException {
+    public static OneOf unMarshall(DataInput in) throws IOException {
         OneOf o = TerminalImpl.unMarshall(new OneOf(), in);
         o.init(in.readUTF());
         return o;
@@ -61,7 +61,7 @@ public class OneOf extends TerminalImpl {
 
 
     @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+    public void marshall(DataOutput dataOutputStream) throws IOException {
         super.marshall(dataOutputStream);
         dataOutputStream.writeUTF(chars);
     }

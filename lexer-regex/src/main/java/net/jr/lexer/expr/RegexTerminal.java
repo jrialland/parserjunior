@@ -10,6 +10,7 @@ import net.jr.parser.ast.AstNode;
 import net.jr.parser.ast.VisitorHelper;
 
 import java.io.DataInputStream;
+import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -44,7 +45,7 @@ public class RegexTerminal extends TerminalImpl {
     }
 
     @SuppressWarnings("unused")
-    public static RegexTerminal unMarshall(DataInputStream in) throws IOException {
+    public static  RegexTerminal  unMarshall(java.io.DataInput in) throws IOException {
         String expression = in.readUTF();
         int priority = in.readInt();
         return new RegexTerminal(expression, priority);
@@ -72,7 +73,7 @@ public class RegexTerminal extends TerminalImpl {
     }
 
     @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+    public void marshall(DataOutput dataOutputStream) throws IOException {
         dataOutputStream.writeUTF(expression);
         dataOutputStream.writeInt(priority);
     }

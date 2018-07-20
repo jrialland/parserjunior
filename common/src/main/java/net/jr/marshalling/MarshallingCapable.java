@@ -1,10 +1,10 @@
 package net.jr.marshalling;
 
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 
 public interface MarshallingCapable {
 
-    void marshall(DataOutputStream dataOutputStream) throws IOException;
+    void marshall(DataOutput dataOutput) throws IOException;
 
 }

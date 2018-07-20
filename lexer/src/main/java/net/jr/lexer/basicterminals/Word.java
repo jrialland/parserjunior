@@ -5,8 +5,7 @@ import net.jr.lexer.automaton.DefaultAutomaton;
 import net.jr.lexer.impl.CharConstraint;
 import net.jr.lexer.impl.TerminalImpl;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 
 public class Word extends TerminalImpl {
@@ -55,7 +54,7 @@ public class Word extends TerminalImpl {
     }
 
     @SuppressWarnings("unused")
-    public static Word unMarshall(DataInputStream dataInputStream) throws IOException {
+    public static Word unMarshall(java.io.DataInput dataInputStream) throws IOException {
         Word w = TerminalImpl.unMarshall(new Word(), dataInputStream);
         String possibleFirstChar = dataInputStream.readUTF();
         String possibleNextChars = dataInputStream.readUTF();
@@ -91,7 +90,7 @@ public class Word extends TerminalImpl {
     }
 
     @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+    public void marshall(DataOutput dataOutputStream) throws IOException {
         super.marshall(dataOutputStream);
         dataOutputStream.writeUTF(possibleFirstChar);
         dataOutputStream.writeUTF(possibleNextChars);

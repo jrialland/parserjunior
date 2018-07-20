@@ -31,7 +31,7 @@ public class CHexNumber extends TerminalImpl {
         setAutomaton(builder.build());
     }
 
-    public static CHexNumber unMarshall(DataInputStream in) throws IOException {
+    public static  CHexNumber  unMarshall(java.io.DataInput in) throws IOException {
         return TerminalImpl.unMarshall(new CHexNumber(), in);
     }
 

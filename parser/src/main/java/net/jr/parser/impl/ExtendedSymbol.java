@@ -6,8 +6,8 @@ import net.jr.marshalling.MarshallingUtil;
 import net.jr.parser.Rule;
 import net.jr.util.StringUtil;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Set;
 
@@ -32,7 +32,7 @@ public class ExtendedSymbol extends SymbolBase {
     }
 
     @SuppressWarnings("unused")
-    public static ExtendedSymbol unMarshall(DataInputStream in) throws IOException {
+    public static ExtendedSymbol unMarshall(DataInput in) throws IOException {
         int from = in.readInt();
         Symbol symbol = MarshallingUtil.unMarshall(in);
         int to = in.readInt();
@@ -81,7 +81,7 @@ public class ExtendedSymbol extends SymbolBase {
     }
 
     @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+    public void marshall(DataOutput dataOutputStream) throws IOException {
         dataOutputStream.writeInt(from);
         symbol.marshall(dataOutputStream);
         dataOutputStream.writeInt(to);

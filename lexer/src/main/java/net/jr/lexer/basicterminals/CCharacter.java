@@ -60,7 +60,7 @@ public class CCharacter extends TerminalImpl {
         return current;
     }
 
-    public static CCharacter unMarshall(DataInputStream in) throws IOException {
+    public static  CCharacter  unMarshall(java.io.DataInput in) throws IOException {
         return TerminalImpl.unMarshall(new CCharacter(), in);
     }
 

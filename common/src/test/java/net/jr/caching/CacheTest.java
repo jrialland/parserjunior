@@ -5,7 +5,7 @@ import net.jr.marshalling.MarshallingUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
@@ -51,8 +51,8 @@ public class CacheTest {
         }
 
         @Override
-        public void marshall(DataOutputStream dataOutputStream) throws IOException {
-            dataOutputStream.writeUTF(id);
+        public void marshall(DataOutput out) throws IOException {
+            out.writeUTF(id);
         }
     }
 

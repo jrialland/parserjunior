@@ -5,6 +5,7 @@ import net.jr.lexer.impl.CharConstraint;
 import net.jr.lexer.impl.TerminalImpl;
 
 import java.io.DataInputStream;
+import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -36,7 +37,7 @@ public class LineComment extends TerminalImpl {
     }
 
     @SuppressWarnings("unused")
-    public static LineComment unMarshall(DataInputStream in) throws IOException {
+    public static  LineComment  unMarshall(java.io.DataInput in) throws IOException {
         LineComment l = TerminalImpl.unMarshall(new LineComment(), in);
         l.init(in.readUTF());
         return l;
@@ -65,7 +66,7 @@ public class LineComment extends TerminalImpl {
     }
 
     @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+    public void marshall(DataOutput dataOutputStream) throws IOException {
         super.marshall(dataOutputStream);
         dataOutputStream.writeUTF(commentStart);
     }

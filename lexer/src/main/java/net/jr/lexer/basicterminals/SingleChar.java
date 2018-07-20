@@ -6,9 +6,7 @@ import net.jr.lexer.automaton.DefaultAutomaton;
 import net.jr.lexer.impl.CharConstraint;
 import net.jr.lexer.impl.TerminalImpl;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 public class SingleChar extends TerminalImpl {
 
@@ -22,7 +20,7 @@ public class SingleChar extends TerminalImpl {
 
     }
 
-    public static SingleChar unMarshall(DataInputStream dataInputStream) throws IOException {
+    public static SingleChar unMarshall(DataInput dataInputStream) throws IOException {
         SingleChar s = TerminalImpl.unMarshall(new SingleChar(), dataInputStream);
         s.character = dataInputStream.readChar();
         return s;
@@ -55,7 +53,7 @@ public class SingleChar extends TerminalImpl {
     }
 
     @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+    public void marshall(DataOutput dataOutputStream) throws IOException {
         super.marshall(dataOutputStream);
         dataOutputStream.writeChar(character);
     }

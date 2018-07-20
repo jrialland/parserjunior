@@ -1,6 +1,4 @@
-{% if packageName %}
-package {{packageName}};
-{% endif %}
+{% if packageName %}package {{packageName}};{% endif %}
 
 import java.io.Reader;
 import java.io.PushbackReader;
@@ -64,19 +62,12 @@ public class Lexer {
     private static class LexerState {
         Set<Integer> currentStates = new TreeSet<Integer>();
         Set<Integer> nextStates = new TreeSet<Integer>();
-        int line = 1;
-        int column=1;
+        int startLine = 1, line = 1, startColumn = 1, column = 1;
         TokenType candidate = null;
         String matchedText = "";
 
         public LexerState() {
             currentStates.add(0);
-        }
-
-        public Token makeToken() {
-            Token t = new Token(candidate, matchedText, line, column);
-            matchedText = "";
-            return t;
         }
 
         public void prepareNextStep() {
@@ -96,27 +87,24 @@ public class Lexer {
     }
 
     private boolean step(PushbackReader reader, LexerState lexerState, Consumer<Token> consumer) throws IOException {
-        int line = lexerState.line;
-        int column = lexerState.column;
-        int priority = -1;
-        int c = reader.read();
 
+        int c = reader.read();
         if (c == -1) {
-            if (lexerState.candidate == null) {
-                if (lexerState.currentStates.size() != 1 || lexerState.currentStates.iterator().next() != 0) {
-                    throw new RuntimeException("lex error");
+            if(lexerState.candidate == null) {
+                if(lexerState.currentStates.size() != 1 || lexerState.currentStates.iterator().next() != 0) {
+                    throw new IllegalStateException("lexer error");
                 }
             } else {
-                consumer.accept(lexerState.makeToken());
+                consumer.accept(new Token(lexerState.candidate, lexerState.matchedText, lexerState.startLine, lexerState.startColumn));
             }
-            consumer.accept(new Token(TokenType.tok_eof, null, line, column));
+            consumer.accept(new Token(TokenType.tok_eof, "", lexerState.line, lexerState.column+1));
             return false;
-        } else if( c == '\n') {
-            lexerState.line += 1;
-            lexerState.column = 1;
-        } else {
-            lexerState.column += 1;
         }
+
+        lexerState.matchedText += (char)c;
+
+        int priority = -1;
+        TokenType newCandidate = null;
 
         for(int state : lexerState.currentStates) {
             switch(state) {
@@ -129,7 +117,7 @@ public class Lexer {
                         {% if transition.nextState.finalState %}
                         if(priority <= {{transition.nextState.terminal.priority}}) {
                             priority = {{transition.nextState.terminal.priority}};
-                            lexerState.candidate = TokenType.tok_{{ transition.nextState.terminal.name }};
+                            newCandidate = TokenType.tok_{{ transition.nextState.terminal.name }};
                         }
                         {% endif %}
                     }
@@ -140,20 +128,27 @@ public class Lexer {
             }
         }
 
-        if (lexerState.nextStates.isEmpty()) {
-            if (lexerState.candidate == null) {
-                throw new IllegalStateException();
+        if(lexerState.nextStates.isEmpty()) {
+            if(lexerState.candidate == null) {
+                throw new IllegalStateException("lexer error");
             } else {
-                consumer.accept(lexerState.makeToken());
+                consumer.accept(new Token(lexerState.candidate, lexerState.matchedText, lexerState.startLine, lexerState.startColumn));
                 lexerState.candidate = null;
-                lexerState.nextStates.clear();
+                lexerState.matchedText = "";
                 lexerState.nextStates.add(0);
-                lexerState.line = line;
-                lexerState.column = column;
                 reader.unread(c);
+                lexerState.startLine = lexerState.line;
+                lexerState.startColumn = lexerState.column;
+                return true;
             }
+        }
+
+        lexerState.candidate = newCandidate;
+        if(c=='\n') {
+            lexerState.line += 1;
+            lexerState.column = 1;
         } else {
-            lexerState.matchedText += (char)c;
+            lexerState.column +=1;
         }
 
         return true;

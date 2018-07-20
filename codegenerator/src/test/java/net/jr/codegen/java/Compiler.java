@@ -53,7 +53,7 @@ public final class Compiler {
 
     private static class MemSrc extends Mem {
         public MemSrc(String name, byte[] src) {
-            super(Kind.SOURCE, URI.create("file:///" + name + ".java"), src);
+            super(Kind.SOURCE, URI.create("file:///" + name.replace('.', '/') + ".java"), src);
         }
     }
 
@@ -66,6 +66,10 @@ public final class Compiler {
     private static class MutableClassLoader extends ClassLoader {
 
         private Map<String, MemBytecode> extraClasses = new HashMap<>();
+
+        private MutableClassLoader() {
+            super(null);
+        }
 
         @Override
         protected Class<?> findClass(String name) throws ClassNotFoundException {
@@ -86,13 +90,17 @@ public final class Compiler {
 
     }
 
+    private static final MutableClassLoader classLoader = new MutableClassLoader();
+
+    public static final ClassLoader getClassLoader() {
+        return classLoader;
+    }
+
     private static class SimpleFileManager extends ForwardingJavaFileManager<StandardJavaFileManager> {
 
-        private MutableClassLoader classLoader;
 
-        public SimpleFileManager(StandardJavaFileManager sjfm, MutableClassLoader classLoader) {
+        public SimpleFileManager(StandardJavaFileManager sjfm) {
             super(sjfm);
-            this.classLoader = classLoader;
         }
 
         @Override
@@ -107,15 +115,14 @@ public final class Compiler {
 
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         StandardJavaFileManager sjfm = compiler.getStandardFileManager(null, null, null);
-        MutableClassLoader cl = new MutableClassLoader();
-        SimpleFileManager sfm = new SimpleFileManager(sjfm, cl);
+        SimpleFileManager sfm = new SimpleFileManager(sjfm);
         List<? extends JavaFileObject> compilationUnits = Arrays.asList(new MemSrc(name, IOUtil.readFully(code).getBytes()));
         DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
         JavaCompiler.CompilationTask task = compiler.getTask(IOUtil.devNull(), sfm, collector, Collections.emptyList(), null, compilationUnits);
 
         if (task.call()) {
             try {
-                Class<?> clazz = cl.findClass(name);
+                Class<?> clazz = classLoader.findClass(name);
                 if (clazz != null) {
                     return clazz;
                 } else {

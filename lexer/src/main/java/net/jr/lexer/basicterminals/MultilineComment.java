@@ -4,6 +4,7 @@ import net.jr.lexer.automaton.DefaultAutomaton;
 import net.jr.lexer.impl.TerminalImpl;
 
 import java.io.DataInputStream;
+import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -46,7 +47,7 @@ public class MultilineComment extends TerminalImpl {
         setAutomaton(builder.build());
     }
 
-    public static MultilineComment unMarshall(DataInputStream in) throws IOException {
+    public static  MultilineComment  unMarshall(java.io.DataInput in) throws IOException {
         MultilineComment m = TerminalImpl.unMarshall(new MultilineComment(), in);
         String commentStart = in.readUTF();
         String commentEnd = in.readUTF();
@@ -77,7 +78,7 @@ public class MultilineComment extends TerminalImpl {
     }
 
     @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+    public void marshall(DataOutput dataOutputStream) throws IOException {
         super.marshall(dataOutputStream);
         dataOutputStream.writeUTF(commentStart);
         dataOutputStream.writeUTF(commentEnd);

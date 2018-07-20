@@ -3,7 +3,7 @@ package net.jr.parser.impl;
 import net.jr.marshalling.MarshallingCapable;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 
 /**
@@ -22,7 +22,7 @@ public class Action implements MarshallingCapable {
         this.actionParameter = actionParameter;
     }
 
-    public static Action unMarshall(DataInputStream dataInputStream) throws IOException {
+    public static  Action  unMarshall(java.io.DataInput dataInputStream) throws IOException {
         ActionType actionType = ActionType.valueOf(dataInputStream.readUTF());
         int actionParameter = dataInputStream.readInt();
         return new Action(actionType, actionParameter);
@@ -60,7 +60,7 @@ public class Action implements MarshallingCapable {
     }
 
     @Override
-    public void marshall(DataOutputStream dataOutputStream) throws IOException {
+    public void marshall(DataOutput dataOutputStream) throws IOException {
         dataOutputStream.writeUTF(actionType.name());
         dataOutputStream.writeInt(actionParameter);
     }

@@ -18,7 +18,7 @@ public class Artificial extends TerminalImpl {
         super();
     }
 
-    public static Artificial unMarshall(DataInputStream in) throws IOException {
+    public static  Artificial  unMarshall(java.io.DataInput in) throws IOException {
         return TerminalImpl.unMarshall(new Artificial(), in);
     }
 
