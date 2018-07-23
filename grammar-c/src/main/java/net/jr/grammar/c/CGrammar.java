@@ -459,7 +459,7 @@ public class CGrammar extends Grammar {
         public static Terminal Lt = Lexemes.singleChar('<', "lt");
         public static Terminal Signed = Lexemes.literal("signed", "signed");
         public static Terminal Mul_assign = Lexemes.literal("*=", "mulAssign");
-        public static Terminal Identifier = Lexemes.cIdentifier().withPriority(-10);
+        public static Terminal Identifier = Lexemes.cIdentifier().withPriority(0);
         public static Terminal Add_assign = Lexemes.literal("+=", "plusAssign");
         public static Terminal Double = Lexemes.literal("double", "double");
         public static Terminal Long = Lexemes.literal("long", "long");

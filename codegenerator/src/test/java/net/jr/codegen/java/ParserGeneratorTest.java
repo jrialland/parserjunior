@@ -1,5 +1,6 @@
 package net.jr.codegen.java;
 
+import net.jr.grammar.c.CGrammar;
 import net.jr.lexer.Lexemes;
 import net.jr.lexer.Terminal;
 import net.jr.parser.Associativity;
@@ -9,7 +10,7 @@ import org.junit.Test;
 
 import java.io.StringWriter;
 
-public class JavaParserGeneratorTest {
+public class ParserGeneratorTest {
 
     static class FourOpsGrammar extends Grammar {
 
@@ -54,10 +55,10 @@ public class JavaParserGeneratorTest {
     @Test
     public void testCodeGeneration() {
 
-        JavaParserGenerator generator = new JavaParserGenerator();
+        ParserGenerator generator = new ParserGenerator();
 
         StringWriter sw = new StringWriter();
-        generator.generate(new FourOpsGrammar(), sw);
+        generator.generate(new CGrammar(), sw);
         String code = sw.toString();
 
         System.out.println(code);

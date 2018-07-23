@@ -34,6 +34,7 @@ public abstract class TerminalImpl extends SymbolBase implements Terminal {
 
     @Override
     public void setPriority(int priority) {
+        assert priority >=0;
         this.priority = priority;
     }
 

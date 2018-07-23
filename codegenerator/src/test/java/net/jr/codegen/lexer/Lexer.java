@@ -14,99 +14,110 @@ import javax.annotation.Generated;
 public class Lexer {
 
     public enum TokenType {
-        tok_eof,
-        tok_unsigned,
-        tok_cString,
-        tok_typedef,
-        tok_divAssign,
-        tok_threePoints,
-        tok_signed,
-        tok_int,
-        tok_cFloatingPoint,
-        tok_plusAssign,
-        tok_return,
-        tok_break,
-        tok_cInteger,
-        tok_leftSquareBracket,
-        tok_continue,
-        tok_rightSquareBracket,
-        tok_sizeof,
-        tok_bitwiseNot,
-        tok_cOctal,
-        tok_rightShiftEq,
-        tok_short,
-        tok_shiftLeft,
-        tok_logicalOr,
-        tok_lte,
-        tok_void,
-        tok_extern,
-        tok_double,
-        tok_long,
-        tok_do,
-        tok_float,
-        tok_cIdentifier,
-        tok_leftCurlyBrace,
-        tok_bitwiseOr,
-        tok_switch,
-        tok_rightCurlyBrace,
-        tok_tilde,
-        tok_if,
-        tok_bitwiseNotAssign,
-        tok_minusMinus,
-        tok_eqEq,
-        tok_enum,
-        tok_struct,
-        tok_union,
-        tok_char,
-        tok_volatile,
-        tok_minusAssign,
-        tok_arrow,
-        tok_static,
-        tok_goto,
-        tok_default,
-        tok_moduloEq,
-        tok_notEq,
-        tok_leftShiftAssign,
-        tok_exclamationMark,
-        tok_typeName,
-        tok_gte,
-        tok_shiftRight,
-        tok_logicalAnd,
-        tok_bitwiseOrEq,
-        tok_modulo,
-        tok_cHexNumber,
-        tok_bitwiseAnd,
-        tok_leftParen,
-        tok_rightParen,
-        tok_const,
-        tok_mult,
-        tok_plus,
-        tok_comma,
-        tok_minus,
-        tok_for,
-        tok_dot,
-        tok_slash,
-        tok_register,
-        tok_cCharacter,
-        tok_case,
-        tok_mulAssign,
-        tok_auto,
-        tok_twoPoints,
-        tok_andEq,
-        tok_dotComma,
-        tok_lt,
-        tok_eq,
-        tok_gt,
-        tok_questionMark,
-        tok_while,
-        tok_plusPlus,
-        tok_cBinary,
-        tok_else,
-        tok_multilineComment,
-        tok_lineComment,
-        tok_Whitespace,
-        tok_newLine
+        tok_eof(false),
+        tok_unsigned(false),
+        tok_cString(false),
+        tok_typedef(false),
+        tok_divAssign(false),
+        tok_threePoints(false),
+        tok_signed(false),
+        tok_int(false),
+        tok_cFloatingPoint(false),
+        tok_plusAssign(false),
+        tok_return(false),
+        tok_break(false),
+        tok_cInteger(false),
+        tok_leftSquareBracket(false),
+        tok_continue(false),
+        tok_rightSquareBracket(false),
+        tok_sizeof(false),
+        tok_bitwiseNot(false),
+        tok_cOctal(false),
+        tok_rightShiftEq(false),
+        tok_short(false),
+        tok_shiftLeft(false),
+        tok_logicalOr(false),
+        tok_lte(false),
+        tok_void(false),
+        tok_extern(false),
+        tok_double(false),
+        tok_long(false),
+        tok_do(false),
+        tok_float(false),
+        tok_cIdentifier(false),
+        tok_leftCurlyBrace(false),
+        tok_bitwiseOr(false),
+        tok_switch(false),
+        tok_rightCurlyBrace(false),
+        tok_tilde(false),
+        tok_if(false),
+        tok_bitwiseNotAssign(false),
+        tok_minusMinus(false),
+        tok_eqEq(false),
+        tok_enum(false),
+        tok_struct(false),
+        tok_union(false),
+        tok_char(false),
+        tok_volatile(false),
+        tok_minusAssign(false),
+        tok_arrow(false),
+        tok_static(false),
+        tok_goto(false),
+        tok_default(false),
+        tok_moduloEq(false),
+        tok_notEq(false),
+        tok_leftShiftAssign(false),
+        tok_exclamationMark(false),
+        tok_typeName(false),
+        tok_gte(false),
+        tok_shiftRight(false),
+        tok_logicalAnd(false),
+        tok_bitwiseOrEq(false),
+        tok_modulo(false),
+        tok_cHexNumber(false),
+        tok_bitwiseAnd(false),
+        tok_leftParen(false),
+        tok_rightParen(false),
+        tok_const(false),
+        tok_mult(false),
+        tok_plus(false),
+        tok_comma(false),
+        tok_minus(false),
+        tok_for(false),
+        tok_dot(false),
+        tok_slash(false),
+        tok_register(false),
+        tok_cCharacter(false),
+        tok_case(false),
+        tok_mulAssign(false),
+        tok_auto(false),
+        tok_twoPoints(false),
+        tok_andEq(false),
+        tok_dotComma(false),
+        tok_lt(false),
+        tok_eq(false),
+        tok_gt(false),
+        tok_questionMark(false),
+        tok_while(false),
+        tok_plusPlus(false),
+        tok_cBinary(false),
+        tok_else(false),
+        tok_multilineComment(true),
+        tok_lineComment(true),
+        tok_Whitespace(true),
+        tok_newLine(true)
         ;
+
+        private boolean filtered;
+
+        TokenType(boolean filtered) {
+            this.filtered = filtered;
+        }
+
+        public boolean isFiltered() {
+            return filtered;
+        }
+
     }
 
     public static class Token {
@@ -180,19 +191,19 @@ public class Lexer {
         if (c == -1) {
             if(lexerState.candidate == null) {
                 if(lexerState.currentStates.size() != 1 || lexerState.currentStates.iterator().next() != 0) {
-                    throw new IllegalStateException("lexer error");
+                    throw new IllegalStateException(String.format("lexical error at line %d, column %d", lexerState.line, lexerState.column));
                 }
             } else {
-                consumer.accept(new Token(lexerState.candidate, lexerState.matchedText, lexerState.startLine, lexerState.startColumn));
+                if(!lexerState.candidate.isFiltered()) {
+                    consumer.accept(new Token(lexerState.candidate, lexerState.matchedText, lexerState.startLine, lexerState.startColumn));
+                }
             }
             consumer.accept(new Token(TokenType.tok_eof, "", lexerState.line, lexerState.column+1));
             return false;
         }
-
-        lexerState.matchedText += (char)c;
-
         int priority = -1;
         TokenType newCandidate = null;
+        lexerState.matchedText += (char)c;
 
         for(int state : lexerState.currentStates) {
             switch(state) {
@@ -200,410 +211,410 @@ public class Lexer {
                     if(c=='|') {
                         lexerState.nextStates.add(300);
                     }
-                    else if(c=='!') {
+                    if(c=='!') {
                         lexerState.nextStates.add(-299);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_exclamationMark;
                         }
                     }
-                    else if(c=='/') {
+                    if(c=='/') {
                         lexerState.nextStates.add(295);
                     }
-                    else if(c==':') {
+                    if(c==':') {
                         lexerState.nextStates.add(-294);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_twoPoints;
                         }
                     }
-                    else if("123456789".indexOf((char)c)>-1) {
+                    if("123456789".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-290);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cInteger;
                         }
                     }
-                    else if(c=='\'') {
+                    if(c=='\'') {
                         lexerState.nextStates.add(274);
                     }
-                    else if(c=='u') {
+                    if(c=='u') {
                         lexerState.nextStates.add(269);
                     }
-                    else if(c=='-') {
+                    if(c=='-') {
                         lexerState.nextStates.add(267);
                     }
-                    else if(c=='.') {
+                    if(c=='.') {
                         lexerState.nextStates.add(-266);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_dot;
                         }
                     }
-                    else if(c=='>') {
+                    if(c=='>') {
                         lexerState.nextStates.add(-265);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_gt;
                         }
                     }
-                    else if(c=='{') {
+                    if(c=='{') {
                         lexerState.nextStates.add(-264);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_leftCurlyBrace;
                         }
                     }
-                    else if(c=='s') {
+                    if(c=='s') {
                         lexerState.nextStates.add(258);
                     }
-                    else if(c=='+') {
+                    if(c=='+') {
                         lexerState.nextStates.add(-257);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_plus;
                         }
                     }
-                    else if(c=='=') {
+                    if(c=='=') {
                         lexerState.nextStates.add(255);
                     }
-                    else if(c=='>') {
+                    if(c=='>') {
                         lexerState.nextStates.add(252);
                     }
-                    else if(c=='d') {
+                    if(c=='d') {
                         lexerState.nextStates.add(250);
                     }
-                    else if(c=='d') {
+                    if(c=='d') {
                         lexerState.nextStates.add(243);
                     }
-                    else if(c=='d') {
+                    if(c=='d') {
                         lexerState.nextStates.add(237);
                     }
-                    else if(c=='v') {
+                    if(c=='v') {
                         lexerState.nextStates.add(229);
                     }
-                    else if("_abcdefghiklmnopqrstuvwxyzABCDEFGHIKLMNOPQRSTUVWXYZ".indexOf((char)c)>-1) {
+                    if("_abcdefghiklmnopqrstuvwxyzABCDEFGHIKLMNOPQRSTUVWXYZ".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-228);
-                        if(priority <= -10) {
-                            priority = -10;
+                        if(priority < 0) {
+                            priority = 0;
                             newCandidate = TokenType.tok_cIdentifier;
                         }
                     }
-                    else if(c=='g') {
+                    if(c=='g') {
                         lexerState.nextStates.add(224);
                     }
-                    else if(c=='/') {
+                    if(c=='/') {
                         lexerState.nextStates.add(221);
                     }
-                    else if(c=='/') {
+                    if(c=='/') {
                         lexerState.nextStates.add(219);
                     }
-                    else if(c=='.') {
+                    if(c=='.') {
                         lexerState.nextStates.add(218);
                     }
-                    else if(c==',') {
+                    if(c==',') {
                         lexerState.nextStates.add(-217);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_comma;
                         }
                     }
-                    else if(c=='e') {
+                    if(c=='e') {
                         lexerState.nextStates.add(213);
                     }
-                    else if(c=='0') {
+                    if(c=='0') {
                         lexerState.nextStates.add(212);
                     }
-                    else if(c=='[') {
+                    if(c=='[') {
                         lexerState.nextStates.add(-211);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_leftSquareBracket;
                         }
                     }
-                    else if(c=='s') {
+                    if(c=='s') {
                         lexerState.nextStates.add(205);
                     }
-                    else if(c=='t') {
+                    if(c=='t') {
                         lexerState.nextStates.add(198);
                     }
-                    else if(c=='<') {
+                    if(c=='<') {
                         lexerState.nextStates.add(196);
                     }
-                    else if(c=='*') {
+                    if(c=='*') {
                         lexerState.nextStates.add(-195);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_mult;
                         }
                     }
-                    else if(c=='?') {
+                    if(c=='?') {
                         lexerState.nextStates.add(-194);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_questionMark;
                         }
                     }
-                    else if(c=='s') {
+                    if(c=='s') {
                         lexerState.nextStates.add(188);
                     }
-                    else if(c=='\r') {
+                    if(c=='\r') {
                         lexerState.nextStates.add(187);
                     }
-                    else if(c=='!') {
+                    if(c=='!') {
                         lexerState.nextStates.add(185);
                     }
-                    else if(c=='|') {
+                    if(c=='|') {
                         lexerState.nextStates.add(-184);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_bitwiseOr;
                         }
                     }
-                    else if(c=='c') {
+                    if(c=='c') {
                         lexerState.nextStates.add(179);
                     }
-                    else if(c=='f') {
+                    if(c=='f') {
                         lexerState.nextStates.add(176);
                     }
-                    else if(c=='\"') {
+                    if(c=='\"') {
                         lexerState.nextStates.add(172);
                     }
-                    else if(c=='\n') {
+                    if(c=='\n') {
                         lexerState.nextStates.add(-171);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_newLine;
                         }
                     }
-                    else if(c=='s') {
+                    if(c=='s') {
                         lexerState.nextStates.add(165);
                     }
-                    else if(c==';') {
+                    if(c==';') {
                         lexerState.nextStates.add(-164);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_dotComma;
                         }
                     }
-                    else if(c=='/') {
+                    if(c=='/') {
                         lexerState.nextStates.add(-163);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_slash;
                         }
                     }
-                    else if(c=='&') {
+                    if(c=='&') {
                         lexerState.nextStates.add(161);
                     }
-                    else if(c=='r') {
+                    if(c=='r') {
                         lexerState.nextStates.add(153);
                     }
-                    else if(c=='~') {
+                    if(c=='~') {
                         lexerState.nextStates.add(-152);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_tilde;
                         }
                     }
-                    else if(c=='0') {
+                    if(c=='0') {
                         lexerState.nextStates.add(149);
                     }
-                    else if(c=='+') {
+                    if(c=='+') {
                         lexerState.nextStates.add(147);
                     }
-                    else if(c=='.') {
+                    if(c=='.') {
                         lexerState.nextStates.add(144);
                     }
-                    else if(c=='e') {
+                    if(c=='e') {
                         lexerState.nextStates.add(140);
                     }
-                    else if(c=='&') {
+                    if(c=='&') {
                         lexerState.nextStates.add(-139);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_bitwiseAnd;
                         }
                     }
-                    else if(c=='0') {
+                    if(c=='0') {
                         lexerState.nextStates.add(-135);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cInteger;
                         }
                     }
-                    else if(c=='-') {
+                    if(c=='-') {
                         lexerState.nextStates.add(-134);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_minus;
                         }
                     }
-                    else if(c=='%') {
+                    if(c=='%') {
                         lexerState.nextStates.add(132);
                     }
-                    else if(c=='}') {
+                    if(c=='}') {
                         lexerState.nextStates.add(-131);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_rightCurlyBrace;
                         }
                     }
-                    else if(c=='c') {
+                    if(c=='c') {
                         lexerState.nextStates.add(127);
                     }
-                    else if(c=='0') {
+                    if(c=='0') {
                         lexerState.nextStates.add(121);
                     }
-                    else if(c=='f') {
+                    if(c=='f') {
                         lexerState.nextStates.add(116);
                     }
-                    else if(c=='=') {
+                    if(c=='=') {
                         lexerState.nextStates.add(-115);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_eq;
                         }
                     }
-                    else if(c=='>') {
+                    if(c=='>') {
                         lexerState.nextStates.add(113);
                     }
-                    else if(c=='c') {
+                    if(c=='c') {
                         lexerState.nextStates.add(105);
                     }
-                    else if("01234567".indexOf((char)c)>-1) {
+                    if("01234567".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-101);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cOctal;
                         }
                     }
-                    else if(c==']') {
+                    if(c==']') {
                         lexerState.nextStates.add(-100);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_rightSquareBracket;
                         }
                     }
-                    else if(c=='-') {
+                    if(c=='-') {
                         lexerState.nextStates.add(98);
                     }
-                    else if(c=='a') {
+                    if(c=='a') {
                         lexerState.nextStates.add(94);
                     }
-                    else if(c=='>') {
+                    if(c=='>') {
                         lexerState.nextStates.add(92);
                     }
-                    else if(c==')') {
+                    if(c==')') {
                         lexerState.nextStates.add(-91);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_rightParen;
                         }
                     }
-                    else if(c=='<') {
+                    if(c=='<') {
                         lexerState.nextStates.add(-90);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_lt;
                         }
                     }
-                    else if(c=='v') {
+                    if(c=='v') {
                         lexerState.nextStates.add(86);
                     }
-                    else if(c=='%') {
+                    if(c=='%') {
                         lexerState.nextStates.add(-85);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_modulo;
                         }
                     }
-                    else if(c=='(') {
+                    if(c=='(') {
                         lexerState.nextStates.add(-84);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_leftParen;
                         }
                     }
-                    else if(c=='^') {
+                    if(c=='^') {
                         lexerState.nextStates.add(82);
                     }
-                    else if(c=='s') {
+                    if(c=='s') {
                         lexerState.nextStates.add(76);
                     }
-                    else if(c=='l') {
+                    if(c=='l') {
                         lexerState.nextStates.add(72);
                     }
-                    else if(c=='<') {
+                    if(c=='<') {
                         lexerState.nextStates.add(69);
                     }
-                    else if(c=='i') {
+                    if(c=='i') {
                         lexerState.nextStates.add(66);
                     }
-                    else if(c=='^') {
+                    if(c=='^') {
                         lexerState.nextStates.add(-65);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_bitwiseNot;
                         }
                     }
-                    else if(c=='s') {
+                    if(c=='s') {
                         lexerState.nextStates.add(60);
                     }
-                    else if(c=='-') {
+                    if(c=='-') {
                         lexerState.nextStates.add(58);
                     }
-                    else if(c=='w') {
+                    if(c=='w') {
                         lexerState.nextStates.add(53);
                     }
-                    else if(c=='r') {
+                    if(c=='r') {
                         lexerState.nextStates.add(47);
                     }
-                    else if(c=='c') {
+                    if(c=='c') {
                         lexerState.nextStates.add(43);
                     }
-                    else if(" \u00A0\u2007\u202F\u000B\u001C\u001D\u001E\u001F\t\f\r".indexOf((char)c)>-1) {
+                    if(" \u00A0\u2007\u202F\u000B\u001C\u001D\u001E\u001F\t\f\r".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-42);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_Whitespace;
                         }
                     }
-                    else if(c=='e') {
+                    if(c=='e') {
                         lexerState.nextStates.add(36);
                     }
-                    else if(c=='&') {
+                    if(c=='&') {
                         lexerState.nextStates.add(34);
                     }
-                    else if(c=='u') {
+                    if(c=='u') {
                         lexerState.nextStates.add(26);
                     }
-                    else if("0123456789".indexOf((char)c)>-1) {
+                    if("0123456789".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(16);
                     }
-                    else if(c=='*') {
+                    if(c=='*') {
                         lexerState.nextStates.add(14);
                     }
-                    else if(c=='+') {
+                    if(c=='+') {
                         lexerState.nextStates.add(12);
                     }
-                    else if(c=='b') {
+                    if(c=='b') {
                         lexerState.nextStates.add(7);
                     }
-                    else if(c=='<') {
+                    if(c=='<') {
                         lexerState.nextStates.add(5);
                     }
-                    else if(c=='i') {
+                    if(c=='i') {
                         lexerState.nextStates.add(3);
                     }
-                    else if(c=='|') {
+                    if(c=='|') {
                         lexerState.nextStates.add(1);
                     }
                     break;
                 case 1 :
                     if(c=='|') {
                         lexerState.nextStates.add(-2);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_logicalOr;
                         }
@@ -612,7 +623,7 @@ public class Lexer {
                 case 3 :
                     if(c=='f') {
                         lexerState.nextStates.add(-4);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_if;
                         }
@@ -621,7 +632,7 @@ public class Lexer {
                 case 5 :
                     if(c=='<') {
                         lexerState.nextStates.add(-6);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_shiftLeft;
                         }
@@ -645,7 +656,7 @@ public class Lexer {
                 case 10 :
                     if(c=='k') {
                         lexerState.nextStates.add(-11);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_break;
                         }
@@ -654,7 +665,7 @@ public class Lexer {
                 case 12 :
                     if(c=='+') {
                         lexerState.nextStates.add(-13);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_plusPlus;
                         }
@@ -663,7 +674,7 @@ public class Lexer {
                 case 14 :
                     if(c=='=') {
                         lexerState.nextStates.add(-15);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_mulAssign;
                         }
@@ -672,12 +683,12 @@ public class Lexer {
                 case 16 :
                     if(c=='.') {
                         lexerState.nextStates.add(-17);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cFloatingPoint;
                         }
                     }
-                    else if("0123456789".indexOf((char)c)>-1) {
+                    if("0123456789".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(16);
                     }
                     break;
@@ -685,16 +696,16 @@ public class Lexer {
                     if((c=='E')||(c=='e')) {
                         lexerState.nextStates.add(22);
                     }
-                    else if("lfLF".indexOf((char)c)>-1) {
+                    if("lfLF".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-18);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cFloatingPoint;
                         }
                     }
-                    else if("0123456789".indexOf((char)c)>-1) {
+                    if("0123456789".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-17);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cFloatingPoint;
                         }
@@ -708,19 +719,19 @@ public class Lexer {
                 case 19 :
                     if("123456789".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-21);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cFloatingPoint;
                         }
                     }
-                    else if((c=='+')||(c=='-')) {
+                    if((c=='+')||(c=='-')) {
                         lexerState.nextStates.add(20);
                     }
                     break;
                 case 20 :
                     if("123456789".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-21);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cFloatingPoint;
                         }
@@ -729,7 +740,7 @@ public class Lexer {
                 case -21 :
                     if("0123456789".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-21);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cFloatingPoint;
                         }
@@ -739,9 +750,9 @@ public class Lexer {
                     if((c=='+')||(c=='-')) {
                         lexerState.nextStates.add(25);
                     }
-                    else if("123456789".indexOf((char)c)>-1) {
+                    if("123456789".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-23);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cFloatingPoint;
                         }
@@ -750,14 +761,14 @@ public class Lexer {
                 case -23 :
                     if("lfLF".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-24);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cFloatingPoint;
                         }
                     }
-                    else if("0123456789".indexOf((char)c)>-1) {
+                    if("0123456789".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-23);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cFloatingPoint;
                         }
@@ -766,7 +777,7 @@ public class Lexer {
                 case 25 :
                     if("123456789".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-23);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cFloatingPoint;
                         }
@@ -805,7 +816,7 @@ public class Lexer {
                 case 32 :
                     if(c=='d') {
                         lexerState.nextStates.add(-33);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_unsigned;
                         }
@@ -814,7 +825,7 @@ public class Lexer {
                 case 34 :
                     if(c=='=') {
                         lexerState.nextStates.add(-35);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_andEq;
                         }
@@ -843,7 +854,7 @@ public class Lexer {
                 case 40 :
                     if(c=='n') {
                         lexerState.nextStates.add(-41);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_extern;
                         }
@@ -852,7 +863,7 @@ public class Lexer {
                 case -42 :
                     if(" \u00A0\u2007\u202F\u000B\u001C\u001D\u001E\u001F\t\f\r".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-42);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_Whitespace;
                         }
@@ -871,7 +882,7 @@ public class Lexer {
                 case 45 :
                     if(c=='e') {
                         lexerState.nextStates.add(-46);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_case;
                         }
@@ -900,7 +911,7 @@ public class Lexer {
                 case 51 :
                     if(c=='n') {
                         lexerState.nextStates.add(-52);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_return;
                         }
@@ -924,7 +935,7 @@ public class Lexer {
                 case 56 :
                     if(c=='e') {
                         lexerState.nextStates.add(-57);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_while;
                         }
@@ -933,7 +944,7 @@ public class Lexer {
                 case 58 :
                     if(c=='-') {
                         lexerState.nextStates.add(-59);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_minusMinus;
                         }
@@ -957,7 +968,7 @@ public class Lexer {
                 case 63 :
                     if(c=='t') {
                         lexerState.nextStates.add(-64);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_short;
                         }
@@ -971,7 +982,7 @@ public class Lexer {
                 case 67 :
                     if(c=='t') {
                         lexerState.nextStates.add(-68);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_int;
                         }
@@ -985,7 +996,7 @@ public class Lexer {
                 case 70 :
                     if(c=='=') {
                         lexerState.nextStates.add(-71);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_leftShiftAssign;
                         }
@@ -1004,7 +1015,7 @@ public class Lexer {
                 case 74 :
                     if(c=='g') {
                         lexerState.nextStates.add(-75);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_long;
                         }
@@ -1033,7 +1044,7 @@ public class Lexer {
                 case 80 :
                     if(c=='f') {
                         lexerState.nextStates.add(-81);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_sizeof;
                         }
@@ -1042,7 +1053,7 @@ public class Lexer {
                 case 82 :
                     if(c=='=') {
                         lexerState.nextStates.add(-83);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_bitwiseNotAssign;
                         }
@@ -1061,7 +1072,7 @@ public class Lexer {
                 case 88 :
                     if(c=='d') {
                         lexerState.nextStates.add(-89);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_void;
                         }
@@ -1070,7 +1081,7 @@ public class Lexer {
                 case 92 :
                     if(c=='=') {
                         lexerState.nextStates.add(-93);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_gte;
                         }
@@ -1089,7 +1100,7 @@ public class Lexer {
                 case 96 :
                     if(c=='o') {
                         lexerState.nextStates.add(-97);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_auto;
                         }
@@ -1098,7 +1109,7 @@ public class Lexer {
                 case 98 :
                     if(c=='=') {
                         lexerState.nextStates.add(-99);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_minusAssign;
                         }
@@ -1107,21 +1118,21 @@ public class Lexer {
                 case -101 :
                     if((c=='L')||(c=='l')) {
                         lexerState.nextStates.add(-104);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cOctal;
                         }
                     }
-                    else if("01234567".indexOf((char)c)>-1) {
+                    if("01234567".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-101);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cOctal;
                         }
                     }
-                    else if((c=='U')||(c=='u')) {
+                    if((c=='U')||(c=='u')) {
                         lexerState.nextStates.add(-102);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cOctal;
                         }
@@ -1130,7 +1141,7 @@ public class Lexer {
                 case -102 :
                     if((c=='L')||(c=='l')) {
                         lexerState.nextStates.add(-103);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cOctal;
                         }
@@ -1139,7 +1150,7 @@ public class Lexer {
                 case -104 :
                     if((c=='U')||(c=='u')) {
                         lexerState.nextStates.add(-103);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cOctal;
                         }
@@ -1178,7 +1189,7 @@ public class Lexer {
                 case 111 :
                     if(c=='e') {
                         lexerState.nextStates.add(-112);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_continue;
                         }
@@ -1187,7 +1198,7 @@ public class Lexer {
                 case 113 :
                     if(c=='>') {
                         lexerState.nextStates.add(-114);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_shiftRight;
                         }
@@ -1211,7 +1222,7 @@ public class Lexer {
                 case 119 :
                     if(c=='t') {
                         lexerState.nextStates.add(-120);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_float;
                         }
@@ -1225,7 +1236,7 @@ public class Lexer {
                 case 122 :
                     if("0123456789abcdefABCDEF".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-123);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cHexNumber;
                         }
@@ -1234,21 +1245,21 @@ public class Lexer {
                 case -123 :
                     if((c=='U')||(c=='u')) {
                         lexerState.nextStates.add(-126);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cHexNumber;
                         }
                     }
-                    else if("0123456789abcdefABCDEF".indexOf((char)c)>-1) {
+                    if("0123456789abcdefABCDEF".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-123);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cHexNumber;
                         }
                     }
-                    else if((c=='L')||(c=='l')) {
+                    if((c=='L')||(c=='l')) {
                         lexerState.nextStates.add(-124);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cHexNumber;
                         }
@@ -1257,7 +1268,7 @@ public class Lexer {
                 case -124 :
                     if((c=='U')||(c=='u')) {
                         lexerState.nextStates.add(-125);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cHexNumber;
                         }
@@ -1266,7 +1277,7 @@ public class Lexer {
                 case -126 :
                     if((c=='L')||(c=='l')) {
                         lexerState.nextStates.add(-125);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cHexNumber;
                         }
@@ -1285,7 +1296,7 @@ public class Lexer {
                 case 129 :
                     if(c=='r') {
                         lexerState.nextStates.add(-130);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_char;
                         }
@@ -1294,7 +1305,7 @@ public class Lexer {
                 case 132 :
                     if(c=='=') {
                         lexerState.nextStates.add(-133);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_moduloEq;
                         }
@@ -1303,14 +1314,14 @@ public class Lexer {
                 case -135 :
                     if((c=='U')||(c=='u')) {
                         lexerState.nextStates.add(-138);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cInteger;
                         }
                     }
-                    else if((c=='L')||(c=='l')) {
+                    if((c=='L')||(c=='l')) {
                         lexerState.nextStates.add(-136);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cInteger;
                         }
@@ -1319,7 +1330,7 @@ public class Lexer {
                 case -136 :
                     if((c=='U')||(c=='u')) {
                         lexerState.nextStates.add(-137);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cInteger;
                         }
@@ -1328,7 +1339,7 @@ public class Lexer {
                 case -138 :
                     if((c=='L')||(c=='l')) {
                         lexerState.nextStates.add(-137);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cInteger;
                         }
@@ -1347,7 +1358,7 @@ public class Lexer {
                 case 142 :
                     if(c=='m') {
                         lexerState.nextStates.add(-143);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_enum;
                         }
@@ -1361,7 +1372,7 @@ public class Lexer {
                 case 145 :
                     if(c=='.') {
                         lexerState.nextStates.add(-146);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_threePoints;
                         }
@@ -1370,7 +1381,7 @@ public class Lexer {
                 case 147 :
                     if(c=='=') {
                         lexerState.nextStates.add(-148);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_plusAssign;
                         }
@@ -1384,7 +1395,7 @@ public class Lexer {
                 case 150 :
                     if((c=='0')||(c=='1')) {
                         lexerState.nextStates.add(-151);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cBinary;
                         }
@@ -1393,7 +1404,7 @@ public class Lexer {
                 case -151 :
                     if((c=='0')||(c=='1')) {
                         lexerState.nextStates.add(-151);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cBinary;
                         }
@@ -1432,7 +1443,7 @@ public class Lexer {
                 case 159 :
                     if(c=='r') {
                         lexerState.nextStates.add(-160);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_register;
                         }
@@ -1441,7 +1452,7 @@ public class Lexer {
                 case 161 :
                     if(c=='&') {
                         lexerState.nextStates.add(-162);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_logicalAnd;
                         }
@@ -1470,7 +1481,7 @@ public class Lexer {
                 case 169 :
                     if(c=='t') {
                         lexerState.nextStates.add(-170);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_struct;
                         }
@@ -1480,15 +1491,15 @@ public class Lexer {
                     if(c=='\\') {
                         lexerState.nextStates.add(175);
                     }
-                    else if("\r\n".indexOf((char)c)>-1) {
+                    if("\r\n".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(174);
                     }
-                    else if(!(c=='\"')) {
+                    if(!(c=='\"')) {
                         lexerState.nextStates.add(172);
                     }
-                    else if(c=='\"') {
+                    if(c=='\"') {
                         lexerState.nextStates.add(-173);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cString;
                         }
@@ -1507,7 +1518,7 @@ public class Lexer {
                 case 177 :
                     if(c=='r') {
                         lexerState.nextStates.add(-178);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_for;
                         }
@@ -1531,7 +1542,7 @@ public class Lexer {
                 case 182 :
                     if(c=='t') {
                         lexerState.nextStates.add(-183);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_const;
                         }
@@ -1540,7 +1551,7 @@ public class Lexer {
                 case 185 :
                     if(c=='=') {
                         lexerState.nextStates.add(-186);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_notEq;
                         }
@@ -1549,7 +1560,7 @@ public class Lexer {
                 case 187 :
                     if(c=='\n') {
                         lexerState.nextStates.add(-171);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_newLine;
                         }
@@ -1578,7 +1589,7 @@ public class Lexer {
                 case 192 :
                     if(c=='d') {
                         lexerState.nextStates.add(-193);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_signed;
                         }
@@ -1587,7 +1598,7 @@ public class Lexer {
                 case 196 :
                     if(c=='=') {
                         lexerState.nextStates.add(-197);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_lte;
                         }
@@ -1621,7 +1632,7 @@ public class Lexer {
                 case 203 :
                     if(c=='f') {
                         lexerState.nextStates.add(-204);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_typedef;
                         }
@@ -1650,7 +1661,7 @@ public class Lexer {
                 case 209 :
                     if(c=='c') {
                         lexerState.nextStates.add(-210);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_static;
                         }
@@ -1660,9 +1671,9 @@ public class Lexer {
                     if(c=='0') {
                         lexerState.nextStates.add(212);
                     }
-                    else if("01234567".indexOf((char)c)>-1) {
+                    if("01234567".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-101);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cOctal;
                         }
@@ -1681,7 +1692,7 @@ public class Lexer {
                 case 215 :
                     if(c=='e') {
                         lexerState.nextStates.add(-216);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_else;
                         }
@@ -1690,7 +1701,7 @@ public class Lexer {
                 case 218 :
                     if("0123456789".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-17);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cFloatingPoint;
                         }
@@ -1699,7 +1710,7 @@ public class Lexer {
                 case 219 :
                     if(c=='=') {
                         lexerState.nextStates.add(-220);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_divAssign;
                         }
@@ -1714,9 +1725,9 @@ public class Lexer {
                     if(!(c=='\n')) {
                         lexerState.nextStates.add(222);
                     }
-                    else if(c=='\n') {
+                    if(c=='\n') {
                         lexerState.nextStates.add(-223);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_lineComment;
                         }
@@ -1735,7 +1746,7 @@ public class Lexer {
                 case 226 :
                     if(c=='o') {
                         lexerState.nextStates.add(-227);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_goto;
                         }
@@ -1744,8 +1755,8 @@ public class Lexer {
                 case -228 :
                     if("_abcdefghiklmnopqrstuvwxyzABCDEFGHIKLMNOPQRSTUVWXYZ0123456789".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-228);
-                        if(priority <= -10) {
-                            priority = -10;
+                        if(priority < 0) {
+                            priority = 0;
                             newCandidate = TokenType.tok_cIdentifier;
                         }
                     }
@@ -1783,7 +1794,7 @@ public class Lexer {
                 case 235 :
                     if(c=='e') {
                         lexerState.nextStates.add(-236);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_volatile;
                         }
@@ -1812,7 +1823,7 @@ public class Lexer {
                 case 241 :
                     if(c=='e') {
                         lexerState.nextStates.add(-242);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_double;
                         }
@@ -1846,7 +1857,7 @@ public class Lexer {
                 case 248 :
                     if(c=='t') {
                         lexerState.nextStates.add(-249);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_default;
                         }
@@ -1855,7 +1866,7 @@ public class Lexer {
                 case 250 :
                     if(c=='o') {
                         lexerState.nextStates.add(-251);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_do;
                         }
@@ -1869,7 +1880,7 @@ public class Lexer {
                 case 253 :
                     if(c=='=') {
                         lexerState.nextStates.add(-254);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_rightShiftEq;
                         }
@@ -1878,7 +1889,7 @@ public class Lexer {
                 case 255 :
                     if(c=='=') {
                         lexerState.nextStates.add(-256);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_eqEq;
                         }
@@ -1907,7 +1918,7 @@ public class Lexer {
                 case 262 :
                     if(c=='h') {
                         lexerState.nextStates.add(-263);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_switch;
                         }
@@ -1916,7 +1927,7 @@ public class Lexer {
                 case 267 :
                     if(c=='>') {
                         lexerState.nextStates.add(-268);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_arrow;
                         }
@@ -1940,7 +1951,7 @@ public class Lexer {
                 case 272 :
                     if(c=='n') {
                         lexerState.nextStates.add(-273);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_union;
                         }
@@ -1950,14 +1961,14 @@ public class Lexer {
                     if(c=='\\') {
                         lexerState.nextStates.add(277);
                     }
-                    else if((c>=32 && c<=128)&&(!(c=='\\'))) {
+                    if((c>=32 && c<=128)&&(!(c=='\\'))) {
                         lexerState.nextStates.add(275);
                     }
                     break;
                 case 275 :
                     if(c=='\'') {
                         lexerState.nextStates.add(-276);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cCharacter;
                         }
@@ -1967,16 +1978,16 @@ public class Lexer {
                     if(c=='x') {
                         lexerState.nextStates.add(289);
                     }
-                    else if("\"?abfnrtv\\".indexOf((char)c)>-1) {
+                    if("\"?abfnrtv\\".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(275);
                     }
-                    else if("01234567".indexOf((char)c)>-1) {
+                    if("01234567".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(287);
                     }
-                    else if("0123456789abcdefABCDEF".indexOf((char)c)>-1) {
+                    if("0123456789abcdefABCDEF".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(289);
                     }
-                    else if((c=='u')||(c=='U')) {
+                    if((c=='u')||(c=='U')) {
                         lexerState.nextStates.add(278);
                     }
                     break;
@@ -2004,9 +2015,9 @@ public class Lexer {
                     if("0123456789abcdefABCDEF".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(283);
                     }
-                    else if(c=='\'') {
+                    if(c=='\'') {
                         lexerState.nextStates.add(-276);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cCharacter;
                         }
@@ -2030,7 +2041,7 @@ public class Lexer {
                 case 286 :
                     if(c=='\'') {
                         lexerState.nextStates.add(-276);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cCharacter;
                         }
@@ -2039,12 +2050,12 @@ public class Lexer {
                 case 287 :
                     if(c=='\'') {
                         lexerState.nextStates.add(-276);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cCharacter;
                         }
                     }
-                    else if("01234567".indexOf((char)c)>-1) {
+                    if("01234567".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(288);
                     }
                     break;
@@ -2052,9 +2063,9 @@ public class Lexer {
                     if("01234567".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(275);
                     }
-                    else if(c=='\'') {
+                    if(c=='\'') {
                         lexerState.nextStates.add(-276);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cCharacter;
                         }
@@ -2063,7 +2074,7 @@ public class Lexer {
                 case 289 :
                     if(c=='\'') {
                         lexerState.nextStates.add(-276);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cCharacter;
                         }
@@ -2072,21 +2083,21 @@ public class Lexer {
                 case -290 :
                     if((c=='L')||(c=='l')) {
                         lexerState.nextStates.add(-293);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cInteger;
                         }
                     }
-                    else if("0123456789".indexOf((char)c)>-1) {
+                    if("0123456789".indexOf((char)c)>-1) {
                         lexerState.nextStates.add(-290);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cInteger;
                         }
                     }
-                    else if((c=='U')||(c=='u')) {
+                    if((c=='U')||(c=='u')) {
                         lexerState.nextStates.add(-291);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cInteger;
                         }
@@ -2095,7 +2106,7 @@ public class Lexer {
                 case -291 :
                     if((c=='L')||(c=='l')) {
                         lexerState.nextStates.add(-292);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cInteger;
                         }
@@ -2104,7 +2115,7 @@ public class Lexer {
                 case -293 :
                     if((c=='U')||(c=='u')) {
                         lexerState.nextStates.add(-292);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_cInteger;
                         }
@@ -2119,7 +2130,7 @@ public class Lexer {
                     if(c=='*') {
                         lexerState.nextStates.add(297);
                     }
-                    else if(!(c=='*')) {
+                    if(!(c=='*')) {
                         lexerState.nextStates.add(296);
                     }
                     break;
@@ -2127,9 +2138,9 @@ public class Lexer {
                     if(!(c=='/')) {
                         lexerState.nextStates.add(296);
                     }
-                    else if(c=='/') {
+                    if(c=='/') {
                         lexerState.nextStates.add(-298);
-                        if(priority <= 1) {
+                        if(priority < 1) {
                             priority = 1;
                             newCandidate = TokenType.tok_multilineComment;
                         }
@@ -2138,7 +2149,7 @@ public class Lexer {
                 case 300 :
                     if(c=='=') {
                         lexerState.nextStates.add(-301);
-                        if(priority <= 2) {
+                        if(priority < 2) {
                             priority = 2;
                             newCandidate = TokenType.tok_bitwiseOrEq;
                         }
@@ -2149,9 +2160,13 @@ public class Lexer {
 
         if(lexerState.nextStates.isEmpty()) {
             if(lexerState.candidate == null) {
-                throw new IllegalStateException("lexer error");
+                throw new IllegalStateException(String.format("lexical error at line %d, column %d", lexerState.line, lexerState.column));
             } else {
-                consumer.accept(new Token(lexerState.candidate, lexerState.matchedText, lexerState.startLine, lexerState.startColumn));
+
+                if(!lexerState.candidate.isFiltered()) {
+                    consumer.accept(new Token(lexerState.candidate, lexerState.matchedText, lexerState.startLine, lexerState.startColumn));
+                }
+
                 lexerState.candidate = null;
                 lexerState.matchedText = "";
                 lexerState.nextStates.add(0);
@@ -2163,6 +2178,7 @@ public class Lexer {
         }
 
         lexerState.candidate = newCandidate;
+
         if(c=='\n') {
             lexerState.line += 1;
             lexerState.column = 1;

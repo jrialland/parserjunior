@@ -1,6 +1,7 @@
 package net.jr.codegen.lexer;
 
 import net.jr.codegen.java.Compiler;
+import net.jr.codegen.java.LexerGenerator;
 import net.jr.grammar.c.CGrammar;
 import org.junit.Test;
 
@@ -37,7 +38,7 @@ public class LexerGeneratorTest {
         Object instance = clazz.newInstance();
         Method lex = instance.getClass().getMethod("lex", Reader.class, Consumer.class);
 
-        String l = "int  main( void) { int i; i = 12; return i || 2; }";
+        String l = "int  main(void) { int i; i = 12; return i || 2; }";
 
         lex.invoke(instance, new StringReader(l), new Consumer() {
             @Override

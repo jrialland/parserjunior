@@ -15,6 +15,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -29,13 +30,15 @@ public class CGrammarTest {
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
     }
 
-    protected void testLex(String expr) {
+    protected List<Token> testLex(String expr) {
         Lexer l = new CGrammar().createParser().getLexer();
         Iterator<Token> it = l.iterator(new StringReader(expr));
+        List<Token > tokens = new ArrayList<>();
         while (it.hasNext()) {
             Token token = it.next();
-            //System.out.println(token);
+            tokens.add(token);
         }
+        return tokens;
     }
 
     @Test
@@ -46,6 +49,17 @@ public class CGrammarTest {
     @Test
     public void testLex2() {
         testLex("int  main( void) { int i; i = 12; return i || 2; }");
+    }
+
+    @Test
+    public void testLexVoid() {
+        List<Token> tokens = testLex("void");
+        Assert.assertFalse(tokens.isEmpty());
+        Assert.assertEquals("void", tokens.get(0).getTokenType().getName());
+
+        tokens = testLex("volatile");
+        Assert.assertFalse(tokens.isEmpty());
+        Assert.assertEquals("volatile", tokens.get(0).getTokenType().getName());
     }
 
     @Test

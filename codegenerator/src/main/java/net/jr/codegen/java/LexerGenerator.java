@@ -1,6 +1,7 @@
-package net.jr.codegen.lexer;
+package net.jr.codegen.java;
 
 import com.google.common.base.Strings;
+import net.jr.lexer.Lexemes;
 import net.jr.lexer.Lexer;
 import net.jr.lexer.Terminal;
 import net.jr.lexer.automaton.State;
@@ -23,7 +24,7 @@ public class LexerGenerator {
 
     static {
         String path = LexerGenerator.class.getPackage().getName().replace('.', '/');
-        template = JtwigTemplate.classpathTemplate(path + "/lexer_start.twig");
+        template = JtwigTemplate.classpathTemplate(path + "/lexer.twig");
     }
 
     private String packageName;
@@ -57,6 +58,7 @@ public class LexerGenerator {
         JtwigModel model = JtwigModel.newModel();
         model.with("packageName", packageName);
         model.with("lexer", lexer);
+        model.with("is_eof_filtered", lexer.isFilteredOut(Lexemes.eof()));
         model.with("states", states);
         template.render(model, os);
         os.flush();
