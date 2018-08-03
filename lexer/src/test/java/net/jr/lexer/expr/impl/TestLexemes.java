@@ -81,8 +81,8 @@ public class TestLexemes {
     public void testMarshall() {
         types.entrySet().forEach(entry -> {
             try {
-                //System.out.println(entry.getKey().getName());
-                int priority = random.nextInt();
+
+                int priority = random.nextInt(Integer.MAX_VALUE);
                 String name = randomWord(256);
 
                 Terminal l = entry.getValue().call();
@@ -97,6 +97,7 @@ public class TestLexemes {
                 Assert.assertEquals(l.getName(), l2.getName());
 
             } catch (Exception e) {
+                System.err.println(entry.getKey().getName());
                 throw new RuntimeException(entry.getKey().getName(), e);
             }
         });

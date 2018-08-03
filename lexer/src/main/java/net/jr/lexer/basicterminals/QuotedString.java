@@ -54,7 +54,6 @@ public class QuotedString extends TerminalImpl {
     }
 
     public static <T extends TerminalImpl> T unMarshall(T impl, DataInput in) throws IOException {
-        impl = TerminalImpl.unMarshall(impl, in);
         char starChar = in.readChar();
         char endChar = in.readChar();
         char escapeChar = in.readChar();

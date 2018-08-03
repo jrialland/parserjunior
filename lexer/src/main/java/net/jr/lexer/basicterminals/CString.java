@@ -1,5 +1,7 @@
 package net.jr.lexer.basicterminals;
 
+import net.jr.lexer.impl.TerminalImpl;
+
 import java.io.DataInputStream;
 import java.io.IOException;
 
@@ -11,7 +13,8 @@ public class CString extends QuotedString {
     }
 
     public static  CString  unMarshall(java.io.DataInput in) throws IOException {
-        return QuotedString.unMarshall(new CString(), in);
+        CString cs = TerminalImpl.unMarshall(new CString(), in);
+        return QuotedString.unMarshall(cs, in);
     }
 
     @Override
