@@ -26,6 +26,9 @@ public class ExpressionEvalTest {
         Map<String, MacroDefinition> defs = new TreeMap<>();
         defs.put("FOO", new NoArgsMacroDefinition("FOO", "BAR"));
         Assert.assertTrue(ExpressionEval.eval("defined FOO", defs));
+        Assert.assertTrue(ExpressionEval.eval("defined(FOO)", defs));
+        Assert.assertFalse(ExpressionEval.eval("defined(BAR)", defs));
+        Assert.assertFalse(ExpressionEval.eval("defined(BAZ)", defs));
     }
 
 }

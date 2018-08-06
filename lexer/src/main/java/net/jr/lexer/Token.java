@@ -42,6 +42,10 @@ public class Token {
         return position;
     }
 
+    public void setPosition(Position position) {
+        this.position = position;
+    }
+
     @Override
     public String toString() {
         return tokenType.toString() + "@" + position.toString();

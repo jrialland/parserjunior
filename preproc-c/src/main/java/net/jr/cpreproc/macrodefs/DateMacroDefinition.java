@@ -41,6 +41,7 @@ public class DateMacroDefinition extends NoArgsMacroDefinition {
     public List<PreprocToken> getReplacement(PreprocToken originalToken) {
         String value = new SimpleDateFormat(pattern, Locale.US).format(getDate());
         PreprocToken t = new PreprocToken(PreprocToken.NoMeaning, value);
+        t.setPosition(originalToken.getPosition());
         return Arrays.asList(t);
     }
 }

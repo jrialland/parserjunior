@@ -24,14 +24,9 @@ public class ExpressionEval {
 
         //'defined' may appear as keyword an not a function (i.e 'defined FOO' instead of 'defined(FOO)')
         //so we shamelessly use a regex to force the function-style syntax
-        expression = expression.replaceAll("defined\\p{Blank}+([_a-zA-Z][_a-zA-Z0-9]*)", "defined($1)");
-
-
-        //FIXME we should definitely use a custom C-style interpreter for that
-        //now we just use the built-in javascript interpreter
-        //Parser parser = new CGrammar().createParser(CGrammar.AssignmentExpression, true);
-        //AstNode root = parser.parse(expression);
-
+        expression = expression.replaceAll("defined\\p{Blank}+([_a-zA-Z][_a-zA-Z0-9]*)", "defined(\"$1\")");
+        expression = expression.replaceAll("defined\\p{Blank}*\\(\\p{Blank}*([_a-zA-Z][_a-zA-Z0-9]*)\\p{Blank}*\\)", "defined(\"$1\")");
+        
         try {
 
             scriptEngine.getContext().setAttribute("defined", new Function<String, Boolean>() {
@@ -41,25 +36,6 @@ public class ExpressionEval {
                 }
             }, ScriptContext.ENGINE_SCOPE);
 
-
-            scriptEngine.setBindings(new SimpleBindings(){
-                @Override
-                public boolean containsKey(Object o) {
-                    if(Arrays.asList("nashorn.global").contains(o)) {
-                        return engineBindings.containsKey(o);
-                    } else {
-                        return true;
-                    }
-                }
-
-                @Override
-                public Object get(Object o) {
-                    if(Arrays.asList("nashorn.global", "defined").contains(o)) {
-                        return engineBindings.get(o);
-                    }
-                    return o;
-                }
-            }, ScriptContext.ENGINE_SCOPE);
 
             Object obj = scriptEngine.eval("!!function(){return(" + expression + ");}();");
             return obj != null && ((Boolean) obj).booleanValue();

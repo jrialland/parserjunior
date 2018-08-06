@@ -7,6 +7,7 @@
         <groupId>net.jr</groupId>
         <artifactId>parserjunior-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>parserjunior-lexer-regex</artifactId>

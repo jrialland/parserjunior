@@ -63,7 +63,7 @@ public class Lexemes {
      */
     public static final Terminal cIdentifier() {
         Word cIdentifier = new Word("_" + Alpha, "_" + AlphaNum, "CIdentifier");
-        cIdentifier.setName("cIdentifier");
+        cIdentifier.setName("CIdentifier");
         return cIdentifier;
     }
 
