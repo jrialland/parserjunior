@@ -2,7 +2,6 @@
 set -e
 
 export JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
-export MAVEN_OPTS="-Dhttp.proxyHost=proxypac.si.francetelecom.fr -Dhttp.proxyPort=8080 -Dhttps.proxyHost=proxypac.si.francetelecom.fr -Dhttps.proxyPort=8080"
 MVN_DIST_VER=3.5.3
 TMP_DIR="$HOME/.mvnw/$MVN_DIST_VER"
 if [ ! -d "$TMP_DIR" ]; then
