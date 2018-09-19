@@ -1,5 +1,6 @@
 package net.jr.util;
 
+import net.jr.io.IOUtil;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -1,5 +1,6 @@
 package net.jr.util;
 
+import net.jr.io.WriterOutputStream;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -1,6 +1,6 @@
 import net.jr.cpreproc.Preprocessor;
 import net.jr.cpreproc.macrodefs.MacroDefinition;
-import net.jr.util.IOUtil;
+import net.jr.io.IOUtil;
 import net.jr.util.StringUtil;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;

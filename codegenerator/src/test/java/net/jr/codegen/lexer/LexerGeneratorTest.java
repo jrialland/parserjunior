@@ -1,7 +1,7 @@
 package net.jr.codegen.lexer;
 
-import net.jr.codegen.java.Compiler;
-import net.jr.codegen.java.LexerGenerator;
+import net.jr.codegen.support.java.JavaCompiler;
+import net.jr.codegen.support.java.LexerGenerator;
 import net.jr.grammar.c.CGrammar;
 import org.junit.Test;
 
@@ -33,7 +33,7 @@ public class LexerGeneratorTest {
 
         Files.write(javaFilePath, javaCode.getBytes());
 
-        Class<?> clazz = Compiler.compile("net.jr.codegen.lexer.Lexer", new StringReader(javaCode));
+        Class<?> clazz = JavaCompiler.compile("net.jr.codegen.lexer.Lexer", new StringReader(javaCode));
 
         Object instance = clazz.newInstance();
         Method lex = instance.getClass().getMethod("lex", Reader.class, Consumer.class);

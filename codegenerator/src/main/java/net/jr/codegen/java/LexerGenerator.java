@@ -7,7 +7,7 @@ import net.jr.lexer.Terminal;
 import net.jr.lexer.automaton.State;
 import net.jr.lexer.impl.MergingLexerStreamImpl;
 import net.jr.lexer.impl.StatesVisitor;
-import net.jr.util.IOUtil;
+import net.jr.io.IOUtil;
 import org.jtwig.JtwigModel;
 import org.jtwig.JtwigTemplate;
 

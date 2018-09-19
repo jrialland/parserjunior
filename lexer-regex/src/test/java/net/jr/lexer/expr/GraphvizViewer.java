@@ -1,6 +1,6 @@
 package net.jr.lexer.expr;
 
-import net.jr.util.IOUtil;
+import net.jr.io.IOUtil;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

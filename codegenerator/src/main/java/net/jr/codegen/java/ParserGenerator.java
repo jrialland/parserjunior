@@ -5,7 +5,7 @@ import net.jr.parser.Grammar;
 import net.jr.parser.impl.Action;
 import net.jr.parser.impl.ActionTable;
 import net.jr.text.IndentPrintWriter;
-import net.jr.util.WriterOutputStream;
+import net.jr.io.WriterOutputStream;
 import org.jtwig.JtwigModel;
 import org.jtwig.JtwigTemplate;
 
