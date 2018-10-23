@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-export JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+MAVEN_OPTS=""
 MVN_DIST_VER=3.5.3
 
 #eventually load global configuration from "$HOME/.mvnwrc"
@@ -28,5 +28,9 @@ fi
 #launch mvn
 MVN_PATH=$TMP_DIR/apache-maven-$MVN_DIST_VER/bin
 export PATH=$PATH:$MVN_PATH
+
+#fix for https://stackoverflow.com/questions/16541627/javax-net-ssl-sslexception-received-fatal-alert-protocol-version
+export MAVEN_OPTS="-Dhttps.protocols=TLSv1,TLSv1.1,TLSv1.2 $MAVEN_OPTS" 
+
 "$MVN_PATH/mvn" $@
 
