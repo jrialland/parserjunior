@@ -83,9 +83,11 @@ public class QvmFile {
 
     public static QvmFile read(InputStream is) throws IOException {
         byte[] fileMagic = new byte[4];
-        is.read(fileMagic);
+        if(is.read(fileMagic) != 4) {
+            throw new IOException("read error");
+        }
         if (!Arrays.equals(fileMagic, MAGIC)) {
-            throw new IllegalArgumentException("invalid MAGIC bytes");
+            throw new IllegalArgumentException("invalid magic bytes");
         }
 
         QvmFile qvm = new QvmFile();

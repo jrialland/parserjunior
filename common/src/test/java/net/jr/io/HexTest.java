@@ -4,6 +4,10 @@ import net.jr.util.StringUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 public class HexTest {
 
     @Test
@@ -33,4 +37,16 @@ public class HexTest {
         Assert.assertArrayEquals(new byte[]{(byte)0xde, (byte)0xad, (byte)0xbe, (byte)0xef}, Hex.fromHex("deadBeef"));
     }
 
+    @Test
+    public void testFromHex2() throws IOException  {
+        String s = "44147212030000000800000010000000200000008b0d000002082e1600000100dcffffffd0030000c3fcffff1d00000048656c6c6f20776f726c64";
+        InputStream is = Hex.hexInputStream(new ByteArrayInputStream(s.getBytes()));
+        byte[] buf = new byte[4];
+        Assert.assertEquals(4, is.read(buf));
+        Assert.assertEquals(0x44, buf[0]);
+        Assert.assertEquals(0x14, buf[1]);
+        Assert.assertEquals(0x72, buf[2]);
+        Assert.assertEquals(0x12, buf[3]);
+
+    }
 }

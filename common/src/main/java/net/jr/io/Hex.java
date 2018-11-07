@@ -15,14 +15,14 @@ public final class Hex {
             @Override
             public int read(byte[] bytes, int off, int len) throws IOException {
                 byte[] tmp = new byte[bytes.length * 2];
-                int r = wrapped.read(tmp, 0, len * 2);
+                int r = wrapped.read(tmp, 0, len * 2) /2;
                 int rOff = 0;
-                for (int i = off, max = off + r; i < max; i++) {
+                for(int i=0, max= Math.min(r, len); i<max; i++) {
                     byte h = tmp[rOff++];
                     byte l = tmp[rOff++];
-                    bytes[i] = (byte) ((charToByte((char) h) << 4) + charToByte((char) l));
+                    bytes[off+i] = (byte) ((charToByte((char) h) << 4) + charToByte((char) l));
                 }
-                return r / 2;
+                return r;
             }
 
             @Override

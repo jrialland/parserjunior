@@ -49,13 +49,15 @@ public class QvmInterpreter {
         .filter(m -> m.getParameterTypes().length == 1).filter(m -> m.getParameterTypes()[0].equals(QvmInterpreter.class))
         .forEach(m -> {
           QvmSyscall a = m.getDeclaredAnnotation(QvmSyscall.class);
-          syscalls.put(a.value(), () -> (Integer) m.invoke(sys, QvmInterpreter.this));
+          if(a != null) {
+            syscalls.put(a.value(), () -> (Integer) m.invoke(sys, QvmInterpreter.this));
+          }
         });
   }
 
   public int run(QvmFile qvmExe) {
 
-    // pre-compute adresses for all instrutions
+    // pre-compute adresses for all instructions (speeds up branching)
     long addr = CODE_START_ADDR;
     Map<Long, QvmInstruction> instructions = new TreeMap<>();
     for (QvmInstruction instr : qvmExe.getInstructions()) {
@@ -63,7 +65,7 @@ public class QvmInterpreter {
       addr += instr.getSize();
     }
 
-    // data section (write each value, starting at address 0)
+    // preparte memory : data section (write each value, starting at address 0)
     int offset = 0;
     OutputStream sectionsWriter = memory.createWriter(0);
     for (int val : qvmExe.getData()) {
@@ -75,7 +77,7 @@ public class QvmInterpreter {
       }
     }
 
-    // bss (skip length for bss data)
+    // prepare memory : bss (skip length for bss data)
     int bssLen = qvmExe.getBssLen();
     int bssAlign = bssLen == 0 ? 0 : 4 - bssLen % 4;
     offset += bssLen + bssAlign;

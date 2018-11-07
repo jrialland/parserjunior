@@ -3,6 +3,9 @@ package net.jr.cpreproc.procs;
 import net.jr.common.Position;
 import net.jr.pipes.PipeableProcessor;
 
+/**
+ * Convert lines of the input file into {@link PreprocessorLine}s
+ */
 public class ConvertToLines extends PipeableProcessor<String, PreprocessorLine> {
 
     private PipeableProcessor<?, String> in;

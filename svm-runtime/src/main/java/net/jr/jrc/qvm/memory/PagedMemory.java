@@ -47,6 +47,9 @@ public class PagedMemory {
         }
     }
 
+    /**
+     * "real" pages store data into an allocated byte array
+     */
     private class ArrayPage implements Page {
 
         long baseAddr;
@@ -95,6 +98,12 @@ public class PagedMemory {
         this(DEFAULT_PAGE_SIZE);
     }
 
+    /**
+     * finds the page corresponding to the asked address
+     * @param pageStart must be a page boundary/start address (i.e a multiple of pageSize)
+     * @param rw if we need to actually write to the page
+     * @return
+     */
     private Page getPage(long pageStart, boolean rw) {
         ArrayPage p = pages.get(pageStart);
         if (p == null) {
@@ -164,6 +173,9 @@ public class PagedMemory {
         return addr >= 0 && addr < MAX_ADDR;
     }
 
+    /**
+     * clears the whole memory
+     */
     public void clear() {
         pages.clear();
     }

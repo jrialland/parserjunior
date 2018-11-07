@@ -3,6 +3,9 @@ package net.jr.jrc.qvm;
 
 import net.jr.jrc.qvm.memory.PagedMemory;
 
+/**
+ * The stack is bound to memory, starting at the highest address, and grows downwards.
+ */
 public class QvmStack {
 
   private PagedMemory memory;

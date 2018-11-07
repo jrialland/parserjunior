@@ -9,6 +9,7 @@ import net.jr.parser.Grammar;
 import net.jr.parser.NonTerminal;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.io.StringWriter;
 
 public class ParserGeneratorTest {
@@ -54,7 +55,7 @@ public class ParserGeneratorTest {
     ;
 
     @Test
-    public void testCodeGeneration() {
+    public void testCodeGeneration() throws IOException {
 
         ParserGenerator generator = new ParserGenerator();
 

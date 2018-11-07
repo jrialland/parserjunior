@@ -8,9 +8,14 @@ import net.jr.text.IndentPrintWriter;
 import net.jr.io.WriterOutputStream;
 import org.jtwig.JtwigModel;
 import org.jtwig.JtwigTemplate;
+import org.jtwig.functions.FunctionRequest;
+import org.jtwig.functions.SimpleJtwigFunction;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Writer;
 import java.util.*;
+import java.util.function.Function;
 
 public class ParserGenerator {
 
@@ -21,19 +26,31 @@ public class ParserGenerator {
         template = JtwigTemplate.classpathTemplate(path + "/parser.twig");
     }
 
-    public void generate(Grammar grammar, Writer writer) {
+    public void generate(Grammar grammar, Writer writer) throws IOException  {
 
-        //final ActionTable actionTable = grammar.getActionTable();
+        final ActionTable actionTable = grammar.getActionTable();
 
         JtwigModel model = JtwigModel.newModel();
         model.with("grammar", grammar);
 
         model.with("targetNames", getTargetNames(grammar));
 
+        IndentPrintWriter pw = new IndentPrintWriter(writer);
+
+        model.with("util", new Object(){
+            void writeNextStateMethod() {
+                ParserGenerator.this.writeNextStateMethod(pw, grammar, actionTable);
+            }
+
+            void writeGetActionMethod() {
+                ParserGenerator.this.writeGetActionMethod(pw, grammar, actionTable);
+            }
+        });
+
         //start of file
-        template.render(model, new WriterOutputStream(writer));
-
-
+        OutputStream os = new WriterOutputStream(writer);
+        template.render(model, os);
+        os.flush();
     }
 
     private Set<String> getTargetNames(Grammar grammar) {

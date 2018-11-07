@@ -7,6 +7,9 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * List of preprocessor directives
+ */
 public enum DirectiveType {
 
     Define,

@@ -10,6 +10,10 @@ import net.jr.lexer.Terminal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Implements of the C preproc macro expansion algorithm as described in the ANSI memo "X3J11/86-196" (see docs/cpp.algo.pdf)
+ *
+ */
 public class MacroExpander {
 
     private static final String VA_ARGS_KEY = "__VA_ARGS__";
