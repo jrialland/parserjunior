@@ -1,4 +1,4 @@
-package net.jr.util;
+package net.jr.io;
 
 import net.jr.io.IOUtil;
 import org.junit.Assert;
