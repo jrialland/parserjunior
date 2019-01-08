@@ -27,7 +27,7 @@ public class Assert {
     }
 
     public static void notEq(Object a, Object b, String... msg) {
-        isTrue((a == null && b != null) || (a != null && (b == null || !a.equals(b))), msg);
+        isTrue((a == null && b != null) || (a != null && b == null) || !a.equals(b), msg);
     }
 
     public static void matches(String expr, CharSequence s, String... msg) {

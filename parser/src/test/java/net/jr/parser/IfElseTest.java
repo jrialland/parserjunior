@@ -33,7 +33,7 @@ public class IfElseTest {
         g.addRule(Statement, Lexemes.literal("S3"), Lexemes.singleChar(';'));
         g.addRule(SelectionStatement, If, LeftBrace, Expression, RightBrace, Statement);
         g.addRule(SelectionStatement, If, LeftBrace, Expression, RightBrace, Statement, Else, Statement);
-        parser = g.createParser(false);
+        parser = g.createParser();
         parser.getLexer().setFilteredOut(Lexemes.whitespace());
     }
 

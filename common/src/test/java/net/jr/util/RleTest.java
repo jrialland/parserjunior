@@ -29,6 +29,7 @@ public class RleTest {
     @Test
     public void testEncode() {
         Assert.assertArrayEquals(new int[]{8, 2, 5, 1, 2, 1}, Rle.encode(new int[]{8, 8, 5, 2}));
+        Assert.assertArrayEquals(new int[]{13, 6, 0, 1, 13, 1}, Rle.encode(new int[]{13, 13, 13, 13, 13, 13, 0, 13}));
     }
 
     @Test

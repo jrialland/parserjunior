@@ -131,6 +131,11 @@ public class CGrammarTest {
     public void testParseError() {
         new CGrammar().createParser(useCache).parse("int main(void) pefkpezofk;");
     }
+
+    @Test
+    public void testtoString() {
+        System.out.println(new CGrammar().toString());
+    }
 }
 
 

@@ -55,7 +55,9 @@ public class VisitorHelperTest {
         Visitor visitor = new Visitor();
         VisitorHelper.visit(root, visitor);
 
-        Assert.assertEquals("eb36bbf7f4d374f75061b6ba587a7509", HashUtil.md5Hex(visitor.getActions().getBytes()));
+        String recordedActions = visitor.getActions();
+        //System.out.println(recordedActions);
+        Assert.assertEquals("eb36bbf7f4d374f75061b6ba587a7509", HashUtil.md5Hex(recordedActions.getBytes()));
     }
 
     public static class Visitor {
