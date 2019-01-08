@@ -67,15 +67,18 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
         position = startPosition;
     }
 
-    protected void emit(PushbackReader reader, int c, Consumer<Token> callback) throws IOException {
-
-        if (!getLexer().isFilteredOut(candidate.getTokenType())) {
+    private void emitToken(Consumer<Token> callback, Token token) {
+        if (!getLexer().isFilteredOut(token.getTokenType())) {
             TokenListener tokenListener = getLexer().getTokenListener();
             if (tokenListener != null) {
-                candidate = tokenListener.onNewToken(candidate);
+                token = tokenListener.onNewToken(token);
             }
-            callback.accept(candidate);
+            callback.accept(token);
         }
+    }
+
+    protected void emit(PushbackReader reader, int c, Consumer<Token> callback) throws IOException {
+        emitToken(callback, candidate);
         candidate = null;
         matched = new StringWriter();
         activeStates.clear();
@@ -86,13 +89,7 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
 
     protected void emitEof(Consumer<Token> callback) {
         Token eof = new Token(Lexemes.eof(), position, "");
-        if (!getLexer().isFilteredOut(eof.getTokenType())) {
-            TokenListener tokenListener = getLexer().getTokenListener();
-            if (tokenListener != null) {
-                eof = tokenListener.onNewToken(eof);
-            }
-            callback.accept(eof);
-        }
+        emitToken(callback, eof);
     }
 
     @Override
