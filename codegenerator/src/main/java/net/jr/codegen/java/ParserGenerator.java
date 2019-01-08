@@ -77,7 +77,7 @@ public class ParserGenerator {
             nextStates.add(action.getActionParameter());
         });
 
-        SearchFn.generate(symbols, states, nextStates, pw);
+        SearchFn.generate(symbols, states, nextStates, pw, "symbol", "state");
         pw.deindent();
         pw.println("}");
         pw.println();

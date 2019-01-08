@@ -7,7 +7,7 @@ import java.util.*;
 
 public class SearchFn {
 
-    public static <T> void generate(List<Integer> lx, List<Integer> ly, List<T> lz, Writer writer) {
+    public static <T> void generate(List<Integer> lx, List<Integer> ly, List<T> lz, Writer writer, String... varNames) {
         assert lx.size() == ly.size();
         assert lx.size() == lz.size();
 
@@ -27,14 +27,17 @@ public class SearchFn {
 
         IndentPrintWriter ipw = writer instanceof IndentPrintWriter ? (IndentPrintWriter) writer : new IndentPrintWriter(writer, "  ");
 
-        ipw.println("switch(x) {");
+        String xVarName = varNames.length>0 ? varNames[0] : "x";
+        String yVarName = varNames.length>1 ? varNames[1] : "y";
+
+        ipw.println("switch("+xVarName+") {");
         ipw.indent();
         for (Map.Entry<Integer, Map<T, Set<Integer>>> entry : byX.entrySet()) {
             int x = entry.getKey();
 
             ipw.println("case " + x + " :");
             ipw.indent();
-            ipw.println("switch(y) {");
+            ipw.println("switch(" + yVarName + ") {");
             ipw.indent();
             for (Map.Entry<T, Set<Integer>> entryZy : entry.getValue().entrySet()) {
                 T z = entryZy.getKey();
