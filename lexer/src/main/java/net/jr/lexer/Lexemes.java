@@ -62,8 +62,8 @@ public class Lexemes {
      * @return The lexeme for a C identifier
      */
     public static final Terminal cIdentifier() {
-        Word cIdentifier = new Word("_" + Alpha, "_" + AlphaNum, "CIdentifier");
-        cIdentifier.setName("CIdentifier");
+        Word cIdentifier = new Word("_" + Alpha, "_" + AlphaNum, "cIdentifier");
+        cIdentifier.setName("cIdentifier");
         return cIdentifier;
     }
 

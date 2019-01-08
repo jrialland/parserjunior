@@ -19,7 +19,7 @@ public class CString extends QuotedString {
 
     @Override
     public String toString() {
-        return "CString";
+        return "cString";
     }
 
     @Override

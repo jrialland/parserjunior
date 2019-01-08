@@ -57,7 +57,7 @@ public class CFloatingPoint extends TerminalImpl {
 
     @Override
     public String toString() {
-        return "CFloatingPoint";
+        return "cFloatingPoint";
     }
 
     @Override

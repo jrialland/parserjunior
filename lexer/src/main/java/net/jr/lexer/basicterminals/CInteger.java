@@ -46,7 +46,7 @@ public class CInteger extends TerminalImpl {
 
     @Override
     public String toString() {
-        return "CInteger";
+        return "cInteger";
     }
 
     @Override

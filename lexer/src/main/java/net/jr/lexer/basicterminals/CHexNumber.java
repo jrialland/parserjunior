@@ -37,7 +37,7 @@ public class CHexNumber extends TerminalImpl {
 
     @Override
     public String toString() {
-        return "CHexNumber";
+        return "cHexNumber";
     }
 
     @Override

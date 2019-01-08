@@ -31,7 +31,7 @@ public class CBinary extends TerminalImpl {
 
     @Override
     public String toString() {
-        return "CBinary";
+        return "cBinary";
     }
 
     @Override

@@ -66,7 +66,7 @@ public class CCharacter extends TerminalImpl {
 
     @Override
     public String toString() {
-        return "CCharacter";
+        return "cCharacter";
     }
 
     @Override

@@ -29,7 +29,7 @@ public class COctal extends TerminalImpl {
 
     @Override
     public String toString() {
-        return "COctal";
+        return "cOctal";
     }
 
     @Override
