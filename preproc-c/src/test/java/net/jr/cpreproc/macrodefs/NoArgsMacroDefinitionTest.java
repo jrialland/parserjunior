@@ -25,7 +25,7 @@ public class NoArgsMacroDefinitionTest {
         Assert.assertTrue(tokens.get(0).getPosition().equals(Position.start()));
         Assert.assertEquals("Greetings", tokens.get(0).getText());
         Assert.assertTrue(tokens.get(0).getTokenType().isTerminal());
-        Assert.assertEquals("CIdentifier", tokens.get(0).getTokenType().toString());
+        Assert.assertEquals("cIdentifier", tokens.get(0).getTokenType().toString());
     }
 
     @Test

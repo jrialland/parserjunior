@@ -179,6 +179,7 @@
         <module>preproc-c</module>
         <module>codegenerator</module>
         <module>svm-runtime</module>
+        <module>svm-assembler</module>
     </modules>
 
 </project>
