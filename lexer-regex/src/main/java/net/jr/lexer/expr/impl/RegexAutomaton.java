@@ -3,6 +3,7 @@ package net.jr.lexer.expr.impl;
 import net.jr.lexer.Terminal;
 import net.jr.lexer.automaton.Automaton;
 import net.jr.lexer.automaton.State;
+import net.jr.lexer.impl.CharConstraint;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -80,7 +81,8 @@ public class RegexAutomaton implements Automaton {
             for (net.jr.lexer.automaton.Transition _t : entry.getValue().getOutgoingTransitions()) {
                 Transition t = (Transition) _t;
                 String targetName = rev.get(t.getTarget());
-                pw.println(String.format("%s -> %s [ label = \"%s\" ];", nodeName, targetName, t.getCharConstraint().toString()));
+                String expr = ((CharConstraint)t.getConstraint()).getExpr();
+                pw.println(String.format("%s -> %s [ label = \"%s\" ];", nodeName, targetName, expr));
             }
         }
 

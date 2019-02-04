@@ -6,4 +6,5 @@ public interface Transition<T> {
 
     State<T> getNextState();
 
+    Object getConstraint();
 }

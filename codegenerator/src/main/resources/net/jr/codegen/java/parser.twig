@@ -1,8 +1,23 @@
 
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class {{grammar.name}}Parser {
-    {{ util.writeNextStateMethod() }}
-    {{ util.writeGetActionMethod() }}
+
+    public static class {{grammar.name}}Node {
+
+    };
+
+    private int state = 0;
+
+    {{ util.nextStateMethod() }}
+    {{ util.getActionMethod() }}
+
+    int _shift(int rule) {
+
+    }
+
+    int _reduce(int rule) {
+
+    }
+
 }

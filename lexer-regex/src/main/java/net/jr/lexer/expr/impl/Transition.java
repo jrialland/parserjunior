@@ -16,7 +16,7 @@ public class Transition implements net.jr.lexer.automaton.Transition<Character> 
         this.source = source;
     }
 
-    public CharConstraint getCharConstraint() {
+    public Object getConstraint() {
         return charConstraint;
     }
 

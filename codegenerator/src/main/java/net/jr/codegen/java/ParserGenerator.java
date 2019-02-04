@@ -1,146 +1,107 @@
 package net.jr.codegen.java;
 
-import net.jr.common.Symbol;
+import net.jr.lexer.Lexer;
+import net.jr.lexer.Terminal;
+import net.jr.lexer.automaton.DefaultAutomaton;
+import net.jr.lexer.automaton.State;
+import net.jr.lexer.automaton.Transition;
+import net.jr.lexer.impl.CharConstraint;
+import net.jr.lexer.impl.MergingLexerStreamImpl;
 import net.jr.parser.Grammar;
-import net.jr.parser.impl.Action;
-import net.jr.parser.impl.ActionTable;
+import net.jr.test.Assert;
 import net.jr.text.IndentPrintWriter;
-import net.jr.io.WriterOutputStream;
-import org.jtwig.JtwigModel;
-import org.jtwig.JtwigTemplate;
-import org.jtwig.functions.FunctionRequest;
-import org.jtwig.functions.SimpleJtwigFunction;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Writer;
-import java.util.*;
-import java.util.function.Function;
+import java.io.PrintWriter;
+import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class ParserGenerator {
 
-    private static final JtwigTemplate template;
+    private Grammar grammar;
 
-    static {
-        String path = ParserGenerator.class.getPackage().getName().replace('.', '/');
-        template = JtwigTemplate.classpathTemplate(path + "/parser.twig");
+    private Lexer lexer;
+
+    private Path dest;
+
+    private String packageName;
+
+    public ParserGenerator(Grammar grammar, Path dest, String packageName) throws IOException {
+        if (!Files.exists(dest)) {
+            Files.createDirectories(dest);
+        }
+        Assert.isTrue(Files.isDirectory(dest));
+        this.grammar = grammar;
+        this.dest = dest;
+        this.packageName = packageName;
     }
 
-    public void generate(Grammar grammar, Writer writer) throws IOException  {
+    interface FileCallback {
+        void withWriter(IndentPrintWriter pw);
+    }
 
-        final ActionTable actionTable = grammar.getActionTable();
+    private void withFile(String filename, FileCallback cb) {
+        IndentPrintWriter pw = new IndentPrintWriter(new PrintWriter(System.out));
+        cb.withWriter(pw);
+        pw.flush();
+    }
 
-        JtwigModel model = JtwigModel.newModel();
-        model.with("grammar", grammar);
+    public void generateTokenTypes() {
 
-        model.with("targetNames", getTargetNames(grammar));
+        withFile("TokenType.java", (pw) -> {
 
-        IndentPrintWriter pw = new IndentPrintWriter(writer);
+            pw.println("package " + packageName + ";");
 
-        model.with("util", new Object(){
-            void writeNextStateMethod() {
-                ParserGenerator.this.writeNextStateMethod(pw, grammar, actionTable);
+            pw.println("public enum TokenType {");
+            pw.indent();
+
+            for (Terminal terminal : lexer.getTokenTypes()) {
+                pw.println(String.format("T_%s(),", terminal.getName()));
             }
 
-            void writeGetActionMethod() {
-                ParserGenerator.this.writeGetActionMethod(pw, grammar, actionTable);
-            }
+            pw.deindent();
+            pw.println("}");
         });
 
-        //start of file
-        OutputStream os = new WriterOutputStream(writer);
-        template.render(model, os);
-        os.flush();
     }
 
-    private Set<String> getTargetNames(Grammar grammar) {
-        return null;
-    }
+    public void generateLexer(Lexer lexer) {
+        MergingLexerStreamImpl lexerStream = (MergingLexerStreamImpl) lexer.iterator(new StringReader(""));
 
-    private void writeNextStateMethod(IndentPrintWriter pw, Grammar grammar, ActionTable actionTable) {
-        pw.println("private int getNextState(int state, int symbol) {");
-        pw.indent();
-
-        int i = 0;
-        Map<Symbol, Integer> syms = new HashMap<>();
-        for (Symbol t : grammar.getSymbols()) {
-            syms.put(t, i++);
-        }
-
-        List<Integer> symbols = new ArrayList<>();
-        List<Integer> states = new ArrayList<>();
-        List<Integer> nextStates = new ArrayList<>();
-
-        forActions(grammar.getNonTerminals(), actionTable, (symbol, state, action) -> {
-            symbols.add(syms.get(symbol));
-            states.add(state);
-            nextStates.add(action.getActionParameter());
+        withFile("Lexer.java", (pw) -> {
+            pw.println("package " + packageName + ";");
+            pw.println("public class Lexer {");
+            pw.indent();
+            makeTransitions(pw, lexerStream.getInitialState());
+            pw.deindent();
+            pw.println("}");
         });
 
-        SearchFn.generate(symbols, states, nextStates, pw, "symbol", "state");
-        pw.deindent();
-        pw.println("}");
-        pw.println();
     }
 
-    private interface ActionCb {
-        void apply(Symbol symbol, int state, Action action);
-    }
-
-    private void forActions(Collection<? extends Symbol> symbols, ActionTable actionTable, ActionCb cb) {
-        for (int i = 0, max = actionTable.getStatesCount(); i < max; i++) {
-            for (Symbol t : symbols) {
-                Action action = actionTable.getAction(i, t);
-                if (action != null) {
-                    cb.apply(t, i, action);
-                }
+    private void makeTransitions(IndentPrintWriter pw, State<Character> state) {
+        int n = 0;
+        for (Transition<Character> transition : state.getOutgoingTransitions()) {
+            if (n == 0) {
+                pw.print("if(");
+            } else {
+                pw.print("else if(");
             }
+            pw.print(asExpression(transition));
+            pw.println(") {");
+            pw.indent();
+            pw.println("return lexer_state_" + transition.getNextState().getId() + ";");
+            pw.println("// " + state.getTerminal());
+            pw.deindent();
+            pw.println("}");
+            n++;
         }
     }
 
-    private void writeGetActionMethod(IndentPrintWriter pw, Grammar grammar, ActionTable actionTable) {
-        pw.println("private void _shift(Iterator<Symbol> lexer, int state) {");
-        pw.indent();
-        pw.println("final Symbol token = lexer.next();");
-        pw.println("final int x = token.getTokenType();");
-
-        int i = 0;
-        Map<Symbol, Integer> syms = new HashMap<>();
-        for (Symbol t : grammar.getSymbols()) {
-            syms.put(t, i++);
-        }
-
-        List<Integer> symbols = new ArrayList<>();
-        List<Integer> states = new ArrayList<>();
-        List<String> actions = new ArrayList<>();
-
-        forActions(grammar.getTerminals(), actionTable, (symbol, state, action) -> {
-            symbols.add(syms.get(symbol));
-            states.add(state);
-
-            String methodCall;
-            switch (action.getActionType()) {
-                case Accept:
-                    methodCall = "stack.pop();";
-                    break;
-                case Reduce:
-                    methodCall = "_reduce(" + action.getActionParameter() + ")";
-                    break;
-                case Shift:
-                    methodCall = "_shift(" + action.getActionParameter() + ")";
-                    break;
-                default:
-                    throw new IllegalStateException();
-            }
-
-            actions.add(methodCall);
-        });
-
-        SearchFn.generate(symbols, states, actions, pw);
-
-        pw.deindent();
-        pw.println("}");
-        pw.println();
+    private String asExpression(Transition<Character> transition) {
+        CharConstraint charConstraint = (CharConstraint)transition.getConstraint();
+        return charConstraint.getExpr();
     }
 
 }

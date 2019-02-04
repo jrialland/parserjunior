@@ -127,7 +127,7 @@ public class DefaultAutomaton implements Automaton {
             return nextState;
         }
 
-        public CharConstraint getCondition() {
+        public CharConstraint getConstraint() {
             return condition;
         }
 

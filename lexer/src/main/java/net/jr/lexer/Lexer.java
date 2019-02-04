@@ -2,6 +2,7 @@ package net.jr.lexer;
 
 import net.jr.common.Symbol;
 import net.jr.lexer.automaton.Automaton;
+import net.jr.lexer.basicterminals.Word;
 import net.jr.lexer.impl.MergingLexerStreamImpl;
 import net.jr.lexer.impl.TerminalImpl;
 
@@ -94,11 +95,28 @@ public class Lexer {
     }
 
     /**
+     * Make this lexer ignore whitespaces
+     * @return
+     */
+    public Lexer ignoringWhiteSpaces() {
+        return setFilteredOut(new Word(Lexemes.WhitespacesNonNewLine));
+    }
+
+    /**
+     * Make this lexer ignore newlines
+     *
+     * @return
+     */
+    public Lexer ignoringNls() {
+        return setFilteredOut(Lexemes.newLine());
+    }
+
+    /**
      * Adds a token type to the list of the 'filtered out' tokens, I.e. the tokens type that are recognized, but not put in the list of recognized tokens.
      *
      * @param tokenType
      */
-    public void setFilteredOut(Terminal tokenType) {
+    public Lexer setFilteredOut(Terminal tokenType) {
 
         if (tokenType == null) {
             throw new IllegalArgumentException();
@@ -106,13 +124,13 @@ public class Lexer {
 
         if (tokenType.equals(Lexemes.eof())) {
             filteredOut.add(tokenType);
-            return;
+            return this;
         }
 
         for (Automaton a : automatons) {
             if (a.getTokenType().equals(tokenType)) {
                 filteredOut.add(tokenType);
-                return;
+                return this;
             }
         }
 
@@ -120,6 +138,8 @@ public class Lexer {
         Automaton added = ((TerminalImpl) tokenType).getAutomaton();
         automatons.add(added);
         filteredOut.add(tokenType);
+
+        return this;
     }
 
     /**
@@ -175,4 +195,7 @@ public class Lexer {
         return new MergingLexerStreamImpl(this, clonedAutomatons, listener, reader);
     }
 
+    public Set<Terminal> getFilteredOut() {
+        return Collections.unmodifiableSet(filteredOut);
+    }
 }

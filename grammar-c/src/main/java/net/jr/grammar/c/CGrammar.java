@@ -369,11 +369,11 @@ public class CGrammar extends Grammar {
 
     }
 
-    private static final Logger getLog() {
+    private static Logger getLog() {
         return LOGGER;
     }
 
-    protected String getDeclaratorName(AstNode declarator) {
+    private String getDeclaratorName(AstNode declarator) {
         AstNode directDeclarator = declarator.getChildOfType(DirectDeclarator);
         if (directDeclarator == null) {
             AstNode childDeclarator = declarator.getChildOfType(Declarator);

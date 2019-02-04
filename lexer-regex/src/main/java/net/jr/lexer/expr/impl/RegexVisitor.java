@@ -1,6 +1,7 @@
 package net.jr.lexer.expr.impl;
 
 import net.jr.lexer.expr.RegexTerminal;
+import net.jr.lexer.impl.CharConstraint;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.ast.annotations.After;
 import net.jr.parser.ast.annotations.Before;
@@ -196,7 +197,8 @@ public class RegexVisitor {
         Node n2 = new Node();
         for (net.jr.lexer.automaton.Transition _t : context.start.getOutgoingTransitions()) {
             Transition t = (Transition) _t;
-            n2.addTransition(t.getCharConstraint()).toNode(t.getTarget());
+            CharConstraint charConstraint = ((CharConstraint)t.getConstraint());
+            n2.addTransition(charConstraint).toNode(t.getTarget());
         }
         Set<net.jr.lexer.automaton.Transition> incoming = new HashSet<>(context.end.getIncomingTransitions());
         for (net.jr.lexer.automaton.Transition _t : incoming) {
@@ -217,11 +219,13 @@ public class RegexVisitor {
 
         for (net.jr.lexer.automaton.Transition _t : left.start.getOutgoingTransitions()) {
             Transition t = (Transition) _t;
-            firstNode.addTransition(t.getCharConstraint()).toNode(t.getTarget());
+            CharConstraint charConstraint = (CharConstraint)t.getConstraint();
+            firstNode.addTransition(charConstraint).toNode(t.getTarget());
         }
         for (net.jr.lexer.automaton.Transition _t : right.start.getOutgoingTransitions()) {
             Transition t = (Transition) _t;
-            firstNode.addTransition(t.getCharConstraint()).toNode(t.getTarget());
+            CharConstraint charConstraint = (CharConstraint)t.getConstraint();
+            firstNode.addTransition(charConstraint).toNode(t.getTarget());
         }
         left.start.disconnect();
         right.start.disconnect();

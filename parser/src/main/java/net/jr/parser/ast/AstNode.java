@@ -4,9 +4,7 @@ import net.jr.common.Symbol;
 import net.jr.lexer.Token;
 import net.jr.parser.Rule;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public interface AstNode {
@@ -23,6 +21,10 @@ public interface AstNode {
             return null;
         }
         return children.get(0);
+    }
+
+    default AstNode getChildAt(int index) {
+        return getChildren().get(index);
     }
 
     default AstNode getLastChild() {
@@ -42,6 +44,18 @@ public interface AstNode {
     default AstNode getChildOfType(Symbol s) {
         Optional<AstNode> opt = getChildren().stream().filter(n -> n.getSymbol().equals(s)).findFirst();
         return opt.isPresent() ? opt.get() : null;
+    }
+
+    default List<AstNode> getDescendants() {
+        List<AstNode> descendants = new ArrayList<>();
+        for(AstNode child : getChildren()) {
+            if(child.getChildren().isEmpty()) {
+                descendants.add(child);
+            } else {
+                descendants.addAll(child.getDescendants());
+            }
+        }
+        return descendants;
     }
 
     default AstNode getDescendantOfType(Symbol s) {

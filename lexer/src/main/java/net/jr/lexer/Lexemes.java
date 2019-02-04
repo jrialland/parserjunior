@@ -26,6 +26,8 @@ public class Lexemes {
 
     public static final String AlphaNum = Alpha + Numbers;
 
+    public static final String Punctuations = "!\"#$%&'()*+,-./:;<=>?@[\\]_`{|}~";
+
     public static final String WhitespacesNonNewLine = " \u00A0\u2007\u202F\u000B\u001C\u001D\u001E\u001F\t\f\r";
 
     public static final String HexDigit = Numbers + "abcdef" + "ABCDEF";
@@ -103,6 +105,13 @@ public class Lexemes {
      */
     public static final Terminal empty() {
         return Empty;
+    }
+
+    /**
+     * Anything that is not eof or a newline
+     */
+    public static final Terminal any() {
+        return new Word(AlphaNum + WhitespacesNonNewLine + Punctuations);
     }
 
     /**

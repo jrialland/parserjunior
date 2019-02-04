@@ -3,6 +3,7 @@ package net.jr.parser;
 
 import net.jr.common.Symbol;
 import net.jr.lexer.Lexemes;
+import net.jr.lexer.Lexer;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.impl.*;
 import net.jr.util.Base58Util;
@@ -370,6 +371,10 @@ public class Grammar {
         return createParser(symbol, true);
     }
 
+    public Lexer getLexer() {
+        return Lexer.forLexemes(getTerminals());
+    }
+
     /**
      * Generates a parser that can parse target symbol (the one returned by {@link Grammar#getTargetSymbol()}  for this grammar.
      *
@@ -398,7 +403,8 @@ public class Grammar {
         if (getLog().isTraceEnabled()) {
             getLog().trace("\n" + actionTable.toString());
         }
-        return new LRParser(grammar, actionTable);
+        Parser parser = new LRParser(grammar, getLexer(), actionTable);
+        return parser;
     }
 
     protected Grammar getSubGrammar(Symbol symbol) {
