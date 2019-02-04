@@ -18,7 +18,7 @@ public class CacheTest {
 
         return Cache.Builder.inMemory(TestObj.class, TestObj.class)
                 .withTtl(10, TimeUnit.MINUTES)
-                .fallbackingTo(
+                .fallbackTo(
                         onDisk.withKeyMapper(TestObj::getId)
                                 .withValueConverter(MarshallingUtil.converter(TestObj.class, true))
                 )

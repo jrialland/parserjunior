@@ -21,7 +21,7 @@ public class ActionTableCaching {
 
         cache = Cache.Builder.inMemory(Grammar.class, ActionTable.class)
                 .withTtl(10, TimeUnit.MINUTES)
-                .fallbackingTo(
+                .fallbackTo(
                         onDisk.withKeyMapper(Grammar::getFingerprint)
                                 .withValueConverter(MarshallingUtil.converter(ActionTable.class, true))
                 )

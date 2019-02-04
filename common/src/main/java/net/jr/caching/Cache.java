@@ -44,7 +44,7 @@ public interface Cache<K, T> {
             return builder;
         }
 
-        public Builder<K, V> fallbackingTo(Builder<K, V> builder) {
+        public Builder<K, V> fallbackTo(Builder<K, V> builder) {
             Callable<Cache<K, V>> wrapped = callable;
             callable = () -> {
                 final Cache<K, V> cache = wrapped.call();
