@@ -1,0 +1,64 @@
+
+####################
+#fibonacci demo : take an unsigned int value on stack, and compute the value of fib(n) = fib(n-1) + fib(n-2)
+####################
+
+
+#------------------------------
+section BSS
+
+startOfBss:
+    reserve 1041 #just a dumb reservation to see if it works
+endOfBss:
+
+#------------------------------
+section DATA
+
+#------------------------------
+section CODE
+# -----> ENTRY POINT
+
+#we expect the stack to contain the value we compute fibonacci for
+CONST @fibo
+CALL
+SWAP
+POP
+
+BREAK # at the end the value on the stack is fibo(n)
+
+fibo:
+ENTER 0
+LOCAL 16
+LOAD4
+
+BLOCK_COPY 4 #duplicate the top of stack
+CONST 1
+GTI @fibo.recur #if greater than 1 we do something, otherwise we leave the input value on the stack
+LEAVE 0
+fibo.recur:
+
+# compute n-1
+BLOCK_COPY 4
+CONST 1
+SUB
+
+# call fibo(n-1)
+CONST @fibo
+CALL
+SWAP
+POP
+SWAP
+
+# compute n - 2
+CONST 2
+SUB
+
+# call fibo(n-2)
+CONST @fibo
+CALL
+SWAP
+POP
+
+# addition fibo(n-1) + fibo(n-2), leaves the result on the stack.
+ADD
+LEAVE 0
