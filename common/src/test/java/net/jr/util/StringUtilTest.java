@@ -39,5 +39,10 @@ public class StringUtilTest {
         Assert.assertEquals("this is the [te]rminal [Te]st", StringUtil.highlight("this is the terminal Test", "te", "[", "]"));
     }
 
+    @Test
+    public void testEllipsis() {
+        Assert.assertEquals("AVeryLong...", StringUtil.ellipsis("AVeryLongWord", 12, "..."));
+        Assert.assertEquals("a complete...", StringUtil.ellipsis("a complete sentence with separate words", 12, "..."));
+    }
 
 }

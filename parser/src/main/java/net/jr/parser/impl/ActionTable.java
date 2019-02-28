@@ -6,6 +6,7 @@ import net.jr.marshalling.MarshallingCapable;
 import net.jr.marshalling.MarshallingUtil;
 import net.jr.parser.Grammar;
 import net.jr.parser.Rule;
+import net.jr.util.StringUtil;
 import net.jr.util.table.AsciiTableView;
 import net.jr.util.table.TableModel;
 import org.slf4j.Logger;
@@ -188,10 +189,10 @@ public class ActionTable implements MarshallingCapable {
         //column labels
         int col = 1;
         for (Symbol term : terminals) {
-            tm.setData(col++, 0, term.toString());
+            tm.setData(col++, 0, StringUtil.ellipsis(term.toString(), 12, "\\u2026"));
         }
         for (Symbol term : nonTerminals) {
-            tm.setData(col++, 0, term.toString());
+            tm.setData(col++, 0, StringUtil.ellipsis(term.toString(), 12, "\\u2026"));
         }
 
         return new AsciiTableView(4, 100).tableToString(tm);

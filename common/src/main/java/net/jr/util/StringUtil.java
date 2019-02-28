@@ -180,4 +180,27 @@ public final class StringUtil {
         }
         return sw.toString();
     }
+
+    private static int textWidth(String str) {
+        return (int) (str.length() - str.replaceAll("[^iIl1\\.,']", "").length() / 2);
+    }
+
+    public static String ellipsis(String txt, int maxlen, String elString) {
+        if (txt.length() <= maxlen) {
+            return txt;
+        }
+        int end = txt.lastIndexOf(' ', maxlen - elString.length());
+        if (end == -1) {
+            return txt.substring(0, maxlen - elString.length()) + elString;
+        }
+        int newEnd = end;
+        do {
+            end = newEnd;
+            newEnd = txt.indexOf(' ', end + 1);
+            if (newEnd == -1) {
+                newEnd = txt.length();
+            }
+        } while (textWidth(txt.substring(0, newEnd) + elString) < maxlen);
+        return txt.substring(0, end) + elString;
+    }
 }
