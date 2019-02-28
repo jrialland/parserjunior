@@ -15,7 +15,7 @@ public class AssemblerTest {
 
     @BeforeClass
     public static void setupClass() {
-        //System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
     }
 
     protected static Reader open(String rsc) {
@@ -37,6 +37,10 @@ public class AssemblerTest {
         Assert.assertFalse(qvmFile.getInstructions().isEmpty());
     }
 
+    /**
+     * Assemble and run the fibonacci example from fibo.qvm, test if it gives correct results
+     * @throws Exception
+     */
     @Test
     public void testFibo() throws Exception {
         Assert.assertEquals(0, computeFibo(0));
@@ -50,10 +54,7 @@ public class AssemblerTest {
         Reader r = open("fibo.qvm");
         QvmFile qvmFile = new Assembler().assemble(r);
         QvmInterpreter interpreter = new QvmInterpreter();
-
-        //compute for n=10
         interpreter.getStack().pushUInt(n);
-
         return interpreter.run(qvmFile);
     }
 }
