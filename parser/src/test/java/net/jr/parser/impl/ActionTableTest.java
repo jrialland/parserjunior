@@ -6,8 +6,10 @@ import net.jr.lexer.basicterminals.SingleChar;
 import net.jr.parser.Grammar;
 import net.jr.parser.NonTerminal;
 import net.jr.parser.ast.AstNode;
+import net.jr.test.TestUtil;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.*;
@@ -23,8 +25,9 @@ public class ActionTableTest {
     SingleChar star = new SingleChar('*');
     Grammar grammar;
 
+    @BeforeClass
     public static void setupClass() {
-        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
+        TestUtil.configureLogging();
     }
 
     @Before

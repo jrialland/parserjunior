@@ -9,6 +9,7 @@ import net.jr.lexer.basicterminals.Word;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.impl.ActionTableCaching;
 import net.jr.parser.impl.LRParser;
+import net.jr.test.TestUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -37,7 +38,7 @@ public class GrammarTest {
 
     @BeforeClass
     public static void setupClass() {
-        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
+        TestUtil.configureLogging();
     }
 
     @Before

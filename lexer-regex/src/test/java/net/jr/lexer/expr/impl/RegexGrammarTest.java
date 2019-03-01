@@ -2,6 +2,7 @@ package net.jr.lexer.expr.impl;
 
 import net.jr.parser.Parser;
 import net.jr.parser.impl.ActionTable;
+import net.jr.test.TestUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -9,7 +10,7 @@ public class RegexGrammarTest {
 
     @BeforeClass
     public static void setupClass() {
-        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
+        TestUtil.configureLogging();
     }
 
     @Test

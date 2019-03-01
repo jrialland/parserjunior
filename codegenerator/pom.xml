@@ -18,13 +18,6 @@
 
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>parserjunior-grammar-c</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>${project.groupId}</groupId>
             <artifactId>parserjunior-lexer</artifactId>
             <version>${project.version}</version>
         </dependency>

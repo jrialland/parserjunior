@@ -7,6 +7,7 @@ import net.jr.parser.NonTerminal;
 import net.jr.parser.ast.annotations.After;
 import net.jr.parser.ast.annotations.Before;
 import net.jr.parser.ast.annotations.BeforeEachNode;
+import net.jr.test.TestUtil;
 import net.jr.util.HashUtil;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -28,7 +29,7 @@ public class VisitorHelperTest {
 
     @BeforeClass
     public static void setupClass() {
-        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
+        TestUtil.configureLogging();
     }
 
     @Test

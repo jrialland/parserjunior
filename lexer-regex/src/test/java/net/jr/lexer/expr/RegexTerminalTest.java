@@ -2,6 +2,7 @@ package net.jr.lexer.expr;
 
 import net.jr.lexer.*;
 import net.jr.lexer.expr.impl.RegexAutomaton;
+import net.jr.test.TestUtil;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -15,7 +16,7 @@ public class RegexTerminalTest {
 
     @BeforeClass
     public static void setupClass() {
-        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
+        TestUtil.configureLogging();
     }
 
     protected void show(RegexTerminal t) {

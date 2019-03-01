@@ -10,6 +10,7 @@ import net.jr.parser.Parser;
 import net.jr.parser.ast.AstNode;
 import net.jr.parser.ast.VisitorHelper;
 import net.jr.parser.ast.annotations.After;
+import net.jr.test.TestUtil;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -27,7 +28,7 @@ public class CGrammarTest {
 
     @BeforeClass
     public static void setupClass() {
-        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
+        TestUtil.configureLogging();
     }
 
     protected List<Token> testLex(String expr) {
@@ -77,7 +78,7 @@ public class CGrammarTest {
 
     @Test
     public void testEqAssociativity() {
-        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
+        TestUtil.configureLogging();
         new CGrammar().createParser(CGrammar.Statement, false).parse("res = res * 10 ;");
     }
 

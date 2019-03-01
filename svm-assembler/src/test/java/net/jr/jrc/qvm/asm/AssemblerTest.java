@@ -2,6 +2,7 @@ package net.jr.jrc.qvm.asm;
 
 import net.jr.jrc.qvm.QvmFile;
 import net.jr.jrc.qvm.QvmInterpreter;
+import net.jr.test.TestUtil;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -15,7 +16,7 @@ public class AssemblerTest {
 
     @BeforeClass
     public static void setupClass() {
-        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
+        TestUtil.configureLogging();
     }
 
     protected static Reader open(String rsc) {
