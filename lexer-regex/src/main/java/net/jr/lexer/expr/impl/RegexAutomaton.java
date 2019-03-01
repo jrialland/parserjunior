@@ -84,6 +84,15 @@ public class RegexAutomaton implements Automaton {
                 String expr = ((CharConstraint)t.getConstraint()).getExpr();
                 pw.println(String.format("%s -> %s [ label = \"%s\" ];", nodeName, targetName, expr));
             }
+
+            Transition fallback;
+
+            if((fallback = (Transition)entry.getValue().getFallbackTransition()) != null) {
+                String targetName = rev.get(fallback.getTarget());
+                String expr = ((CharConstraint)fallback.getConstraint()).getExpr();
+                pw.println(String.format("%s -> %s [ style=dashed, label = \"%s\" ];", nodeName, targetName, expr));
+            }
+
         }
 
         pw.println("}");

@@ -70,29 +70,36 @@ public class RegexVisitor {
         int items = stack.size() - stackSize.pop();
 
         while (items > 1) {
-            Context next = stack.pop();
-            Context first = stack.pop();
+            Context right = stack.pop();
+            Context left = stack.pop();
 
             Node mergeNode = new Node();
+
+            mergeNode.setFallbackTransition(right.start.getFallbackTransition());
+            mergeNode.setTerminal(right.start.getTerminal());
+
             Set<net.jr.lexer.automaton.Transition> transitions;
 
             // connections that used to go to first.end now go to mergeNode
-            transitions = new HashSet<>(first.end.getIncomingTransitions());
-            transitions.forEach(t -> ((Transition) t).setTarget(mergeNode));
+            transitions = new HashSet<>(left.end.getIncomingTransitions());
+            transitions.forEach(t -> {
+                ((Transition) t).setTarget(mergeNode);
+            });
 
             //connections that used to originate from first.end now originate from mergeNode
-            transitions = new HashSet<>(first.end.getOutgoingTransitions());
+            transitions = new HashSet<>(left.end.getOutgoingTransitions());
             transitions.forEach(t -> ((Transition) t).setSource(mergeNode));
 
             //connections that used to go ot next.start now go to mergeNode
-            transitions = new HashSet<>(next.start.getIncomingTransitions());
+            transitions = new HashSet<>(right.start.getIncomingTransitions());
             transitions.forEach(t -> ((Transition) t).setTarget(mergeNode));
 
             //connections that used originate from next.start now originate from mergeNode
-            transitions = new HashSet<>(next.start.getOutgoingTransitions());
+            transitions = new HashSet<>(right.start.getOutgoingTransitions());
             transitions.forEach(t -> ((Transition) t).setSource(mergeNode));
 
-            stack.push(new Context(first.getStart(), next.getEnd()));
+            Context grouped = new Context(left.getStart(), right.getEnd());
+            stack.push(grouped);
             items--;
         }
     }
@@ -174,7 +181,8 @@ public class RegexVisitor {
     @SuppressWarnings("unused")
     public void visitOptional(AstNode node) {
         Context context = stack.peek();
-        context.start.setTerminal(regexLexeme);
+        Transition skipTransition = (Transition)context.start.addFallback();
+        skipTransition.setTarget(context.end);
     }
 
     @After("ZeroOrMore")
@@ -236,11 +244,6 @@ public class RegexVisitor {
         for (net.jr.lexer.automaton.Transition _t : incomingToEnd) {
             Transition t = (Transition) _t;
             t.setTarget(lastNode);
-        }
-
-        if (right.end.isFinalState() || left.end.isFinalState()) {
-            lastNode.setTerminal(regexLexeme);
-            ;
         }
 
         right.end.disconnect();

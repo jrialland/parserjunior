@@ -8,6 +8,8 @@ public interface State<T> {
 
     Set<Transition<T>> getOutgoingTransitions();
 
+    Transition<T> getFallbackTransition();
+
     boolean isFinalState();
 
     Terminal getTerminal();

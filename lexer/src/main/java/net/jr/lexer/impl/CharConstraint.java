@@ -32,7 +32,8 @@ public class CharConstraint implements Function<Character, Boolean> {
             case ANY:
                 return "true";
             case EQ:
-                return "c == " + ((int) subject);
+                String s = "" + (char) ((int) subject);
+                return "c == '" + StringEscapeUtils.escapeJava(s) + "'";
             case INRANGE:
                 char[] cSubject = (char[]) subject;
                 String min = "'" + StringEscapeUtils.escapeJava("" + cSubject[0]) + "'";
@@ -87,12 +88,6 @@ public class CharConstraint implements Function<Character, Boolean> {
         }
 
         public static Builder eq(int c) {
-            String s;
-            if (c == '\'') {
-                s = "\\'";
-            } else {
-                s = StringEscapeUtils.escapeJava(Character.toString((char) c));
-            }
             return new Builder(x -> x == c, Nature.EQ, c);
         }
 

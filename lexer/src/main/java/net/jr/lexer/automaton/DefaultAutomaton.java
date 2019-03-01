@@ -36,6 +36,8 @@ public class DefaultAutomaton implements Automaton {
 
         private Set<Transition> outgoingTransitions;
 
+        private Transition fallbackTransition;
+
         private boolean finalState;
 
         private Terminal terminal;
@@ -106,6 +108,16 @@ public class DefaultAutomaton implements Automaton {
         public Terminal getTerminal() {
             return terminal;
         }
+
+        public void setFallbackTransition(Transition fallbackTransition) {
+            this.fallbackTransition = fallbackTransition;
+        }
+
+        @Override
+        public Transition getFallbackTransition() {
+            return null;
+        }
+
     }
 
     public static class TransitionImpl implements Transition<Character> {
@@ -130,7 +142,6 @@ public class DefaultAutomaton implements Automaton {
         public CharConstraint getConstraint() {
             return condition;
         }
-
     }
 
     public static class Builder {

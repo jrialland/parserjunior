@@ -1,6 +1,7 @@
 package net.jr.lexer.expr;
 
 import net.jr.lexer.automaton.Automaton;
+import net.jr.lexer.automaton.Transition;
 import net.jr.lexer.expr.impl.RegexAutomaton;
 import net.jr.lexer.expr.impl.RegexGrammar;
 import net.jr.lexer.expr.impl.RegexVisitor;
@@ -41,6 +42,12 @@ public class RegexTerminal extends TerminalImpl {
         RegexVisitor visitor = new RegexVisitor(this);
         VisitorHelper.visit(astNode, visitor);
         this.automaton = visitor.getAutomaton();
+
+        //verify that an empty match cannot append
+        Transition<?> fallback = this.automaton.getInitialState().getFallbackTransition();
+        if(fallback != null && fallback.getNextState().isFinalState()) {
+            throw new IllegalArgumentException("An empty string should not be a valid token for the expression '"+expression+"'");
+        }
         this.automaton.setTokenType(this);
     }
 

@@ -16,14 +16,13 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Alternative algorithm for token recognition that involves creating a 'big' automaton, that can have several
  * active states at the same time.
  */
 public class MergingLexerStreamImpl extends AbstractLexerStream {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MergingLexerStreamImpl.class);
 
     private Position startPosition, position;
 
@@ -52,6 +51,7 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
         initial = new StateImpl(0);
         for (Automaton a : automatons) {
             State s = a.getInitialState();
+            initial.setFallbackTransition(s.getFallbackTransition());
             if (s != null) {
                 initial.getOutgoingTransitions().addAll(s.getOutgoingTransitions());
                 if (s.isFinalState()) {
@@ -95,21 +95,30 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
     @Override
     protected boolean step(PushbackReader pushbackReader, Consumer<Token> callback) throws IOException {
         int c = pushbackReader.read();
-
+        boolean shouldPushback = false;
         if (c == -1) {
             if (candidate == null) {
-                if (activeStates.size() != 1 || activeStates.iterator().next() != initial) {
+
+                if (activeStates.size() == 1) {
+
+                    State<Character> active = activeStates.iterator().next();
+                    if (active.getFallbackTransition() != null && active.getFallbackTransition().getNextState().isFinalState()) {
+                        State<Character> s = active.getFallbackTransition().getNextState();
+                        candidate = new Token(s.getTerminal(), startPosition, matched.toString());
+                    }
+                }
+            }
+
+            if(candidate == null) {
+                if(activeStates.iterator().next() != initial) {
                     throw new LexicalError(c, position);
                 }
-            } else {
+            } else if(!candidate.getText().isEmpty()){
                 emit(pushbackReader, c, callback);
             }
             emitEof(callback);
             return false;
         }
-
-        //update matched text
-        matched.append((char) c);
 
         //apply new states
         Set<State<Character>> newStates = new HashSet<>();
@@ -121,7 +130,28 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
             }
         }
 
-        //no transition !
+        //nothing matches -> see if there are any 'fallback' transition on active nodes
+        if (newStates.isEmpty()) {
+
+            List<Transition> fallbacks = activeStates.stream()
+                    .map(s -> s.getFallbackTransition())
+                    .filter(t -> t != null)
+                    .collect(Collectors.toList());
+
+            for (Transition t : fallbacks) {
+                newStates.add(t.getNextState());
+                shouldPushback = true;
+            }
+        }
+
+        //update matched text
+        if (shouldPushback) {
+            pushbackReader.unread(c);
+        } else {
+            matched.append((char) c);
+        }
+
+        //still no transition !
         if (newStates.isEmpty()) {
 
             if (candidate == null) {
@@ -135,7 +165,7 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
         //find the state that is final with the highest priority
         Optional<State<Character>> finalState = newStates.stream()
                 .filter(s -> s.isFinalState())
-                .sorted(Comparator.comparingInt(s -> - s.getTerminal().getPriority()))
+                .sorted(Comparator.comparingInt(s -> -s.getTerminal().getPriority()))
                 .limit(1)
                 .findFirst();
 
@@ -155,6 +185,8 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
         private Terminal terminal;
 
         private int id;
+
+        private Transition<Character> fallbackTransition;
 
         @Override
         public void setId(int id) {
@@ -187,6 +219,15 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
 
         public void setTerminal(Terminal terminal) {
             this.terminal = terminal;
+        }
+
+        public void setFallbackTransition(Transition<Character> fallbackTransition) {
+            this.fallbackTransition = fallbackTransition;
+        }
+
+        @Override
+        public Transition<Character> getFallbackTransition() {
+            return fallbackTransition;
         }
     }
 

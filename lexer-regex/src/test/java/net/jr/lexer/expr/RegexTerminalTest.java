@@ -1,8 +1,6 @@
 package net.jr.lexer.expr;
 
-import net.jr.lexer.Lexer;
-import net.jr.lexer.LexicalError;
-import net.jr.lexer.Token;
+import net.jr.lexer.*;
 import net.jr.lexer.expr.impl.RegexAutomaton;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -11,7 +9,9 @@ import org.junit.Test;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Semaphore;
 
 public class RegexTerminalTest {
@@ -19,6 +19,24 @@ public class RegexTerminalTest {
     @BeforeClass
     public static void setupClass() {
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
+    }
+
+    protected void show(RegexTerminal t) {
+        try {
+            String graph = ((RegexAutomaton)t.getAutomaton()).toGraphviz();
+            System.out.println(graph);
+            GraphvizViewer viewer = GraphvizViewer.show(graph);
+            final Semaphore semaphore = new Semaphore(0);
+            viewer.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    semaphore.release();
+                }
+            });
+            semaphore.acquire();
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
@@ -79,22 +97,50 @@ public class RegexTerminalTest {
         Lexer.forLexemes(choice).tokenize("B");
     }
 
-    @Test
-    public void testOptional() {
+    @Test(expected = IllegalArgumentException.class)
+    public void testEmpty() {
         RegexTerminal opt = new RegexTerminal("(((((('nancy'?))))))");
-        Lexer.forLexemes(opt).tokenize("");
-        Lexer.forLexemes(opt).tokenize("nancy");
+    }
 
-        try {
-            Lexer.forLexemes(opt).tokenize("bob");
-            Assert.fail();
-        } catch (LexicalError e) {
-            //ok!
-        }
+    @Test
+    public void testOptional2() {
 
-        List<Token> tokens = Lexer.forLexemes(opt).tokenize("nancynancy");
-        Assert.assertEquals(3, tokens.size());
-        Assert.assertTrue(tokens.get(0).getTokenType().equals(opt));
+        RegexTerminal opt = new RegexTerminal("'a''b'?");
+        //show(opt);
+        List<Token> tokens = Lexer.forLexemes(opt).tokenize("ab");
+        Assert.assertEquals(2, tokens.size());
+        Assert.assertEquals("ab", tokens.get(0).getText());
+        Assert.assertEquals(opt, tokens.get(0).getTokenType());
+        Assert.assertEquals(Lexemes.eof(), tokens.get(1).getTokenType());
+
+
+        tokens = Lexer.forLexemes(opt).tokenize("a");
+        Assert.assertEquals(2, tokens.size());
+        Assert.assertEquals("a", tokens.get(0).getText());
+        Assert.assertEquals(opt, tokens.get(0).getTokenType());
+        Assert.assertEquals(Lexemes.eof(), tokens.get(1).getTokenType());
+
+    }
+
+    @Test
+    public void testOptional3() {
+
+        RegexTerminal opt = new RegexTerminal("'a''b'?");
+        Terminal c = Lexemes.singleChar('c');
+
+        Lexer lexer = Lexer.forLexemes(opt, c);
+        lexer.setFilteredOut(Lexemes.whitespace());
+
+        List<Token> tokens = lexer.tokenize("c a ab ca a c ab");
+        Assert.assertEquals("c", tokens.get(0).getText());
+        Assert.assertEquals("a", tokens.get(1).getText());
+        Assert.assertEquals("ab", tokens.get(2).getText());
+        Assert.assertEquals("c", tokens.get(3).getText());
+        Assert.assertEquals("a", tokens.get(4).getText());
+        Assert.assertEquals("a", tokens.get(5).getText());
+        Assert.assertEquals("c", tokens.get(6).getText());
+        Assert.assertEquals("ab", tokens.get(7).getText());
+        Assert.assertEquals(Lexemes.eof(), tokens.get(8).getTokenType());
     }
 
     @Test
@@ -146,24 +192,15 @@ public class RegexTerminalTest {
         Assert.assertTrue(tokens.get(0).getText().equals("0xdeadbeef"));
     }
 
-    @Ignore
     @Test
-    public void testGraph() throws Exception {
-        RegexTerminal rangeLexeme = new RegexTerminal("'john''ny'?");
-        RegexAutomaton ra = (RegexAutomaton) rangeLexeme.getAutomaton();
-        System.out.println(ra.toGraphviz());
-        GraphvizViewer viewer = GraphvizViewer.show(ra.toGraphviz());
-
-        final Semaphore semaphore = new Semaphore(0);
-
-        viewer.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                semaphore.release();
-            }
-        });
-
-        semaphore.acquire();
+    public void testNumber() {
+        RegexTerminal number = new RegexTerminal("'-'?'0'|(('1'..'9')('0'..'9')*)");
+        Lexer lexer = Lexer.forLexemes(number);
+        lexer.tokenize("0");
+        lexer.tokenize("-0");
+        lexer.tokenize("1");
+        lexer.tokenize("-1");
+        lexer.tokenize("861893544");
     }
 
 }

@@ -1,5 +1,7 @@
 package net.jr.lexer.expr.impl;
 
+import net.jr.parser.Parser;
+import net.jr.parser.ast.AstNode;
 import net.jr.parser.impl.ActionTable;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -35,7 +37,9 @@ public class RegexGrammarTest {
 
     @Test
     public void testOptional() {
-        new RegexGrammar().createParser().parse("'a'?");
+        Parser parser  = new RegexGrammar().createParser();
+        parser.parse("'a'?");
+        parser.parse("'a'..'z'?");
     }
 
     @Test

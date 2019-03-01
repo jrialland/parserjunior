@@ -4,6 +4,7 @@ import net.jr.lexer.Terminal;
 import net.jr.lexer.automaton.State;
 import net.jr.lexer.impl.CharConstraint;
 
+import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,6 +13,8 @@ public class Node implements State {
     private Set<net.jr.lexer.automaton.Transition> outgoingTransitions = new HashSet<>();
 
     private Set<net.jr.lexer.automaton.Transition> incomingTransitions = new HashSet<>();
+
+    private net.jr.lexer.automaton.Transition fallbackTransition = null;
 
     private Terminal terminal = null;
 
@@ -48,6 +51,21 @@ public class Node implements State {
         return t;
     }
 
+    public net.jr.lexer.automaton.Transition addFallback() {
+        this.fallbackTransition = new Transition(this);
+        ((Transition) this.fallbackTransition).setCharConstraint(CharConstraint.Builder.any().build());
+        return this.fallbackTransition;
+    }
+
+    public void setFallbackTransition(net.jr.lexer.automaton.Transition fallbackTransition) {
+        this.fallbackTransition = fallbackTransition;
+    }
+
+    @Override
+    public net.jr.lexer.automaton.Transition getFallbackTransition() {
+        return fallbackTransition;
+    }
+
     public void disconnect() {
         for (net.jr.lexer.automaton.Transition outTransition : outgoingTransitions) {
             ((Transition) outTransition).getTarget().getIncomingTransitions().remove(outTransition);
@@ -72,5 +90,24 @@ public class Node implements State {
     @Override
     public boolean isFinalState() {
         return terminal != null;
+    }
+
+    @Override
+    public String toString() {
+        if(id==null){
+            StringWriter sw = new StringWriter();
+            if(isFinalState()) {
+                sw.append("{final}\n");
+            }
+            for(net.jr.lexer.automaton.Transition incoming : incomingTransitions) {
+                sw.append("    incoming : " + incoming + "\n");
+            }
+            for(net.jr.lexer.automaton.Transition outgoing : outgoingTransitions) {
+                sw.append("    outgoing : " + outgoing + "\n");
+            }
+            return sw.toString();
+        } else {
+            return Integer.toString(getId());
+        }
     }
 }

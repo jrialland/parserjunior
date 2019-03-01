@@ -67,5 +67,4 @@ public class Transition implements net.jr.lexer.automaton.Transition<Character> 
     public State getNextState() {
         return getTarget();
     }
-
 }
