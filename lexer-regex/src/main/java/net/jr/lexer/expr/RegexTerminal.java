@@ -45,14 +45,14 @@ public class RegexTerminal extends TerminalImpl {
 
         //verify that an empty match cannot append
         Transition<?> fallback = this.automaton.getInitialState().getFallbackTransition();
-        if(fallback != null && fallback.getNextState().isFinalState()) {
-            throw new IllegalArgumentException("An empty string should not be a valid token for the expression '"+expression+"'");
+        if (fallback != null && fallback.getNextState().isFinalState()) {
+            throw new IllegalArgumentException("An empty string should not be a valid token for the expression '" + expression + "'");
         }
         this.automaton.setTokenType(this);
     }
 
     @SuppressWarnings("unused")
-    public static  RegexTerminal  unMarshall(java.io.DataInput in) throws IOException {
+    public static RegexTerminal unMarshall(java.io.DataInput in) throws IOException {
         String expression = in.readUTF();
         int priority = in.readInt();
         return new RegexTerminal(expression, priority);

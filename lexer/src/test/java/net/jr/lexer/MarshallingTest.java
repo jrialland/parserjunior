@@ -45,7 +45,7 @@ public class MarshallingTest {
     @Test
     public void testQuotedString() throws IOException {
 
-        Terminal q = new QuotedString('"','"', '\\', new char[]{});
+        Terminal q = new QuotedString('"', '"', '\\', new char[]{});
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 

@@ -16,19 +16,6 @@ public class NonTerminal implements Symbol {
 
     private Integer id;
 
-    @Override
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    @Override
-    public int getId() {
-        if (id == null) {
-            throw new IllegalStateException("This terminal has not be assigned an id yet. Call setId(int) first !");
-        }
-        return id;
-    }
-
     public NonTerminal() {
         this(null);
     }
@@ -41,6 +28,19 @@ public class NonTerminal implements Symbol {
     public static NonTerminal unMarshall(DataInput in) throws IOException {
         String name = in.readUTF();
         return new NonTerminal(name);
+    }
+
+    @Override
+    public int getId() {
+        if (id == null) {
+            throw new IllegalStateException("This terminal has not be assigned an id yet. Call setId(int) first !");
+        }
+        return id;
+    }
+
+    @Override
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getName() {

@@ -21,11 +21,6 @@ public class Node implements State {
     private Integer id = null;
 
     @Override
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    @Override
     public int getId() {
         if (id == null) {
             throw new IllegalStateException("Id has not been assigned. setId(int) must be called first");
@@ -33,6 +28,11 @@ public class Node implements State {
             return id;
         }
 
+    }
+
+    @Override
+    public void setId(int id) {
+        this.id = id;
     }
 
     @Override
@@ -57,13 +57,13 @@ public class Node implements State {
         return this.fallbackTransition;
     }
 
-    public void setFallbackTransition(net.jr.lexer.automaton.Transition fallbackTransition) {
-        this.fallbackTransition = fallbackTransition;
-    }
-
     @Override
     public net.jr.lexer.automaton.Transition getFallbackTransition() {
         return fallbackTransition;
+    }
+
+    public void setFallbackTransition(net.jr.lexer.automaton.Transition fallbackTransition) {
+        this.fallbackTransition = fallbackTransition;
     }
 
     public void disconnect() {
@@ -94,15 +94,15 @@ public class Node implements State {
 
     @Override
     public String toString() {
-        if(id==null){
+        if (id == null) {
             StringWriter sw = new StringWriter();
-            if(isFinalState()) {
+            if (isFinalState()) {
                 sw.append("{final}\n");
             }
-            for(net.jr.lexer.automaton.Transition incoming : incomingTransitions) {
+            for (net.jr.lexer.automaton.Transition incoming : incomingTransitions) {
                 sw.append("    incoming : " + incoming + "\n");
             }
-            for(net.jr.lexer.automaton.Transition outgoing : outgoingTransitions) {
+            for (net.jr.lexer.automaton.Transition outgoing : outgoingTransitions) {
                 sw.append("    outgoing : " + outgoing + "\n");
             }
             return sw.toString();

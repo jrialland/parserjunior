@@ -14,12 +14,12 @@ public class Expression {
         this.expr = expr;
     }
 
-    public void setExpr(String expr) {
-        this.expr = expr;
-    }
-
     public String getExpr() {
         return expr;
+    }
+
+    public void setExpr(String expr) {
+        this.expr = expr;
     }
 
     public Set<String> getRefs() {
@@ -33,11 +33,9 @@ public class Expression {
 
     public int compute(Map<String, Integer> knownValues) {
 
-        if(expr.matches("^-?[0-9]+$")) {
+        if (expr.matches("^-?[0-9]+$")) {
             return Integer.parseInt(expr);
-        }
-
-        else if(expr.startsWith("@") && knownValues.containsKey(expr.substring(1))){
+        } else if (expr.startsWith("@") && knownValues.containsKey(expr.substring(1))) {
             return knownValues.get(expr.substring(1));
         }
         throw new IllegalStateException();

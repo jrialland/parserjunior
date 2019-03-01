@@ -81,15 +81,15 @@ public class RegexAutomaton implements Automaton {
             for (net.jr.lexer.automaton.Transition _t : entry.getValue().getOutgoingTransitions()) {
                 Transition t = (Transition) _t;
                 String targetName = rev.get(t.getTarget());
-                String expr = ((CharConstraint)t.getConstraint()).getExpr();
+                String expr = ((CharConstraint) t.getConstraint()).getExpr();
                 pw.println(String.format("%s -> %s [ label = \"%s\" ];", nodeName, targetName, expr));
             }
 
             Transition fallback;
 
-            if((fallback = (Transition)entry.getValue().getFallbackTransition()) != null) {
+            if ((fallback = (Transition) entry.getValue().getFallbackTransition()) != null) {
                 String targetName = rev.get(fallback.getTarget());
-                String expr = ((CharConstraint)fallback.getConstraint()).getExpr();
+                String expr = ((CharConstraint) fallback.getConstraint()).getExpr();
                 pw.println(String.format("%s -> %s [ style=dashed, label = \"%s\" ];", nodeName, targetName, expr));
             }
 

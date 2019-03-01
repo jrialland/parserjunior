@@ -30,23 +30,6 @@ public class QuotedString extends TerminalImpl {
 
     }
 
-    protected void init(char startChar, char endChar, char escapeChar, char[] forbiddenChars) {
-        this.starChar = startChar;
-        this.endChar = endChar;
-        this.escapeChar = escapeChar;
-        this.forbiddenChars = forbiddenChars;
-        DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
-        DefaultAutomaton.Builder.BuilderState inString = builder.newNonFinalState();
-        DefaultAutomaton.Builder.BuilderState escaping = builder.newNonFinalState();
-        builder.initialState().when(eq(startChar)).goTo(inString);
-        inString.when(eq(escapeChar)).goTo(escaping);
-        inString.when(inList(forbiddenChars)).goTo(builder.failedState());
-        inString.when(not(eq(endChar))).goTo(inString);
-        escaping.when(any()).goTo(inString);
-        inString.when(eq(endChar)).goTo(builder.newFinalState());
-        this.automaton = builder.build();
-    }
-
     @SuppressWarnings("unused")
     public static QuotedString unMarshall(DataInput in) throws IOException {
         QuotedString q = TerminalImpl.unMarshall(new QuotedString(), in);
@@ -62,8 +45,25 @@ public class QuotedString extends TerminalImpl {
         for (int i = 0; i < forbiddenChars.length; i++) {
             forbiddenChars[i] = in.readChar();
         }
-        ((QuotedString)impl).init(starChar, endChar, escapeChar, forbiddenChars);
+        ((QuotedString) impl).init(starChar, endChar, escapeChar, forbiddenChars);
         return impl;
+    }
+
+    protected void init(char startChar, char endChar, char escapeChar, char[] forbiddenChars) {
+        this.starChar = startChar;
+        this.endChar = endChar;
+        this.escapeChar = escapeChar;
+        this.forbiddenChars = forbiddenChars;
+        DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
+        DefaultAutomaton.Builder.BuilderState inString = builder.newNonFinalState();
+        DefaultAutomaton.Builder.BuilderState escaping = builder.newNonFinalState();
+        builder.initialState().when(eq(startChar)).goTo(inString);
+        inString.when(eq(escapeChar)).goTo(escaping);
+        inString.when(inList(forbiddenChars)).goTo(builder.failedState());
+        inString.when(not(eq(endChar))).goTo(inString);
+        escaping.when(any()).goTo(inString);
+        inString.when(eq(endChar)).goTo(builder.newFinalState());
+        this.automaton = builder.build();
     }
 
     @Override

@@ -21,16 +21,16 @@ public class DateMacroDefinition extends NoArgsMacroDefinition {
 
     private String pattern;
 
+    private DateMacroDefinition(String name, String pattern) {
+        super(name);
+        this.pattern = pattern;
+    }
+
     public static Map<String, MacroDefinition> addDefinitions(Map<String, MacroDefinition> defs) {
         defs.put(TimeStamp, TimeStampDefinition);
         defs.put(Time, TimeDefinition);
         defs.put(Date, DateDefinition);
         return defs;
-    }
-
-    private DateMacroDefinition(String name, String pattern) {
-        super(name);
-        this.pattern = pattern;
     }
 
     public Date getDate() {

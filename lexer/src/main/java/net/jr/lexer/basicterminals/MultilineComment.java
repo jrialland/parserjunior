@@ -25,6 +25,14 @@ public class MultilineComment extends TerminalImpl {
         super();
     }
 
+    public static MultilineComment unMarshall(java.io.DataInput in) throws IOException {
+        MultilineComment m = TerminalImpl.unMarshall(new MultilineComment(), in);
+        String commentStart = in.readUTF();
+        String commentEnd = in.readUTF();
+        m.init(commentStart, commentEnd);
+        return m;
+    }
+
     private void init(String commentStart, String commentEnd) {
         this.commentStart = commentStart;
         this.commentEnd = commentEnd;
@@ -45,14 +53,6 @@ public class MultilineComment extends TerminalImpl {
             currentState = nextState;
         }
         setAutomaton(builder.build());
-    }
-
-    public static  MultilineComment  unMarshall(java.io.DataInput in) throws IOException {
-        MultilineComment m = TerminalImpl.unMarshall(new MultilineComment(), in);
-        String commentStart = in.readUTF();
-        String commentEnd = in.readUTF();
-        m.init(commentStart, commentEnd);
-        return m;
     }
 
     @Override

@@ -33,7 +33,7 @@ public class CGrammarTest {
     protected List<Token> testLex(String expr) {
         Lexer l = new CGrammar().createParser().getLexer();
         Iterator<Token> it = l.iterator(new StringReader(expr));
-        List<Token > tokens = new ArrayList<>();
+        List<Token> tokens = new ArrayList<>();
         while (it.hasNext()) {
             Token token = it.next();
             tokens.add(token);

@@ -22,7 +22,7 @@ public class Action implements MarshallingCapable {
         this.actionParameter = actionParameter;
     }
 
-    public static  Action  unMarshall(java.io.DataInput dataInputStream) throws IOException {
+    public static Action unMarshall(java.io.DataInput dataInputStream) throws IOException {
         ActionType actionType = ActionType.valueOf(dataInputStream.readUTF());
         int actionParameter = dataInputStream.readInt();
         return new Action(actionType, actionParameter);

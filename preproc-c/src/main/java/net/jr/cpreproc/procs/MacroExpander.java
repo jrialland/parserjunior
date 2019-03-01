@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 /**
  * Implements of the C preproc macro expansion algorithm as described in the ANSI memo "X3J11/86-196" (see docs/cpp.algo.pdf)
- *
  */
 public class MacroExpander {
 
@@ -23,30 +22,6 @@ public class MacroExpander {
     private static final List<T> EmptyTList = Collections.emptyList();
 
     private static final List<String> EmptyStringList = Collections.emptyList();
-
-    private static class T {
-
-        PreprocToken token;
-
-        Set<String> hideSet = new TreeSet<>();
-
-        T(PreprocToken token) {
-            this.token = token;
-        }
-
-        @Override
-        public String toString() {
-            return token.getText();
-        }
-
-        public Set<String> getHideSet() {
-            return hideSet;
-        }
-
-        public PreprocToken getToken() {
-            return token;
-        }
-    }
 
     public static PreprocessorLine expand(Map<String, MacroDefinition> macroDefs, PreprocessorLine line) {
         List<PreprocToken> tokens = PreprocLexer.tokenize(line.getText());
@@ -133,7 +108,6 @@ public class MacroExpander {
                     .collect(Collectors.toList());
         }
     }
-
 
     private static List<T> subst(Map<String, MacroDefinition> macroDefs, List<T> is, List<String> fp, List<T> ap, Set<String> hs, List<T> os) {
 
@@ -223,7 +197,6 @@ public class MacroExpander {
         return subst(macroDefs, isPrime, fp, ap, hs, os);
     }
 
-
     private static int getArgIndex(T t, List<String> args) {
         return args.indexOf(t.token.getText());
     }
@@ -243,12 +216,10 @@ public class MacroExpander {
         return def != null && !def.hasArgs();
     }
 
-
     private static boolean isWithArgsMacro(Map<String, MacroDefinition> macroDefs, T t) {
         MacroDefinition def = macroDefs.get(t.token.getText());
         return def != null && def.hasArgs();
     }
-
 
     private static List<T> skipWhiteSpace(List<T> ts) {
         int i = 0;
@@ -271,7 +242,6 @@ public class MacroExpander {
         }
         return list;
     }
-
 
     private static List<T> findActuals(List<T> tsPrime, WithArgsMacroDefinition definition) {
         List<T> params = new ArrayList<>();
@@ -313,7 +283,6 @@ public class MacroExpander {
         return params;
     }
 
-
     /**
      * Given a token sequence and an index i, select returns the i-th token sequence using the
      * comma tokens (not between nested parenthesis pairs) in the original token sequence as
@@ -341,7 +310,6 @@ public class MacroExpander {
         return new T(tok);
     }
 
-
     /**
      * Given a macro-name token, fp returns the (ordered) list of formal parameters from the
      * macro’s definition.
@@ -356,7 +324,6 @@ public class MacroExpander {
         return params;
     }
 
-
     private static boolean checkActuals(Map<String, MacroDefinition> macroDefs, T t, List<T> actuals) {
         WithArgsMacroDefinition def = (WithArgsMacroDefinition) macroDefs.get(t.token.getText());
         int argCount = def.getFormalParameters().size();
@@ -366,7 +333,6 @@ public class MacroExpander {
             return actuals.size() == argCount;
         }
     }
-
 
     /**
      * paste last of left side with first of right side
@@ -385,5 +351,29 @@ public class MacroExpander {
         List<T> gs = glue(lsPrime, rs);
         gs.add(0, l);
         return gs;
+    }
+
+    private static class T {
+
+        PreprocToken token;
+
+        Set<String> hideSet = new TreeSet<>();
+
+        T(PreprocToken token) {
+            this.token = token;
+        }
+
+        @Override
+        public String toString() {
+            return token.getText();
+        }
+
+        public Set<String> getHideSet() {
+            return hideSet;
+        }
+
+        public PreprocToken getToken() {
+            return token;
+        }
     }
 }

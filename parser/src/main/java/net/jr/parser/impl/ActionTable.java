@@ -189,10 +189,10 @@ public class ActionTable implements MarshallingCapable {
         //column labels
         int col = 1;
         for (Symbol term : terminals) {
-            tm.setData(col++, 0, StringUtil.ellipsis(term.toString(), 12, "\\u2026"));
+            tm.setData(col++, 0, StringUtil.ellipsis(term.toString(), 20, "\u2026"));
         }
         for (Symbol term : nonTerminals) {
-            tm.setData(col++, 0, StringUtil.ellipsis(term.toString(), 12, "\\u2026"));
+            tm.setData(col++, 0, StringUtil.ellipsis(term.toString(), 20, "\u2026"));
         }
 
         return new AsciiTableView(4, 100).tableToString(tm);

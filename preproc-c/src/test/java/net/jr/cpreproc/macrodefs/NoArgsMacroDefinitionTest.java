@@ -31,7 +31,7 @@ public class NoArgsMacroDefinitionTest {
     @Test
     public void testMulti() {
 
-        NoArgsMacroDefinition def = new NoArgsMacroDefinition("weird","}#|");
+        NoArgsMacroDefinition def = new NoArgsMacroDefinition("weird", "}#|");
         List<? extends Token> tokens = def.getReplacement(null);
 
         Assert.assertTrue(tokens.size() == 3);

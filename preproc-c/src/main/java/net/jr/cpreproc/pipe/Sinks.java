@@ -9,6 +9,10 @@ import java.util.function.Consumer;
 
 public class Sinks {
 
+    public static WriterSink writerSink(Writer writer) {
+        return new WriterSink(writer);
+    }
+
     public static class WriterSink implements Consumer<PreprocessorLine> {
 
         private Writer writer;
@@ -41,10 +45,6 @@ public class Sinks {
             this.addLineDirectives = addLineDirectives;
         }
 
-    }
-
-    public static WriterSink writerSink(Writer writer) {
-        return new WriterSink(writer);
     }
 
 }

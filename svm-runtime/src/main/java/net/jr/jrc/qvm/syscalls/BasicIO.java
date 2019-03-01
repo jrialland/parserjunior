@@ -25,7 +25,7 @@ public class BasicIO {
         int i = interpreter.getStack().popInt();
         try {
             out.write(i);
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return 0;
@@ -33,9 +33,9 @@ public class BasicIO {
 
     @QvmSyscall(2)
     public int getc(QvmInterpreter interpreter) {
-        try  {
+        try {
             return in.read();
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

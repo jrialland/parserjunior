@@ -34,14 +34,14 @@ public class IndentWriter extends Writer {
         indentPrefix = indentPrefix.substring(0, indentPrefix.length() - indentStr.length());
     }
 
+    public int getIndentationLevel() {
+        return indentationLevel;
+    }
+
     public void setIndentationLevel(int i) {
         Assert.isTrue(i >= 0);
         indentationLevel = i;
         indentPrefix = StringUtil.repeatTimes(indentStr, i);
-    }
-
-    public int getIndentationLevel() {
-        return indentationLevel;
     }
 
     public String getIndentation() {

@@ -1,4 +1,3 @@
-
 package net.jr.jrc.qvm;
 
 import java.io.IOException;
@@ -8,6 +7,85 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class QvmInstruction {
+
+    private OpCode opcode;
+    private int parameter;
+
+    public QvmInstruction(OpCode opcode) {
+        this.opcode = opcode;
+    }
+
+    public QvmInstruction(OpCode opcode, int parameter) {
+        this(opcode);
+        this.parameter = parameter;
+    }
+
+    public static QvmInstruction read(InputStream is) throws IOException {
+        OpCode opcode = OpCode.byVal(is.read());
+        int param;
+        switch (opcode.getParameterSize()) {
+            case 1:
+                param = is.read();
+                break;
+            case 4:
+                param = Endian.read4Le(is);
+                break;
+            default:
+                throw new UnsupportedOperationException();
+        }
+        return new QvmInstruction(opcode, param);
+    }
+
+    public OpCode getOpcode() {
+        return opcode;
+    }
+
+    public int getParameter() {
+        return parameter;
+    }
+
+    public void setParameter(int parameter) {
+        this.parameter = parameter;
+    }
+
+    public long getParameterUInt() {
+        return parameter & 0X00000000FFFFFFFFL;
+    }
+
+    public void setParameterUInt(long parameterUInt) {
+        setParameter((int) (parameterUInt & 0X00000000FFFFFFFFL));
+    }
+
+    public float getParameterFloat() {
+        return Float.intBitsToFloat(parameter);
+    }
+
+    public void setParameterFloat(float parameterFloat) {
+        setParameter(Float.floatToRawIntBits(parameterFloat));
+    }
+
+    public int getSize() {
+        return 1 + opcode.getParameterSize();
+    }
+
+    public void write(OutputStream os) throws IOException {
+        os.write(opcode.getCode());
+        if (opcode.getParameterSize() == 1) {
+            os.write(getParameter());
+        } else if (opcode.getParameterSize() == 4) {
+            Endian.write4Le(getParameter(), os);
+        }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(opcode.name());
+        if (opcode.getParameterSize() > 0) {
+            sb.append(" ");
+            sb.append(Integer.toString(parameter));
+        }
+        return sb.toString();
+    }
 
     public enum ParameterType {
         None(0),
@@ -109,6 +187,10 @@ public class QvmInstruction {
             this.description = description;
         }
 
+        public static OpCode byVal(int val) {
+            return BYVAL.get(val);
+        }
+
         public int getParameterSize() {
             return parameterType.size();
         }
@@ -120,89 +202,5 @@ public class QvmInstruction {
         public String getDescription() {
             return description;
         }
-
-        public static OpCode byVal(int val) {
-            return BYVAL.get(val);
-        }
-    }
-
-    private OpCode opcode;
-
-    private int parameter;
-
-    public QvmInstruction(OpCode opcode) {
-        this.opcode = opcode;
-    }
-
-    public QvmInstruction(OpCode opcode, int parameter) {
-        this(opcode);
-        this.parameter = parameter;
-    }
-
-    public OpCode getOpcode() {
-        return opcode;
-    }
-
-    public int getParameter() {
-        return parameter;
-    }
-
-    public long getParameterUInt() {
-        return parameter & 0X00000000FFFFFFFFL;
-    }
-
-    public float getParameterFloat() {
-        return Float.intBitsToFloat(parameter);
-    }
-
-    public void setParameter(int parameter) {
-        this.parameter = parameter;
-    }
-
-    public void setParameterFloat(float parameterFloat) {
-        setParameter(Float.floatToRawIntBits(parameterFloat));
-    }
-
-    public void setParameterUInt(long parameterUInt) {
-        setParameter((int) (parameterUInt & 0X00000000FFFFFFFFL));
-    }
-
-    public int getSize() {
-        return 1 + opcode.getParameterSize();
-    }
-
-    public void write(OutputStream os) throws IOException {
-        os.write(opcode.getCode());
-        if (opcode.getParameterSize() == 1) {
-            os.write(getParameter());
-        } else if (opcode.getParameterSize() == 4) {
-            Endian.write4Le(getParameter(), os);
-        }
-    }
-
-    public static QvmInstruction read(InputStream is) throws IOException {
-        OpCode opcode = OpCode.byVal(is.read());
-        int param;
-        switch (opcode.getParameterSize()) {
-            case 1:
-                param = is.read();
-                break;
-            case 4:
-                param = Endian.read4Le(is);
-                break;
-            default:
-                throw new UnsupportedOperationException();
-        }
-        return new QvmInstruction(opcode, param);
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder(opcode.name());
-        if (opcode.getParameterSize() > 0) {
-            sb.append(" ");
-            sb.append(Integer.toString(parameter));
-        }
-        return sb.toString();
     }
 }

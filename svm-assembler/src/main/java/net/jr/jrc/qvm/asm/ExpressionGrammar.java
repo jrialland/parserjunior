@@ -20,7 +20,7 @@ public class ExpressionGrammar extends Grammar {
 
     private static Terminal At = Lexemes.singleChar('@');
 
-    private static Terminal Identifier = new Word(Lexemes.Alpha+"_.$", Lexemes.AlphaNum + "_.$");
+    private static Terminal Identifier = new Word(Lexemes.Alpha + "_.$", Lexemes.AlphaNum + "_.$");
 
     private static Terminal Minus = Lexemes.singleChar('-');
 
@@ -28,7 +28,7 @@ public class ExpressionGrammar extends Grammar {
 
     private static Terminal Float = Lexemes.cFloatingPoint();
 
-    private static ExpressionGrammar instance =  new ExpressionGrammar();
+    private static ExpressionGrammar instance = new ExpressionGrammar();
 
     private Parser parser;
 

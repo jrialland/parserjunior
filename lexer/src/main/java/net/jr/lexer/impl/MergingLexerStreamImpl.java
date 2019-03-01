@@ -5,8 +5,6 @@ import net.jr.lexer.*;
 import net.jr.lexer.automaton.Automaton;
 import net.jr.lexer.automaton.State;
 import net.jr.lexer.automaton.Transition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PushbackReader;
@@ -34,25 +32,14 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
 
     private StringWriter matched = new StringWriter();
 
-    private void reAssignIds(State<Character> initial) {
-        AtomicInteger idCounter = new AtomicInteger(0);
-        StatesVisitor.visit(initial, (state) -> {
-            int id = idCounter.getAndIncrement();
-            if (state.isFinalState()) {
-                id = -1 * id;
-            }
-            state.setId(id);
-        });
-    }
-
     public MergingLexerStreamImpl(Lexer lexer, List<Automaton> automatons, Function<Token, Token> tokenListener, Reader reader) {
         super(lexer, tokenListener, reader);
 
         initial = new StateImpl(0);
         for (Automaton a : automatons) {
             State s = a.getInitialState();
-            initial.setFallbackTransition(s.getFallbackTransition());
             if (s != null) {
+                initial.setFallbackTransition(s.getFallbackTransition());
                 initial.getOutgoingTransitions().addAll(s.getOutgoingTransitions());
                 if (s.isFinalState()) {
                     initial.setTerminal(s.getTerminal());
@@ -65,6 +52,17 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
         activeStates.add(initial);
         startPosition = Position.start();
         position = startPosition;
+    }
+
+    private void reAssignIds(State<Character> initial) {
+        AtomicInteger idCounter = new AtomicInteger(0);
+        StatesVisitor.visit(initial, (state) -> {
+            int id = idCounter.getAndIncrement();
+            if (state.isFinalState()) {
+                id = -1 * id;
+            }
+            state.setId(id);
+        });
     }
 
     private void emitToken(Consumer<Token> callback, Token token) {
@@ -109,11 +107,11 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
                 }
             }
 
-            if(candidate == null) {
-                if(activeStates.iterator().next() != initial) {
+            if (candidate == null) {
+                if (activeStates.iterator().next() != initial) {
                     throw new LexicalError(c, position);
                 }
-            } else if(!candidate.getText().isEmpty()){
+            } else if (!candidate.getText().isEmpty()) {
                 emit(pushbackReader, c, callback);
             }
             emitEof(callback);
@@ -178,6 +176,10 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
         return true;
     }
 
+    public State<Character> getInitialState() {
+        return initial;
+    }
+
     class StateImpl implements State<Character> {
 
         private Set<Transition<Character>> outgoingTransitions = new HashSet<>();
@@ -188,9 +190,8 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
 
         private Transition<Character> fallbackTransition;
 
-        @Override
-        public void setId(int id) {
-            this.id = id;
+        public StateImpl(int id) {
+            setId(id);
         }
 
         @Override
@@ -198,8 +199,9 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
             return id;
         }
 
-        public StateImpl(int id) {
-            setId(id);
+        @Override
+        public void setId(int id) {
+            this.id = id;
         }
 
         @Override
@@ -221,17 +223,13 @@ public class MergingLexerStreamImpl extends AbstractLexerStream {
             this.terminal = terminal;
         }
 
-        public void setFallbackTransition(Transition<Character> fallbackTransition) {
-            this.fallbackTransition = fallbackTransition;
-        }
-
         @Override
         public Transition<Character> getFallbackTransition() {
             return fallbackTransition;
         }
-    }
 
-    public State<Character> getInitialState() {
-        return initial;
+        public void setFallbackTransition(Transition<Character> fallbackTransition) {
+            this.fallbackTransition = fallbackTransition;
+        }
     }
 }

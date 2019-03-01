@@ -8,7 +8,7 @@ script: mvn test cobertura:cobertura
 
 cache:
   directories:
-- $HOME/.m2
+  - $HOME/.m2
 
 after_success:
 - bash <(curl -s https://codecov.io/bash)

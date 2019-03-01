@@ -37,15 +37,13 @@ public class Lexemes {
     private static final Terminal Eof = artificial("ᵉᵒᶠ");
 
     private static final Terminal Empty = artificial("ε");
+    private static Map<Character, SingleChar> SingleChars = new TreeMap<>();
+    private static Map<String, Literal> Literals = new TreeMap<>();
 
     static {
         Eof.setId(-1);
         Empty.setId(-2);
     }
-
-    private static Map<Character, SingleChar> SingleChars = new TreeMap<>();
-
-    private static Map<String, Literal> Literals = new TreeMap<>();
 
     /**
      * returns a new lexeme that matches nothing, ie a lexeme that will never be encountered.

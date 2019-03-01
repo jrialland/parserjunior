@@ -31,6 +31,15 @@ public class Word extends TerminalImpl {
         init(possibleFirstChar, possibleNextChars);
     }
 
+    @SuppressWarnings("unused")
+    public static Word unMarshall(java.io.DataInput dataInputStream) throws IOException {
+        Word w = TerminalImpl.unMarshall(new Word(), dataInputStream);
+        String possibleFirstChar = dataInputStream.readUTF();
+        String possibleNextChars = dataInputStream.readUTF();
+        w.init(possibleFirstChar, possibleNextChars);
+        return w;
+    }
+
     private void init(String possibleFirstChar, String possibleNextChars) {
         this.possibleFirstChar = possibleFirstChar;
         this.possibleNextChars = possibleNextChars;
@@ -51,15 +60,6 @@ public class Word extends TerminalImpl {
         if (priority == null) {
             setPriority(1);
         }
-    }
-
-    @SuppressWarnings("unused")
-    public static Word unMarshall(java.io.DataInput dataInputStream) throws IOException {
-        Word w = TerminalImpl.unMarshall(new Word(), dataInputStream);
-        String possibleFirstChar = dataInputStream.readUTF();
-        String possibleNextChars = dataInputStream.readUTF();
-        w.init(possibleFirstChar, possibleNextChars);
-        return w;
     }
 
     @Override

@@ -21,7 +21,7 @@ public class DateMacroDefinitionTest {
     static {
         try {
             TEST_DATE = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse("2018-09-30 10:37:42");
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

@@ -6,6 +6,37 @@ import java.nio.channels.FileChannel;
 public final class IOUtil {
 
     private static final int DEFAULT_BUF_SIZE = 4096;
+    private static final OutputStream NULL_OUTPUT_STREAM = new OutputStream() {
+        @Override
+        public void write(int i) throws IOException {
+
+        }
+
+        @Override
+        public void write(byte[] bytes) throws IOException {
+            super.write(bytes);
+        }
+
+        @Override
+        public void write(byte[] bytes, int i, int i1) throws IOException {
+        }
+    };
+    private static final Writer NULL_WRITER = new Writer() {
+        @Override
+        public void write(char[] chars, int i, int i1) throws IOException {
+
+        }
+
+        @Override
+        public void flush() throws IOException {
+
+        }
+
+        @Override
+        public void close() throws IOException {
+
+        }
+    };
 
     public static InputStream readResource(String path) {
         return IOUtil.class.getClassLoader().getResourceAsStream(path);
@@ -64,43 +95,9 @@ public final class IOUtil {
         }
     }
 
-    private static final OutputStream NULL_OUTPUT_STREAM = new OutputStream() {
-        @Override
-        public void write(int i) throws IOException {
-
-        }
-
-        @Override
-        public void write(byte[] bytes) throws IOException {
-            super.write(bytes);
-        }
-
-        @Override
-        public void write(byte[] bytes, int i, int i1) throws IOException {
-        }
-    };
-
-
     public static OutputStream devNullOutputStream() {
         return NULL_OUTPUT_STREAM;
     }
-
-    private static final Writer NULL_WRITER = new Writer() {
-        @Override
-        public void write(char[] chars, int i, int i1) throws IOException {
-
-        }
-
-        @Override
-        public void flush() throws IOException {
-
-        }
-
-        @Override
-        public void close() throws IOException {
-
-        }
-    };
 
     public static Writer devNull() {
         return NULL_WRITER;

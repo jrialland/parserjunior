@@ -48,8 +48,8 @@ public interface AstNode {
 
     default List<AstNode> getDescendants() {
         List<AstNode> descendants = new ArrayList<>();
-        for(AstNode child : getChildren()) {
-            if(child.getChildren().isEmpty()) {
+        for (AstNode child : getChildren()) {
+            if (child.getChildren().isEmpty()) {
                 descendants.add(child);
             } else {
                 descendants.addAll(child.getDescendants());

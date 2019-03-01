@@ -5,7 +5,6 @@ import net.jr.lexer.automaton.DefaultAutomaton;
 import net.jr.lexer.impl.CharConstraint;
 import net.jr.lexer.impl.TerminalImpl;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 
 public class CHexNumber extends TerminalImpl {
@@ -31,7 +30,7 @@ public class CHexNumber extends TerminalImpl {
         setAutomaton(builder.build());
     }
 
-    public static  CHexNumber  unMarshall(java.io.DataInput in) throws IOException {
+    public static CHexNumber unMarshall(java.io.DataInput in) throws IOException {
         return TerminalImpl.unMarshall(new CHexNumber(), in);
     }
 

@@ -4,8 +4,6 @@ import net.jr.lexer.Lexemes;
 import net.jr.lexer.automaton.DefaultAutomaton;
 import net.jr.lexer.impl.TerminalImpl;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 import static net.jr.lexer.impl.CharConstraint.Builder.*;
@@ -40,7 +38,7 @@ public class CInteger extends TerminalImpl {
         suffixL.when(or(eq('U'), eq('u'))).goTo(finalState);
     }
 
-    public static  CInteger  unMarshall(java.io.DataInput in) throws IOException {
+    public static CInteger unMarshall(java.io.DataInput in) throws IOException {
         return TerminalImpl.unMarshall(new CInteger(), in);
     }
 

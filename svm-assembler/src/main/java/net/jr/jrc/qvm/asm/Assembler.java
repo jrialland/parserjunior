@@ -16,72 +16,21 @@ import java.util.stream.Collectors;
 
 class Assembler {
 
-    enum Section {
-        Bss,
-        Data,
-        Code,
-        Lit;
-
-        static Section fromName(String name) {
-            name = name.trim();
-            for (Section s : values()) {
-                if (name.equalsIgnoreCase(s.name())) {
-                    return s;
-                }
-            }
-            return null;
-        }
-    }
-
-    private static class Addr {
-        String name;
-        int offset;
-        boolean isCode;
-
-        @Override
-        public String toString() {
-            return name + " = " + offset + "(isCode:" + isCode + ")";
-        }
-    }
-
-    private static class Instr {
-        QvmInstruction.OpCode opcode;
-        int offset;
-        boolean resolved = false;
-        int parameter;
-
-        public Instr(int offset, QvmInstruction.OpCode opcode) {
-            this.offset = offset;
-            this.opcode = opcode;
-        }
-
-        @Override
-        public String toString() {
-            return super.toString();
-        }
-    }
-
     private static Pattern reservePatten = Pattern.compile("reserve ([0-9]+)");
-
-    private Section currentSection = null;
-
     Function<String, Void> currentReader = (s) -> {
         throw new IllegalStateException("no section specified");
     };
-
+    private Section currentSection = null;
     private Map<Section, Integer> offsets = new HashMap<>();
-
     private Map<String, Addr> addrs = new HashMap<>();
-
     private List<Instr> instrs = new ArrayList<>();
-
     private List<Function<String, Boolean>> resolutionListeners = new ArrayList<>();
 
     public Assembler() {
         for (Section s : Section.values()) {
             offsets.put(s, 0);
         }
-        offsets.put(Section.Code, (int)QvmInterpreter.CODE_START_ADDR);
+        offsets.put(Section.Code, (int) QvmInterpreter.CODE_START_ADDR);
     }
 
     public QvmFile assemble(Reader reader) throws IOException {
@@ -154,7 +103,7 @@ class Assembler {
             }
             readInstrParameter(instr, parts[1]);
         } else {
-            if(parts.length > 1) {
+            if (parts.length > 1) {
                 throw new IllegalArgumentException(opcode.name() + " does not take parameters");
             }
             instr.resolved = true;
@@ -243,6 +192,51 @@ class Assembler {
                     return null;
                 };
                 break;
+        }
+    }
+
+    enum Section {
+        Bss,
+        Data,
+        Code,
+        Lit;
+
+        static Section fromName(String name) {
+            name = name.trim();
+            for (Section s : values()) {
+                if (name.equalsIgnoreCase(s.name())) {
+                    return s;
+                }
+            }
+            return null;
+        }
+    }
+
+    private static class Addr {
+        String name;
+        int offset;
+        boolean isCode;
+
+        @Override
+        public String toString() {
+            return name + " = " + offset + "(isCode:" + isCode + ")";
+        }
+    }
+
+    private static class Instr {
+        QvmInstruction.OpCode opcode;
+        int offset;
+        boolean resolved = false;
+        int parameter;
+
+        public Instr(int offset, QvmInstruction.OpCode opcode) {
+            this.offset = offset;
+            this.opcode = opcode;
+        }
+
+        @Override
+        public String toString() {
+            return super.toString();
         }
     }
 

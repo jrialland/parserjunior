@@ -17,7 +17,9 @@ package net.jr.util;
 
 import net.jr.collection.CollectionsUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author jrialland
@@ -25,7 +27,7 @@ import java.util.*;
 public class Rle {
 
     public static Collection<Integer> encode(Collection<Integer> coll) {
-        int[] encoded = encode(coll.stream().mapToInt(i->i).toArray());
+        int[] encoded = encode(coll.stream().mapToInt(i -> i).toArray());
         return CollectionsUtil.fromArray(encoded);
     }
 

@@ -5,7 +5,6 @@ import net.jr.lexer.automaton.DefaultAutomaton;
 import net.jr.lexer.impl.CharConstraint;
 import net.jr.lexer.impl.TerminalImpl;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 
 public class CCharacter extends TerminalImpl {
@@ -60,7 +59,7 @@ public class CCharacter extends TerminalImpl {
         return current;
     }
 
-    public static  CCharacter  unMarshall(java.io.DataInput in) throws IOException {
+    public static CCharacter unMarshall(java.io.DataInput in) throws IOException {
         return TerminalImpl.unMarshall(new CCharacter(), in);
     }
 

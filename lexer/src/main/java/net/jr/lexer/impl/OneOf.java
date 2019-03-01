@@ -18,14 +18,6 @@ public class OneOf extends TerminalImpl {
         setName(String.format("OneOf('%s')", chars));
     }
 
-    private void init(final String chars) {
-        this.chars = chars;
-        DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
-        DefaultAutomaton.Builder.BuilderState initialState = builder.initialState();
-        initialState.when(CharConstraint.Builder.inList(chars)).goTo(builder.newFinalState());
-        setAutomaton(builder.build());
-    }
-
     private OneOf() {
         super();
     }
@@ -35,6 +27,14 @@ public class OneOf extends TerminalImpl {
         OneOf o = TerminalImpl.unMarshall(new OneOf(), in);
         o.init(in.readUTF());
         return o;
+    }
+
+    private void init(final String chars) {
+        this.chars = chars;
+        DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
+        DefaultAutomaton.Builder.BuilderState initialState = builder.initialState();
+        initialState.when(CharConstraint.Builder.inList(chars)).goTo(builder.newFinalState());
+        setAutomaton(builder.build());
     }
 
     @Override

@@ -1,4 +1,3 @@
-
 package net.jr.jrc.qvm;
 
 import net.jr.io.HexdumpOutputStream;
@@ -17,10 +16,8 @@ import java.util.concurrent.Callable;
 
 public class QvmInterpreter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(QvmInterpreter.class);
-
     public static final long CODE_START_ADDR = 0x2DL;
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(QvmInterpreter.class);
     private PagedMemory memory;
 
     private QvmStack stack;
@@ -35,11 +32,6 @@ public class QvmInterpreter {
         }
         memory = new PagedMemory();
         stack = new QvmStack(memory);
-    }
-
-    private static class Registers {
-
-        long ap, lp, fp, pc;
     }
 
     private void prepareSyscalls(Object sys) {
@@ -588,5 +580,10 @@ public class QvmInterpreter {
 
     public QvmStack getStack() {
         return stack;
+    }
+
+    private static class Registers {
+
+        long ap, lp, fp, pc;
     }
 }

@@ -3,8 +3,6 @@ package net.jr.lexer.basicterminals;
 import net.jr.lexer.automaton.DefaultAutomaton;
 import net.jr.lexer.impl.TerminalImpl;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 import static net.jr.lexer.impl.CharConstraint.Builder.eq;
@@ -24,7 +22,7 @@ public class NewLine extends TerminalImpl {
     }
 
     @SuppressWarnings("unused")
-    public static  NewLine  unMarshall(java.io.DataInput in) throws IOException {
+    public static NewLine unMarshall(java.io.DataInput in) throws IOException {
         return TerminalImpl.unMarshall(new NewLine(), in);
     }
 

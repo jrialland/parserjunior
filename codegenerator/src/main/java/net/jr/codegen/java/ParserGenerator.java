@@ -37,10 +37,6 @@ public class ParserGenerator {
         this.packageName = packageName;
     }
 
-    interface FileCallback {
-        void withWriter(IndentPrintWriter pw);
-    }
-
     private void withFile(String filename, FileCallback cb) {
         IndentPrintWriter pw = new IndentPrintWriter(new PrintWriter(System.out));
         cb.withWriter(pw);
@@ -100,8 +96,12 @@ public class ParserGenerator {
     }
 
     private String asExpression(Transition<Character> transition) {
-        CharConstraint charConstraint = (CharConstraint)transition.getConstraint();
+        CharConstraint charConstraint = (CharConstraint) transition.getConstraint();
         return charConstraint.getExpr();
+    }
+
+    interface FileCallback {
+        void withWriter(IndentPrintWriter pw);
     }
 
 }

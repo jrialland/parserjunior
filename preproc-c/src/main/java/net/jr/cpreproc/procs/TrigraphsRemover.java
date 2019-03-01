@@ -1,8 +1,6 @@
 package net.jr.cpreproc.procs;
 
 
-
-
 import net.jr.collection.CollectionsUtil;
 import net.jr.common.Position;
 import net.jr.pipes.PipeableProcessor;
@@ -41,11 +39,11 @@ public class TrigraphsRemover extends PipeableProcessor<String, PreprocessorLine
     public void generate(String s, Consumer<PreprocessorLine> out) {
         line++;
         PreprocessorLine pLine = new PreprocessorLine(new Position(line, 1), s);
-        for(Map.Entry<String, String> entry : allSymbols.entrySet()) {
+        for (Map.Entry<String, String> entry : allSymbols.entrySet()) {
             String symbol = entry.getKey();
             String replacement = entry.getValue();
             int i;
-            while((i = s.indexOf(symbol)) != -1) {
+            while ((i = s.indexOf(symbol)) != -1) {
                 pLine.removeChars(i, symbol.length());
                 pLine.insert(i, replacement);
                 s = pLine.getText();

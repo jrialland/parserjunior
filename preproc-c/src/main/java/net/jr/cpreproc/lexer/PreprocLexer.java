@@ -11,15 +11,6 @@ import java.util.function.Consumer;
 public class PreprocLexer {
 
 
-    private enum State {
-        Default,
-        StringLiteral,
-        StringEscape,
-        WhiteSpace,
-        Identifier,
-        SharpOperator
-    }
-
     public static List<PreprocToken> tokenize(String txt) {
         return tokenize(new PreprocessorLine(Position.start(), txt));
     }
@@ -175,6 +166,15 @@ public class PreprocLexer {
 
     private static boolean isIdentifierChar(char c) {
         return isIdentifierStart(c) || (c >= '0' && c <= '9');
+    }
+
+    private enum State {
+        Default,
+        StringLiteral,
+        StringEscape,
+        WhiteSpace,
+        Identifier,
+        SharpOperator
     }
 
 }

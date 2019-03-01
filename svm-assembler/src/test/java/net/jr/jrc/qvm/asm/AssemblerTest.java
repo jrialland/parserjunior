@@ -39,6 +39,7 @@ public class AssemblerTest {
 
     /**
      * Assemble and run the fibonacci example from fibo.qvm, test if it gives correct results
+     *
      * @throws Exception
      */
     @Test

@@ -51,7 +51,7 @@ public class CFloatingPoint extends TerminalImpl {
         return finalState;
     }
 
-    public static  CFloatingPoint  unMarshall(java.io.DataInput in) throws IOException {
+    public static CFloatingPoint unMarshall(java.io.DataInput in) throws IOException {
         return TerminalImpl.unMarshall(new CFloatingPoint(), in);
     }
 

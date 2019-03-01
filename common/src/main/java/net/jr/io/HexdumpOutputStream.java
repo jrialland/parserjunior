@@ -30,6 +30,34 @@ public class HexdumpOutputStream extends OutputStream {
         this.addr = startAddr - (startAddr % 16);
     }
 
+    public static String asHexDump(byte[] b) {
+        try {
+            return readFully(new ByteArrayInputStream(b));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String asHexDump(String s) {
+        try {
+            return readFully(new ByteArrayInputStream(s.getBytes()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String readFully(InputStream is) throws IOException {
+        return readFully(is, 0);
+    }
+
+    public static String readFully(InputStream is, long offset) throws IOException {
+        ByteArrayOutputStream tmp = new ByteArrayOutputStream();
+        HexdumpOutputStream hd = new HexdumpOutputStream(tmp, offset);
+        IOUtil.copy(is, hd);
+        hd.close();
+        return tmp.toString();
+    }
+
     @Override
     public void write(int b) throws IOException {
         for (int i = 0, max = (int) (startAddr - addr); i < max; i++) {
@@ -89,33 +117,5 @@ public class HexdumpOutputStream extends OutputStream {
     @Override
     public void flush() throws IOException {
         wrapped.flush();
-    }
-
-    public static String asHexDump(byte[] b) {
-        try {
-            return readFully(new ByteArrayInputStream(b));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static String asHexDump(String s) {
-        try {
-            return readFully(new ByteArrayInputStream(s.getBytes()));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static String readFully(InputStream is) throws IOException {
-        return readFully(is, 0);
-    }
-
-    public static String readFully(InputStream is, long offset) throws IOException {
-        ByteArrayOutputStream tmp = new ByteArrayOutputStream();
-        HexdumpOutputStream hd = new HexdumpOutputStream(tmp, offset);
-        IOUtil.copy(is, hd);
-        hd.close();
-        return tmp.toString();
     }
 }

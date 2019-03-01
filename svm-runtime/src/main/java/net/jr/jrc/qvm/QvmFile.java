@@ -45,45 +45,13 @@ public class QvmFile {
 
     private byte[] lit = new byte[]{};
 
-    public QvmFile(){
+    public QvmFile() {
         super();
-    }
-
-    public void setBssLen(int bssLen) {
-        this.bssLen = bssLen;
-    }
-
-    public int getBssLen() {
-        return bssLen;
-    }
-
-    public void setData(List<Integer> data) {
-        this.data = data;
-    }
-
-    public List<Integer> getData() {
-        return data;
-    }
-
-    public void setInstructions(List<QvmInstruction> instructions) {
-        this.instructions = instructions;
-    }
-
-    public List<QvmInstruction> getInstructions() {
-        return instructions;
-    }
-
-    public void setLit(byte[] lit) {
-        this.lit = lit;
-    }
-
-    public byte[] getLit() {
-        return lit;
     }
 
     public static QvmFile read(InputStream is) throws IOException {
         byte[] fileMagic = new byte[4];
-        if(is.read(fileMagic) != 4) {
+        if (is.read(fileMagic) != 4) {
             throw new IOException("read error");
         }
         if (!Arrays.equals(fileMagic, MAGIC)) {
@@ -93,7 +61,8 @@ public class QvmFile {
         QvmFile qvm = new QvmFile();
 
         //instructions count
-        /*int instuctionsCount =*/ Endian.read4Le(is);
+        /*int instuctionsCount =*/
+        Endian.read4Le(is);
         int codeLen = Endian.read4Le(is);
         int dataLen = Endian.read4Le(is);
         int dataOffset = Endian.read4Le(is);
@@ -118,11 +87,11 @@ public class QvmFile {
         }
 
         //realign on 4bytes if necessary
-        offset += (int) is.skip(offset % 4==0?0:4-offset%4);
+        offset += (int) is.skip(offset % 4 == 0 ? 0 : 4 - offset % 4);
 
         //data segment
         offset += (int) is.skip(Math.max(0, dataOffset - offset));
-        int s = dataLen/4;
+        int s = dataLen / 4;
         qvm.data = new ArrayList<>(s);
         for (int i = 0; i < s; i++) {
             qvm.data.add(Endian.read4Le(is));
@@ -140,6 +109,38 @@ public class QvmFile {
         return qvm;
     }
 
+    public int getBssLen() {
+        return bssLen;
+    }
+
+    public void setBssLen(int bssLen) {
+        this.bssLen = bssLen;
+    }
+
+    public List<Integer> getData() {
+        return data;
+    }
+
+    public void setData(List<Integer> data) {
+        this.data = data;
+    }
+
+    public List<QvmInstruction> getInstructions() {
+        return instructions;
+    }
+
+    public void setInstructions(List<QvmInstruction> instructions) {
+        this.instructions = instructions;
+    }
+
+    public byte[] getLit() {
+        return lit;
+    }
+
+    public void setLit(byte[] lit) {
+        this.lit = lit;
+    }
+
     public int write(OutputStream os) throws IOException {
         int offset = 0;
         //magic
@@ -153,7 +154,7 @@ public class QvmFile {
         //length of CODE segment
         int codeLen = instructions.stream().map(i -> 1 + i.getOpcode().getParameterSize()).collect(Collectors.summingInt(Integer::intValue));
         //align on 4 bytes
-        codeLen += codeLen % 4==0?0:4-codeLen%4;
+        codeLen += codeLen % 4 == 0 ? 0 : 4 - codeLen % 4;
         Endian.write4Le(codeLen, os);
         offset += 4;
 

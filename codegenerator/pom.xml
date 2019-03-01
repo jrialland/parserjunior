@@ -15,7 +15,7 @@
     <packaging>jar</packaging>
 
     <dependencies>
-        
+
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>parserjunior-grammar-c</artifactId>

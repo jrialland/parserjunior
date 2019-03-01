@@ -44,10 +44,6 @@ public class Lexer {
 
     }
 
-    public List<Terminal> getTokenTypes() {
-        return automatons.stream().map(a -> a.getTokenType()).collect(Collectors.toList());
-    }
-
     /**
      * Creates a new {@link Lexer} that can recognize the passed Lexemes
      *
@@ -74,6 +70,10 @@ public class Lexer {
         return new Lexer(tokenTypes);
     }
 
+    public List<Terminal> getTokenTypes() {
+        return automatons.stream().map(a -> a.getTokenType()).collect(Collectors.toList());
+    }
+
     /**
      * gets the associated {@link TokenListener}.
      * <p>
@@ -96,6 +96,7 @@ public class Lexer {
 
     /**
      * Make this lexer ignore whitespaces
+     *
      * @return
      */
     public Lexer ignoringWhiteSpaces() {
@@ -109,37 +110,6 @@ public class Lexer {
      */
     public Lexer ignoringNls() {
         return setFilteredOut(Lexemes.newLine());
-    }
-
-    /**
-     * Adds a token type to the list of the 'filtered out' tokens, I.e. the tokens type that are recognized, but not put in the list of recognized tokens.
-     *
-     * @param tokenType
-     */
-    public Lexer setFilteredOut(Terminal tokenType) {
-
-        if (tokenType == null) {
-            throw new IllegalArgumentException();
-        }
-
-        if (tokenType.equals(Lexemes.eof())) {
-            filteredOut.add(tokenType);
-            return this;
-        }
-
-        for (Automaton a : automatons) {
-            if (a.getTokenType().equals(tokenType)) {
-                filteredOut.add(tokenType);
-                return this;
-            }
-        }
-
-        tokenType.setId(maxId++);
-        Automaton added = ((TerminalImpl) tokenType).getAutomaton();
-        automatons.add(added);
-        filteredOut.add(tokenType);
-
-        return this;
     }
 
     /**
@@ -197,5 +167,36 @@ public class Lexer {
 
     public Set<Terminal> getFilteredOut() {
         return Collections.unmodifiableSet(filteredOut);
+    }
+
+    /**
+     * Adds a token type to the list of the 'filtered out' tokens, I.e. the tokens type that are recognized, but not put in the list of recognized tokens.
+     *
+     * @param tokenType
+     */
+    public Lexer setFilteredOut(Terminal tokenType) {
+
+        if (tokenType == null) {
+            throw new IllegalArgumentException();
+        }
+
+        if (tokenType.equals(Lexemes.eof())) {
+            filteredOut.add(tokenType);
+            return this;
+        }
+
+        for (Automaton a : automatons) {
+            if (a.getTokenType().equals(tokenType)) {
+                filteredOut.add(tokenType);
+                return this;
+            }
+        }
+
+        tokenType.setId(maxId++);
+        Automaton added = ((TerminalImpl) tokenType).getAutomaton();
+        automatons.add(added);
+        filteredOut.add(tokenType);
+
+        return this;
     }
 }

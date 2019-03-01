@@ -44,9 +44,15 @@ public class DefaultAutomaton implements Automaton {
 
         private Integer id;
 
-        @Override
-        public void setId(int id) {
-            this.id = id;
+        private StateImpl(Set<Transition> transitions, boolean finalState, Terminal terminal) {
+            this.outgoingTransitions = transitions;
+            this.finalState = finalState;
+            this.terminal = terminal;
+        }
+
+        public static StateImpl finalState(Terminal terminal) {
+            StateImpl stateImpl = new StateImpl(null, true, terminal);
+            return stateImpl;
         }
 
         @Override
@@ -57,15 +63,9 @@ public class DefaultAutomaton implements Automaton {
             return id;
         }
 
-        private StateImpl(Set<Transition> transitions, boolean finalState, Terminal terminal) {
-            this.outgoingTransitions = transitions;
-            this.finalState = finalState;
-            this.terminal = terminal;
-        }
-
-        public static StateImpl finalState(Terminal terminal) {
-            StateImpl stateImpl = new StateImpl(null, true, terminal);
-            return stateImpl;
+        @Override
+        public void setId(int id) {
+            this.id = id;
         }
 
         private StateImpl clone(Map<StateImpl, StateImpl> knownClones) throws CloneNotSupportedException {
@@ -109,13 +109,13 @@ public class DefaultAutomaton implements Automaton {
             return terminal;
         }
 
-        public void setFallbackTransition(Transition fallbackTransition) {
-            this.fallbackTransition = fallbackTransition;
-        }
-
         @Override
         public Transition getFallbackTransition() {
             return null;
+        }
+
+        public void setFallbackTransition(Transition fallbackTransition) {
+            this.fallbackTransition = fallbackTransition;
         }
 
     }

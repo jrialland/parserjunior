@@ -6,29 +6,7 @@ import java.util.function.Consumer;
 
 public class CommentsRemover extends PipeableProcessor<PreprocessorLine, PreprocessorLine> {
 
-    private enum State {
-        NormalFlow("normal flow"),
-        String("string litteral"),
-        StringEscapeSeq("string escape sequence"),
-        MaybeComment("comment start (slash character)"),
-        EolComment("comment at end of line"),
-        MultilineComment("multiline comment"),
-        MaybeMultilineCommentEnd("multiline comment end (asterisk character)");
-
-        private String displayName;
-
-        State(java.lang.String displayName) {
-            this.displayName = displayName;
-        }
-
-        public String displayName() {
-            return displayName;
-        }
-    }
-
-
     private State state = State.NormalFlow;
-
     private PreprocessorLine toMerge = null;
 
     @Override
@@ -139,6 +117,26 @@ public class CommentsRemover extends PipeableProcessor<PreprocessorLine, Preproc
             state = State.NormalFlow;
         }
         return modifiedLine;
+    }
+
+    private enum State {
+        NormalFlow("normal flow"),
+        String("string litteral"),
+        StringEscapeSeq("string escape sequence"),
+        MaybeComment("comment start (slash character)"),
+        EolComment("comment at end of line"),
+        MultilineComment("multiline comment"),
+        MaybeMultilineCommentEnd("multiline comment end (asterisk character)");
+
+        private String displayName;
+
+        State(java.lang.String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String displayName() {
+            return displayName;
+        }
     }
 
 }

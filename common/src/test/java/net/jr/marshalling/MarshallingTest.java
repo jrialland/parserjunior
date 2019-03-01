@@ -3,7 +3,6 @@ package net.jr.marshalling;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.*;
@@ -124,7 +123,7 @@ public class MarshallingTest {
         }
 
         @SuppressWarnings("unused")
-        public static  TestObject  unMarshall(java.io.DataInput in) throws IOException {
+        public static TestObject unMarshall(java.io.DataInput in) throws IOException {
             int a = in.readInt();
             String s = in.readUTF();
             return new TestObject(a, s);

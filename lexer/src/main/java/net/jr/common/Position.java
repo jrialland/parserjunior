@@ -2,7 +2,6 @@ package net.jr.common;
 
 import net.jr.marshalling.MarshallingCapable;
 
-import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.IOException;
 
@@ -29,7 +28,7 @@ public class Position implements MarshallingCapable {
     }
 
     @SuppressWarnings("unused")
-    public static  Position  unMarshall(java.io.DataInput in) throws IOException {
+    public static Position unMarshall(java.io.DataInput in) throws IOException {
         int line = in.readInt();
         int column = in.readInt();
         String position = in.readUTF();

@@ -1,4 +1,3 @@
-
 package net.jr.jrc.qvm;
 
 import net.jr.io.Hex;

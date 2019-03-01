@@ -37,7 +37,7 @@ public class RegexGrammarTest {
 
     @Test
     public void testOptional() {
-        Parser parser  = new RegexGrammar().createParser();
+        Parser parser = new RegexGrammar().createParser();
         parser.parse("'a'?");
         parser.parse("'a'..'z'?");
     }

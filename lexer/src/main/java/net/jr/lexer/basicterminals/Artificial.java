@@ -3,7 +3,6 @@ package net.jr.lexer.basicterminals;
 import net.jr.lexer.automaton.FailAutomaton;
 import net.jr.lexer.impl.TerminalImpl;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 
 public class Artificial extends TerminalImpl {
@@ -18,7 +17,7 @@ public class Artificial extends TerminalImpl {
         super();
     }
 
-    public static  Artificial  unMarshall(java.io.DataInput in) throws IOException {
+    public static Artificial unMarshall(java.io.DataInput in) throws IOException {
         return TerminalImpl.unMarshall(new Artificial(), in);
     }
 

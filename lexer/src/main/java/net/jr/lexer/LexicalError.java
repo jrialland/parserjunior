@@ -1,6 +1,7 @@
 package net.jr.lexer;
 
 import net.jr.common.Position;
+import net.jr.util.StringUtil;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 /**
@@ -22,7 +23,7 @@ public class LexicalError extends RuntimeException {
 
     private static String getMessage(int r, Position position) {
         if (r != -1) {
-            return String.format("(%s) - Offending char : '%s' (0x%s)", position, StringEscapeUtils.escapeJava("" + (char) r), Integer.toHexString(r));
+            return String.format("(%s) - Offending char : '%s' (0x%s)", position, StringUtil.escapeJava("" + (char) r), Integer.toHexString(r));
         } else {
             return String.format("(%s) - No match at end of input", position);
         }

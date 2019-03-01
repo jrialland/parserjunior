@@ -1,4 +1,3 @@
-
 package net.jr.jrc.qvm.memory;
 
 import java.io.IOException;
@@ -12,81 +11,8 @@ public class PagedMemory {
     private static final int DEFAULT_PAGE_SIZE = 1024 * 4;// page = 4k
 
     private static final long MAX_ADDR = 2 + ((long) Integer.MAX_VALUE) * 2;
-
-    private interface Page {
-        int write(long addr, byte[] data, int offset, int len);
-
-        int read(long addr, byte[] data, int offset, int len);
-
-        long getBaseAddr();
-    }
-
-    private class FakePage implements Page {
-        private long baseAddr;
-
-        public FakePage(long baseAddr) {
-            this.baseAddr = baseAddr;
-        }
-
-        @Override
-        public long getBaseAddr() {
-            return baseAddr;
-        }
-
-        @Override
-        public int write(long addr, byte[] data, int offset, int len) {
-            throw new MemoryException(addr, true);
-        }
-
-        @Override
-        public int read(long addr, byte[] data, int offset, int len) {
-            int arrayOffset = Long.valueOf(addr - baseAddr).intValue();
-            int s = Math.min(len, pageSize - arrayOffset);
-            Arrays.fill(data, offset, s, (byte) 0);
-            return s;
-        }
-    }
-
-    /**
-     * "real" pages store data into an allocated byte array
-     */
-    private class ArrayPage implements Page {
-
-        long baseAddr;
-
-        byte[] pageData;
-
-        public ArrayPage(long baseAddr) {
-            this.baseAddr = baseAddr;
-            this.pageData = new byte[pageSize];
-        }
-
-        @Override
-        public int write(long addr, byte[] data, int offset, int len) {
-            int arrayOffset = Long.valueOf(addr - baseAddr).intValue();
-            int s = Math.min(len, pageSize - arrayOffset);
-            System.arraycopy(data, offset, pageData, arrayOffset, s);
-            return s;
-        }
-
-        @Override
-        public int read(long addr, byte[] data, int offset, int len) {
-            int arrayOffset = Long.valueOf(addr - baseAddr).intValue();
-            int s = Math.min(len, pageSize - arrayOffset);
-            System.arraycopy(pageData, arrayOffset, data, offset, s);
-            return s;
-        }
-
-        @Override
-        public long getBaseAddr() {
-            return baseAddr;
-        }
-    }
-
     private TreeMap<Long, ArrayPage> pages;
-
     private int pageSize;
-
     private Page currentPage = null;
 
     public PagedMemory(int pageSize) {
@@ -100,8 +26,9 @@ public class PagedMemory {
 
     /**
      * finds the page corresponding to the asked address
+     *
      * @param pageStart must be a page boundary/start address (i.e a multiple of pageSize)
-     * @param rw if we need to actually write to the page
+     * @param rw        if we need to actually write to the page
      * @return
      */
     private Page getPage(long pageStart, boolean rw) {
@@ -219,8 +146,8 @@ public class PagedMemory {
     }
 
     public InputStream createReader(final long baseAddr, final long maxBytes) {
-        if(baseAddr>getMaxAddr()){
-          throw new MemoryException(baseAddr, false);
+        if (baseAddr > getMaxAddr()) {
+            throw new MemoryException(baseAddr, false);
         }
         return new InputStream() {
 
@@ -263,5 +190,75 @@ public class PagedMemory {
 
     public long getPageSize() {
         return pageSize;
+    }
+
+    private interface Page {
+        int write(long addr, byte[] data, int offset, int len);
+
+        int read(long addr, byte[] data, int offset, int len);
+
+        long getBaseAddr();
+    }
+
+    private class FakePage implements Page {
+        private long baseAddr;
+
+        public FakePage(long baseAddr) {
+            this.baseAddr = baseAddr;
+        }
+
+        @Override
+        public long getBaseAddr() {
+            return baseAddr;
+        }
+
+        @Override
+        public int write(long addr, byte[] data, int offset, int len) {
+            throw new MemoryException(addr, true);
+        }
+
+        @Override
+        public int read(long addr, byte[] data, int offset, int len) {
+            int arrayOffset = Long.valueOf(addr - baseAddr).intValue();
+            int s = Math.min(len, pageSize - arrayOffset);
+            Arrays.fill(data, offset, s, (byte) 0);
+            return s;
+        }
+    }
+
+    /**
+     * "real" pages store data into an allocated byte array
+     */
+    private class ArrayPage implements Page {
+
+        long baseAddr;
+
+        byte[] pageData;
+
+        public ArrayPage(long baseAddr) {
+            this.baseAddr = baseAddr;
+            this.pageData = new byte[pageSize];
+        }
+
+        @Override
+        public int write(long addr, byte[] data, int offset, int len) {
+            int arrayOffset = Long.valueOf(addr - baseAddr).intValue();
+            int s = Math.min(len, pageSize - arrayOffset);
+            System.arraycopy(data, offset, pageData, arrayOffset, s);
+            return s;
+        }
+
+        @Override
+        public int read(long addr, byte[] data, int offset, int len) {
+            int arrayOffset = Long.valueOf(addr - baseAddr).intValue();
+            int s = Math.min(len, pageSize - arrayOffset);
+            System.arraycopy(pageData, arrayOffset, data, offset, s);
+            return s;
+        }
+
+        @Override
+        public long getBaseAddr() {
+            return baseAddr;
+        }
     }
 }

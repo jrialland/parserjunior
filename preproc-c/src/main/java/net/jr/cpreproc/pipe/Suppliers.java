@@ -8,6 +8,25 @@ import java.nio.file.Path;
 
 public class Suppliers {
 
+    public static PipeableProcessor<Void, String> fromReader(Reader reader, String filename) {
+        return new DefaultSupplier(reader, filename);
+    }
+
+    public static PipeableProcessor<Void, String> fromString(String txt) {
+        return fromReader(new StringReader(txt), "<str>");
+    }
+
+    public static PipeableProcessor<Void, String> fromFile(Path path) {
+        final Reader reader;
+        try {
+            InputStream is = path.toUri().toURL().openStream();
+            reader = new InputStreamReader(is);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e);
+        }
+        return fromReader(reader, path.getFileName().toString());
+    }
+
     public static class DefaultSupplier extends PipeableProcessor<Void, String> {
 
         private BufferedReader reader;
@@ -29,25 +48,6 @@ public class Suppliers {
                 throw new RuntimeException(e);
             }
         }
-    }
-
-    public static PipeableProcessor<Void, String> fromReader(Reader reader, String filename) {
-        return new DefaultSupplier(reader, filename);
-    }
-
-    public static PipeableProcessor<Void, String> fromString(String txt) {
-        return fromReader(new StringReader(txt), "<str>");
-    }
-
-    public static PipeableProcessor<Void, String> fromFile(Path path) {
-        final Reader reader;
-        try {
-            InputStream is = path.toUri().toURL().openStream();
-            reader = new InputStreamReader(is);
-        } catch (Exception e) {
-            throw new IllegalArgumentException(e);
-        }
-        return fromReader(reader, path.getFileName().toString());
     }
 
 

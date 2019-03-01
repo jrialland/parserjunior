@@ -13,7 +13,7 @@ public class StreamUtilTest {
     public void testTakeWhile() {
         Stream<Character> stream = Arrays.asList('h', 'e', 'l', 'l', 'o', '!').stream();
         StringWriter sw = new StringWriter();
-        StreamUtil.takeWhile(stream, c -> c != '!').forEach( c -> sw.append(c));
+        StreamUtil.takeWhile(stream, c -> c != '!').forEach(c -> sw.append(c));
         Assert.assertEquals("hello", sw.toString());
     }
 

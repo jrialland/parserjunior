@@ -15,9 +15,8 @@ import java.util.concurrent.Callable;
 
 public class TestLexemes {
 
-    private static Map<Class<?>, Callable<? extends Terminal>> types = new HashMap<>();
-
     private static final Random random = new Random();
+    private static Map<Class<?>, Callable<? extends Terminal>> types = new HashMap<>();
 
     static {
         types.put(Artificial.class, () -> new Artificial("Test"));
@@ -36,6 +35,12 @@ public class TestLexemes {
         types.put(QuotedString.class, () -> new QuotedString('\'', '\'', '\\', new char[]{}));
         types.put(SingleChar.class, () -> new SingleChar('x'));
         types.put(Word.class, () -> new Word("test"));
+    }
+
+    private static final String randomWord(int size) {
+        StringWriter sw = new StringWriter();
+        sw.append((char) ('a' + random.nextInt(26)));
+        return sw.toString();
     }
 
     @Test
@@ -69,12 +74,6 @@ public class TestLexemes {
                 throw new RuntimeException(entry.getKey().getName(), e);
             }
         });
-    }
-
-    private static final String randomWord(int size) {
-        StringWriter sw = new StringWriter();
-        sw.append((char) ('a' + random.nextInt(26)));
-        return sw.toString();
     }
 
     @Test

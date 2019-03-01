@@ -26,10 +26,6 @@ public class PipeableProcessor<In, Out> implements Supplier<Out> {
         return source;
     }
 
-    public void setSource(PipeableProcessor<?, In> source) {
-        this.source = source;
-    }
-
     public void setSource(Iterator<In> source) {
         setSource(new PipeableProcessor<Void, In>() {
             @Override
@@ -41,6 +37,10 @@ public class PipeableProcessor<In, Out> implements Supplier<Out> {
                 }
             }
         });
+    }
+
+    public void setSource(PipeableProcessor<?, In> source) {
+        this.source = source;
     }
 
     public <Out2> PipeableProcessor<Out, Out2> pipeTo(PipeableProcessor<Out, Out2> processor) {

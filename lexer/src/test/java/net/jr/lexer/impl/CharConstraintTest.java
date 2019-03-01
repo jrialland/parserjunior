@@ -9,7 +9,7 @@ public class CharConstraintTest {
     public void testBuildAny() {
         CharConstraint cc = CharConstraint.Builder.any().build();
         Assert.assertEquals("true", cc.getExpr());
-        for(char c = 0; c < Character.MAX_VALUE; c++) {
+        for (char c = 0; c < Character.MAX_VALUE; c++) {
             Assert.assertTrue(cc.apply(c));
         }
     }
@@ -17,7 +17,7 @@ public class CharConstraintTest {
     @Test
     public void testBuildEq() {
         CharConstraint cc = CharConstraint.Builder.eq('\'').build();
-        Assert.assertEquals("c == 39", cc.getExpr());
+        Assert.assertEquals("c == '\\''", cc.getExpr());
         Assert.assertTrue(cc.apply('\''));
         Assert.assertFalse(cc.apply('3'));
     }
@@ -45,7 +45,7 @@ public class CharConstraintTest {
     @Test
     public void testBuildNot() {
         CharConstraint cc = CharConstraint.Builder.not(CharConstraint.Builder.eq('A')).build();
-        Assert.assertEquals("!(c == 65)", cc.getExpr());
+        Assert.assertEquals("!(c == 'A')", cc.getExpr());
         Assert.assertTrue(cc.apply('e'));
         Assert.assertFalse(cc.apply('A'));
     }
@@ -56,7 +56,7 @@ public class CharConstraintTest {
         CharConstraint.Builder b1 = CharConstraint.Builder.eq('A');
         CharConstraint.Builder b2 = CharConstraint.Builder.inList("BC");
         CharConstraint cc = CharConstraint.Builder.or(b1, b2).build();
-        Assert.assertEquals("((c == 65)||(\"BC\".indexOf((char)c)>-1))", cc.getExpr());
+        Assert.assertEquals("((c == 'A')||(\"BC\".indexOf((char)c)>-1))", cc.getExpr());
         Assert.assertTrue(cc.apply('A'));
         Assert.assertTrue(cc.apply('C'));
         Assert.assertFalse(cc.apply('D'));
@@ -67,7 +67,7 @@ public class CharConstraintTest {
         CharConstraint.Builder b1 = CharConstraint.Builder.eq('A');
         CharConstraint.Builder b2 = CharConstraint.Builder.inList("ABC");
         CharConstraint cc = CharConstraint.Builder.and(b1, b2).build();
-        Assert.assertEquals("((c == 65)&&(\"ABC\".indexOf((char)c)>-1))", cc.getExpr());
+        Assert.assertEquals("((c == 'A')&&(\"ABC\".indexOf((char)c)>-1))", cc.getExpr());
         Assert.assertTrue(cc.apply('A'));
         Assert.assertFalse(cc.apply('B'));
     }

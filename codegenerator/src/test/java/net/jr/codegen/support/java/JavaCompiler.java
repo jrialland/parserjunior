@@ -9,6 +9,41 @@ import java.util.*;
 
 public final class JavaCompiler {
 
+    private static final MutableClassLoader classLoader = new MutableClassLoader();
+
+    public static final ClassLoader getClassLoader() {
+        return classLoader;
+    }
+
+    public static Class<?> compile(String name, Reader code) {
+
+        javax.tools.JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        StandardJavaFileManager sjfm = compiler.getStandardFileManager(null, null, null);
+        SimpleFileManager sfm = new SimpleFileManager(sjfm);
+        List<? extends JavaFileObject> compilationUnits = Arrays.asList(new MemSrc(name, IOUtil.readFully(code).getBytes()));
+        DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
+        javax.tools.JavaCompiler.CompilationTask task = compiler.getTask(IOUtil.devNull(), sfm, collector, Collections.emptyList(), null, compilationUnits);
+
+        if (task.call()) {
+            try {
+                Class<?> clazz = classLoader.findClass(name);
+                if (clazz != null) {
+                    return clazz;
+                } else {
+                    throw new IllegalStateException("class '" + name + "' could not be found");
+                }
+            } catch (ClassNotFoundException e) {
+                throw new IllegalArgumentException(e);
+            }
+        } else {
+            String err = collector.getDiagnostics().stream().map(d ->
+                    String.format("%d:%d - %s", d.getLineNumber(), d.getColumnNumber(), d.getMessage(Locale.getDefault()))
+            ).reduce("", (s1, s2) -> s1 + "\n" + s2);
+            throw new IllegalStateException(err);
+        }
+
+    }
+
     private abstract static class Mem extends SimpleJavaFileObject {
 
         private ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -90,12 +125,6 @@ public final class JavaCompiler {
 
     }
 
-    private static final MutableClassLoader classLoader = new MutableClassLoader();
-
-    public static final ClassLoader getClassLoader() {
-        return classLoader;
-    }
-
     private static class SimpleFileManager extends ForwardingJavaFileManager<StandardJavaFileManager> {
 
 
@@ -109,35 +138,6 @@ public final class JavaCompiler {
             classLoader.addClass(name, m);
             return m;
         }
-    }
-
-    public static Class<?> compile(String name, Reader code) {
-
-        javax.tools.JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        StandardJavaFileManager sjfm = compiler.getStandardFileManager(null, null, null);
-        SimpleFileManager sfm = new SimpleFileManager(sjfm);
-        List<? extends JavaFileObject> compilationUnits = Arrays.asList(new MemSrc(name, IOUtil.readFully(code).getBytes()));
-        DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
-        javax.tools.JavaCompiler.CompilationTask task = compiler.getTask(IOUtil.devNull(), sfm, collector, Collections.emptyList(), null, compilationUnits);
-
-        if (task.call()) {
-            try {
-                Class<?> clazz = classLoader.findClass(name);
-                if (clazz != null) {
-                    return clazz;
-                } else {
-                    throw new IllegalStateException("class '" + name + "' could not be found");
-                }
-            } catch (ClassNotFoundException e) {
-                throw new IllegalArgumentException(e);
-            }
-        } else {
-            String err = collector.getDiagnostics().stream().map(d ->
-                    String.format("%d:%d - %s", d.getLineNumber(), d.getColumnNumber(), d.getMessage(Locale.getDefault()))
-            ).reduce("", (s1, s2) -> s1 + "\n" + s2);
-            throw new IllegalStateException(err);
-        }
-
     }
 
 

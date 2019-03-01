@@ -27,70 +27,21 @@ public class DirectivesInterpreter extends PipeableProcessor<PreprocessorLine, P
     private Reporter reporter;
 
     private Position currentPosition;
+    private ControlFlow RootState = new ControlFlow(null, null, true);
+    private ControlFlow controlFlow = RootState;
 
     public DirectivesInterpreter(Map<String, MacroDefinition> macroDefinitions, Reporter reporter) {
         this.definitions = macroDefinitions;
         this.reporter = reporter != null ? reporter : ProxyUtil.nullProxy(Reporter.class);
     }
 
+    private static final String toText(Collection<PreprocToken> tokens) {
+        return tokens.stream().map(Token::getText).reduce("", (s1, s2) -> s1 + s2);
+    }
+
     public Map<String, MacroDefinition> getDefinitions() {
         return definitions;
     }
-
-    private class ControlFlow {
-
-        private ControlFlow parent;
-
-        private Position startPosition;
-
-        private boolean value;
-
-        private Position elsePosition = null;
-
-        public ControlFlow(ControlFlow parent, Position startPosition, boolean value) {
-            this.parent = parent;
-            this.startPosition = startPosition;
-            this.value = value;
-        }
-
-        public ControlFlow enterIf(boolean condition) {
-            ControlFlow newState = new ControlFlow(this, currentPosition, condition);
-            return newState;
-        }
-
-        public ControlFlow exitIf() {
-            if (this == RootState) {
-                reporter.error(currentPosition, "#endif without matching #if or #ifdef");
-                return this;
-            } else {
-                return parent;
-            }
-        }
-
-        public ControlFlow handleElse() {
-            if (elsePosition != null) {
-                reporter.fatal(currentPosition, "#if/#else mismatch (#else already seen at " + elsePosition + ")");
-            } else {
-                elsePosition = currentPosition;
-            }
-            return this;
-        }
-
-        public boolean isIgnoring() {
-            if (parent != null && parent.isIgnoring()) {
-                return true;
-            }
-            return value ? (elsePosition != null) : elsePosition == null;
-        }
-
-        public Position getStartPosition() {
-            return startPosition;
-        }
-    }
-
-    private ControlFlow RootState = new ControlFlow(null, null, true);
-
-    private ControlFlow controlFlow = RootState;
 
     /**
      * Add a newline at end of file
@@ -224,7 +175,54 @@ public class DirectivesInterpreter extends PipeableProcessor<PreprocessorLine, P
         }
     }
 
-    private static final String toText(Collection<PreprocToken> tokens) {
-        return tokens.stream().map(Token::getText).reduce("", (s1, s2) -> s1 + s2);
+    private class ControlFlow {
+
+        private ControlFlow parent;
+
+        private Position startPosition;
+
+        private boolean value;
+
+        private Position elsePosition = null;
+
+        public ControlFlow(ControlFlow parent, Position startPosition, boolean value) {
+            this.parent = parent;
+            this.startPosition = startPosition;
+            this.value = value;
+        }
+
+        public ControlFlow enterIf(boolean condition) {
+            ControlFlow newState = new ControlFlow(this, currentPosition, condition);
+            return newState;
+        }
+
+        public ControlFlow exitIf() {
+            if (this == RootState) {
+                reporter.error(currentPosition, "#endif without matching #if or #ifdef");
+                return this;
+            } else {
+                return parent;
+            }
+        }
+
+        public ControlFlow handleElse() {
+            if (elsePosition != null) {
+                reporter.fatal(currentPosition, "#if/#else mismatch (#else already seen at " + elsePosition + ")");
+            } else {
+                elsePosition = currentPosition;
+            }
+            return this;
+        }
+
+        public boolean isIgnoring() {
+            if (parent != null && parent.isIgnoring()) {
+                return true;
+            }
+            return value ? (elsePosition != null) : elsePosition == null;
+        }
+
+        public Position getStartPosition() {
+            return startPosition;
+        }
     }
 }

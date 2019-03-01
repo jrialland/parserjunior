@@ -124,7 +124,7 @@ public class PreprocessorLine implements CharSequence {
             Map.Entry<Integer, Position> entry = posIt.next();
             if (entry.getKey() > index) {
                 posIt.remove();
-                toAdd.put(entry.getKey()-nChars, entry.getValue());
+                toAdd.put(entry.getKey() - nChars, entry.getValue());
             }
         }
         positions.putAll(toAdd);
@@ -138,11 +138,11 @@ public class PreprocessorLine implements CharSequence {
             Map.Entry<Integer, Position> entry = posIt.next();
             if (entry.getKey() > index) {
                 posIt.remove();
-                toAdd.put(entry.getKey()+s.length(), entry.getValue());
+                toAdd.put(entry.getKey() + s.length(), entry.getValue());
             }
         }
         positions.putAll(toAdd);
-        if(index > text.length()) {
+        if (index > text.length()) {
             text += org.apache.commons.lang3.StringUtils.repeat(' ', index - text.length());
         }
         text = text.substring(0, index) + s + text.substring(index);

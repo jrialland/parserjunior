@@ -88,6 +88,7 @@ public class CGrammar extends Grammar {
     public static final NonTerminal ForExpression = new NonTerminal("ForExpression");
     private static final Logger LOGGER = LoggerFactory.getLogger(CGrammar.class);
     private Lexer lexer;
+
     public CGrammar() {
 
         setName("C");

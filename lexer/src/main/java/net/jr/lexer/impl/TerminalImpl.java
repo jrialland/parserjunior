@@ -6,17 +6,14 @@ import net.jr.lexer.automaton.Automaton;
 import net.jr.marshalling.MarshallingUtil;
 
 import java.io.DataInput;
-import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.IOException;
 
 public abstract class TerminalImpl extends SymbolBase implements Terminal {
 
-    private Automaton automaton;
-
     protected Integer priority;
-
     protected String name;
+    private Automaton automaton;
 
     public TerminalImpl() {
         this(null);
@@ -27,6 +24,15 @@ public abstract class TerminalImpl extends SymbolBase implements Terminal {
         this.priority = 1;
     }
 
+    public static <T extends TerminalImpl> T unMarshall(T impl, DataInput in) throws IOException {
+        impl.priority = in.readInt();
+        boolean hasName = in.readBoolean();
+        if (hasName) {
+            impl.name = in.readUTF();
+        }
+        return impl;
+    }
+
     @Override
     public int getPriority() {
         return priority == null ? 0 : priority;
@@ -34,7 +40,7 @@ public abstract class TerminalImpl extends SymbolBase implements Terminal {
 
     @Override
     public void setPriority(int priority) {
-        assert priority >=0;
+        assert priority >= 0;
         this.priority = priority;
     }
 
@@ -78,17 +84,8 @@ public abstract class TerminalImpl extends SymbolBase implements Terminal {
     public void marshall(DataOutput dataOutputStream) throws IOException {
         dataOutputStream.writeInt(priority);
         dataOutputStream.writeBoolean(name != null);
-        if(name != null) {
+        if (name != null) {
             dataOutputStream.writeUTF(name);
         }
-    }
-
-    public static <T extends TerminalImpl> T unMarshall(T impl, DataInput in) throws IOException {
-        impl.priority = in.readInt();
-        boolean hasName = in.readBoolean();
-        if(hasName) {
-            impl.name = in.readUTF();
-        }
-        return impl;
     }
 }

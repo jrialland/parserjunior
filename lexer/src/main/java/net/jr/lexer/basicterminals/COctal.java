@@ -5,7 +5,6 @@ import net.jr.lexer.automaton.DefaultAutomaton;
 import net.jr.lexer.impl.CharConstraint;
 import net.jr.lexer.impl.TerminalImpl;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 
 public class COctal extends TerminalImpl {
@@ -23,7 +22,7 @@ public class COctal extends TerminalImpl {
         setAutomaton(builder.build());
     }
 
-    public static  COctal  unMarshall(java.io.DataInput in) throws IOException {
+    public static COctal unMarshall(java.io.DataInput in) throws IOException {
         return TerminalImpl.unMarshall(new COctal(), in);
     }
 

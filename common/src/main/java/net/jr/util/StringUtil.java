@@ -1,6 +1,7 @@
 package net.jr.util;
 
 import net.jr.text.ConsoleColors;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.io.*;
 import java.text.Normalizer;
@@ -202,5 +203,11 @@ public final class StringUtil {
             }
         } while (textWidth(txt.substring(0, newEnd) + elString) < maxlen);
         return txt.substring(0, end) + elString;
+    }
+
+    public static String escapeJava(String txt) {
+        txt = StringEscapeUtils.escapeJava(txt);
+        txt = txt.replace("'", "\\'");
+        return txt;
     }
 }

@@ -51,11 +51,12 @@ public class HexdumpOutputStreamTest {
 
     @Test
     public void testReadFully() throws Exception {
-        String dump  = HexdumpOutputStream.readFully(new ByteArrayInputStream("this is a test".getBytes()));
+        String dump = HexdumpOutputStream.readFully(new ByteArrayInputStream("this is a test".getBytes()));
     }
+
     @Test
     public void testAsHexDump() {
-        String dump = HexdumpOutputStream.asHexDump(new byte[]{(byte)0xde, (byte)0xad, (byte)0xbe, (byte)0xef});
+        String dump = HexdumpOutputStream.asHexDump(new byte[]{(byte) 0xde, (byte) 0xad, (byte) 0xbe, (byte) 0xef});
         Assert.assertEquals("0x00000000  de ad be ef __ __ __ __  __ __ __ __ __ __ __ __  |................|\n", dump);
         Assert.assertEquals("0x00000000  48 65 6c 6c 6f 2c 20 77  6f 72 6c 64 __ __ __ __  |Hello, world....|\n", HexdumpOutputStream.asHexDump("Hello, world"));
     }

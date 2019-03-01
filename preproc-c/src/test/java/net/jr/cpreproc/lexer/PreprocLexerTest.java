@@ -9,6 +9,12 @@ import java.util.List;
 
 public class PreprocLexerTest {
 
+    private static void checkToken(Terminal expectedType, String expectedText, int expectedStartIndex, PreprocToken token) {
+        Assert.assertEquals(expectedType, token.getTokenType());
+        Assert.assertEquals(expectedText, token.getText());
+        Assert.assertEquals(expectedStartIndex, token.getStartIndex());
+    }
+
     @Test
     public void basicTest() {
         List<? extends Token> tokens = PreprocLexer.tokenize("function(x,y)");
@@ -43,12 +49,6 @@ public class PreprocLexerTest {
         List<PreprocToken> tokens = PreprocLexer.tokenize(txt);
         String t = tokens.toString();
         Assert.assertEquals("[cIdentifier@1:1, '('@1:7, cIdentifier@1:8, ','@1:9, cIdentifier@1:10, ')'@1:11, Whitespace@1:12, cIdentifier@1:16, ConcatOperator@1:17, cIdentifier@1:19]", t);
-    }
-
-    private static void checkToken(Terminal expectedType, String expectedText, int expectedStartIndex, PreprocToken token) {
-        Assert.assertEquals(expectedType, token.getTokenType());
-        Assert.assertEquals(expectedText, token.getText());
-        Assert.assertEquals(expectedStartIndex, token.getStartIndex());
     }
 
     @Test

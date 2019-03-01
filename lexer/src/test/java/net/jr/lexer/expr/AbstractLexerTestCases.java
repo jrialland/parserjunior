@@ -418,7 +418,7 @@ public abstract class AbstractLexerTestCases {
 
         Assert.assertEquals(0, lexer.tokenize("if").get(0).getTokenType().getId());
 
-        for(int i=0; i< 100; i++) {
+        for (int i = 0; i < 100; i++) {
             lexer = getLexer(
                     Lexemes.lowercaseWord(),
                     Lexemes.literal("if")

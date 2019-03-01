@@ -22,6 +22,13 @@ public class LineComment extends TerminalImpl {
         super();
     }
 
+    @SuppressWarnings("unused")
+    public static LineComment unMarshall(java.io.DataInput in) throws IOException {
+        LineComment l = TerminalImpl.unMarshall(new LineComment(), in);
+        l.init(in.readUTF());
+        return l;
+    }
+
     private void init(String commentStart) {
         this.commentStart = commentStart;
         DefaultAutomaton.Builder builder = DefaultAutomaton.Builder.forTokenType(this);
@@ -34,13 +41,6 @@ public class LineComment extends TerminalImpl {
         currentState.when(CharConstraint.Builder.not(CharConstraint.Builder.eq('\n'))).goTo(currentState);
         currentState.when(CharConstraint.Builder.eq('\n')).goTo(builder.newFinalState());
         setAutomaton(builder.build());
-    }
-
-    @SuppressWarnings("unused")
-    public static  LineComment  unMarshall(java.io.DataInput in) throws IOException {
-        LineComment l = TerminalImpl.unMarshall(new LineComment(), in);
-        l.init(in.readUTF());
-        return l;
     }
 
     @Override

@@ -46,7 +46,7 @@ public enum DirectiveType {
         Matcher m = PDirective.matcher(line);
         if (m.matches()) {
             DirectiveType directiveType = byNames.get(m.group(1));
-            if(directiveType != null) {
+            if (directiveType != null) {
                 return Pair.of(directiveType, StringUtil.ltrim(m.group(2)));
             }
         }

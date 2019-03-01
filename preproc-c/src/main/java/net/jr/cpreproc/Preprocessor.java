@@ -28,6 +28,14 @@ public class Preprocessor {
 
     private DirectivesInterpreter directivesInterpreter;
 
+    public Preprocessor() {
+        this(defaultDefinitions(), null);
+    }
+
+    public Preprocessor(Map<String, MacroDefinition> definitions, Reporter reporter) {
+        this.directivesInterpreter = new DirectivesInterpreter(definitions, reporter);
+    }
+
     private static Map<String, MacroDefinition> defaultDefinitions() {
         Map<String, MacroDefinition> defs = new TreeMap<>();
         defs.put(DateMacroDefinition.TimeStamp, DateMacroDefinition.TimeStampDefinition);
@@ -38,14 +46,6 @@ public class Preprocessor {
 
     public MacroDefinition getDefinition(String name) {
         return directivesInterpreter.getDefinitions().get(name);
-    }
-
-    public Preprocessor() {
-        this(defaultDefinitions(), null);
-    }
-
-    public Preprocessor(Map<String, MacroDefinition> definitions, Reporter reporter) {
-        this.directivesInterpreter = new DirectivesInterpreter(definitions, reporter);
     }
 
     public void setInput(Reader reader, String filename) {
@@ -96,16 +96,16 @@ public class Preprocessor {
         options.put(option, value);
     }
 
-    public enum Option {
-        NoTrigraphs,
-        NoLineDirectives
-    }
-
     public void addSimpleDefinition(String macro, String definition) {
         directivesInterpreter.getDefinitions().put(macro, new NoArgsMacroDefinition(macro, definition));
     }
 
     public DirectivesInterpreter getDirectivesInterpreter() {
         return directivesInterpreter;
+    }
+
+    public enum Option {
+        NoTrigraphs,
+        NoLineDirectives
     }
 }

@@ -1,5 +1,6 @@
 package net.jr.lexer.impl;
 
+import net.jr.util.StringUtil;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.util.function.Function;
@@ -7,19 +8,7 @@ import java.util.function.Function;
 public class CharConstraint implements Function<Character, Boolean> {
 
     private Function<Character, Boolean> fn;
-
-    public enum Nature {
-        ANY, // true
-        EQ, // c== subject
-        INRANGE, // c >= subject[0] && c <= subject[1]
-        INLIST, // subject.indexOf(c) > -1
-        NOT, // ! subject
-        OR, // subject[0] || subject[1]
-        AND, // subject[0] && subject[1]
-    }
-
     private Nature nature;
-
     private Object subject;
 
     private CharConstraint(Nature nature, Object subject) {
@@ -33,15 +22,15 @@ public class CharConstraint implements Function<Character, Boolean> {
                 return "true";
             case EQ:
                 String s = "" + (char) ((int) subject);
-                return "c == '" + StringEscapeUtils.escapeJava(s) + "'";
+                return "c == '" + StringUtil.escapeJava(s) + "'";
             case INRANGE:
                 char[] cSubject = (char[]) subject;
-                String min = "'" + StringEscapeUtils.escapeJava("" + cSubject[0]) + "'";
-                String max = "'" + StringEscapeUtils.escapeJava("" + cSubject[1]) + "'";
+                String min = "'" + StringUtil.escapeJava("" + cSubject[0]) + "'";
+                String max = "'" + StringUtil.escapeJava("" + cSubject[1]) + "'";
                 return String.format("(c >= %s && c <= %s)", min, max);
             case INLIST:
                 String possibleChars = new String((char[]) subject);
-                return String.format("\"%s\".indexOf((char)c)>-1", StringEscapeUtils.escapeJava(possibleChars));
+                return String.format("\"%s\".indexOf((char)c)>-1", StringUtil.escapeJava(possibleChars));
             case NOT:
                 return "!(" + ((CharConstraint) subject).getExpr() + ")";
             case OR:
@@ -67,6 +56,16 @@ public class CharConstraint implements Function<Character, Boolean> {
     @Override
     public String toString() {
         return getExpr();
+    }
+
+    public enum Nature {
+        ANY, // true
+        EQ, // c== subject
+        INRANGE, // c >= subject[0] && c <= subject[1]
+        INLIST, // subject.indexOf(c) > -1
+        NOT, // ! subject
+        OR, // subject[0] || subject[1]
+        AND, // subject[0] && subject[1]
     }
 
     public static class Builder {

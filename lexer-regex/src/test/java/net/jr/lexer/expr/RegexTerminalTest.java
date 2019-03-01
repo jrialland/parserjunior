@@ -23,7 +23,7 @@ public class RegexTerminalTest {
 
     protected void show(RegexTerminal t) {
         try {
-            String graph = ((RegexAutomaton)t.getAutomaton()).toGraphviz();
+            String graph = ((RegexAutomaton) t.getAutomaton()).toGraphviz();
             System.out.println(graph);
             GraphvizViewer viewer = GraphvizViewer.show(graph);
             final Semaphore semaphore = new Semaphore(0);
@@ -34,7 +34,7 @@ public class RegexTerminalTest {
                 }
             });
             semaphore.acquire();
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
