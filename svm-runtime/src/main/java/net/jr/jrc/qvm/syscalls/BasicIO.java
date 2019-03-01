@@ -1,10 +1,10 @@
 package net.jr.jrc.qvm.syscalls;
 
+import net.jr.jrc.qvm.QvmInterpreter;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-
-import net.jr.jrc.qvm.QvmInterpreter;
 
 /**
  * Created by julien on 10/10/16.

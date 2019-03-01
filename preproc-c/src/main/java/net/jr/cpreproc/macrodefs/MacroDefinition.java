@@ -1,7 +1,6 @@
 package net.jr.cpreproc.macrodefs;
 
 import net.jr.cpreproc.lexer.PreprocToken;
-import net.jr.lexer.Token;
 
 import java.util.List;
 

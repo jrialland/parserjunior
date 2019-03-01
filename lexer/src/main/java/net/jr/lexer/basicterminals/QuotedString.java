@@ -4,7 +4,9 @@ import net.jr.lexer.automaton.Automaton;
 import net.jr.lexer.automaton.DefaultAutomaton;
 import net.jr.lexer.impl.TerminalImpl;
 
-import java.io.*;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.Arrays;
 
 import static net.jr.lexer.impl.CharConstraint.Builder.*;

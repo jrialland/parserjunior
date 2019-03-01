@@ -4,14 +4,11 @@ import net.jr.lexer.*;
 import net.jr.lexer.expr.impl.RegexAutomaton;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.Semaphore;
 
 public class RegexTerminalTest {

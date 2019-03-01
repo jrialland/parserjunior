@@ -2,11 +2,11 @@ package net.jr.cpreproc.procs;
 
 import net.jr.cpreproc.macrodefs.MacroDefinition;
 
-import javax.script.*;
-import java.util.Arrays;
-import java.util.Collection;
+import javax.script.Bindings;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 
 public class ExpressionEval {

@@ -1,15 +1,14 @@
 package net.jr.jrc.qvm;
 
-import java.io.InputStream;
-import java.util.Random;
-import java.util.Stack;
-
 import net.jr.io.HexdumpOutputStream;
+import net.jr.jrc.qvm.memory.MemoryException;
+import net.jr.jrc.qvm.memory.PagedMemory;
 import org.junit.Assert;
 import org.junit.Test;
 
-import net.jr.jrc.qvm.memory.MemoryException;
-import net.jr.jrc.qvm.memory.PagedMemory;
+import java.io.InputStream;
+import java.util.Random;
+import java.util.Stack;
 
 public class QvmStackTest {
 

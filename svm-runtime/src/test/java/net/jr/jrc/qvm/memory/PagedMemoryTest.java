@@ -1,10 +1,10 @@
 package net.jr.jrc.qvm.memory;
 
-import java.io.InputStream;
-
 import net.jr.io.IOUtil;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.InputStream;
 
 public class PagedMemoryTest {
 

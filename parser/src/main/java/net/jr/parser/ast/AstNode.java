@@ -4,7 +4,9 @@ import net.jr.common.Symbol;
 import net.jr.lexer.Token;
 import net.jr.parser.Rule;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public interface AstNode {

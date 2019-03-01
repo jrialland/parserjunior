@@ -3,7 +3,6 @@ package net.jr.cpreproc.macrodefs;
 import net.jr.common.Position;
 import net.jr.cpreproc.lexer.PreprocLexer;
 import net.jr.cpreproc.lexer.PreprocToken;
-import net.jr.lexer.Token;
 import org.junit.Assert;
 import org.junit.Test;
 

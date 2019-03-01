@@ -1,8 +1,8 @@
 package net.jr.jrc.qvm.syscalls;
 
-import java.util.Random;
-
 import net.jr.jrc.qvm.QvmInterpreter;
+
+import java.util.Random;
 
 public class Rand {
 

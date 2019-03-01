@@ -4,9 +4,7 @@ import net.jr.lexer.automaton.DefaultAutomaton;
 import net.jr.lexer.impl.CharConstraint;
 import net.jr.lexer.impl.TerminalImpl;
 
-import java.io.DataInputStream;
 import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class LineComment extends TerminalImpl {

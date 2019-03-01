@@ -1,7 +1,6 @@
 package net.jr.lexer.impl;
 
 import net.jr.util.StringUtil;
-import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.util.function.Function;
 

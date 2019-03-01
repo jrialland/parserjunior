@@ -2,7 +2,6 @@ package net.jr.lexer;
 
 import net.jr.common.Position;
 import net.jr.util.StringUtil;
-import org.apache.commons.lang3.StringEscapeUtils;
 
 /**
  * Error that is raised when some text cannot be recognized

@@ -8,7 +8,6 @@ import net.jr.lexer.basicterminals.Literal;
 import net.jr.lexer.basicterminals.MultilineComment;
 import net.jr.lexer.basicterminals.SingleChar;
 import net.jr.lexer.basicterminals.Word;
-import net.jr.util.StringUtil;
 import org.junit.Assert;
 import org.junit.Test;
 

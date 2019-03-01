@@ -2,7 +2,6 @@ package net.jr.codegen.java;
 
 import net.jr.lexer.Lexer;
 import net.jr.lexer.Terminal;
-import net.jr.lexer.automaton.DefaultAutomaton;
 import net.jr.lexer.automaton.State;
 import net.jr.lexer.automaton.Transition;
 import net.jr.lexer.impl.CharConstraint;

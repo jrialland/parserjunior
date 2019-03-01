@@ -2,7 +2,6 @@ package net.jr.parser.impl;
 
 import net.jr.marshalling.MarshallingCapable;
 
-import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.IOException;
 

@@ -5,7 +5,8 @@ import net.jr.collection.CollectionsUtil;
 import net.jr.common.Position;
 import net.jr.pipes.PipeableProcessor;
 
-import java.util.*;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 
 public class TrigraphsRemover extends PipeableProcessor<String, PreprocessorLine> {
