@@ -1,7 +1,6 @@
 package net.jr.lexer.expr.impl;
 
 import net.jr.parser.Parser;
-import net.jr.parser.ast.AstNode;
 import net.jr.parser.impl.ActionTable;
 import org.junit.BeforeClass;
 import org.junit.Test;
