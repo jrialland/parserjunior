@@ -25,8 +25,6 @@ public class AsciiTableViewTest {
 
         }
         String s = new AsciiTableView(3, 3).tableToString(tm);
-        System.out.println(s);
-
 
         Assert.assertEquals("┏━━━┯━━━┯━━━┯━━━┯━━━┯━━━┯━━━┯━━━┓\n" +
                 "┃ ♖ │ ♘ │ ♗ │ ♕ │ ♔ │ ♗ │ ♘ │ ♖ ┃\n" +

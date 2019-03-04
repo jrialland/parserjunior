@@ -1,11 +1,15 @@
 package net.jr.util.zip;
 
+import net.jr.io.IOUtil;
+
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 public final class ZipUtil {
 
@@ -44,5 +48,42 @@ public final class ZipUtil {
             }
         }
 
+    }
+
+    public static void zip(Path folder, Path outputFile) throws IOException {
+
+        if(!Files.isDirectory(folder)) {
+            throw new IllegalArgumentException("not a folder : " + folder);
+        }
+
+        if(Files.exists(outputFile) && !Files.isRegularFile(outputFile)) {
+            throw new IllegalArgumentException("not a regular file : " + outputFile);
+        }
+
+        ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(outputFile.toFile()));
+
+        String absFolder = folder.toAbsolutePath().toString().replace(File.separatorChar, '/');
+        String[] parts = absFolder.split("/");
+        String dirname = parts[parts.length-1];
+        String base = absFolder.substring(0, absFolder.length() - dirname.length());
+
+        Files.walkFileTree(folder, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path path, BasicFileAttributes basicFileAttributes) throws IOException {
+                String filePath = path.toAbsolutePath().toString().substring(base.length());
+                zipOutputStream.putNextEntry(new ZipEntry(filePath));
+                IOUtil.copy(path.toUri().toURL().openStream(), zipOutputStream);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult preVisitDirectory(Path path, BasicFileAttributes basicFileAttributes) throws IOException {
+                String dirPath = path.toAbsolutePath().toString().substring(base.length()) + "/";
+                zipOutputStream.putNextEntry(new ZipEntry(dirPath));
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        zipOutputStream.flush();
+        zipOutputStream.close();
     }
 }

@@ -16,6 +16,11 @@ public class TableModelTest {
         tableModel.removeStyleFromColumn(2, "text-decoration:none");
         tableModel.addStyleHint(1, 1, 100, 100, "background:pink");
 
+        tableModel.addStyleHint(10,10,10,10,"foo:bar");
+        Assert.assertTrue(tableModel.getStyle(10, 10).contains("foo"));
+        tableModel.removeStyleHint(10,10,10,10,"foo:bar");
+        Assert.assertFalse(tableModel.getStyle(10, 10).contains("foo"));
+
         Assert.assertEquals("font-weight:bold", tableModel.getStyle(0, 0));
         Assert.assertEquals("font-weight:bold", tableModel.getStyle(20, 0));
         Assert.assertEquals("font-weight:bold", tableModel.getStyle(0, 30));

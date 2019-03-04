@@ -172,6 +172,11 @@ public final class StringUtil {
         out.flush();
     }
 
+    /**
+     * prefixes each line with the line number, like the 'nl' command
+     * @param txt
+     * @return
+     */
     public static String nl(String txt) {
         StringWriter sw = new StringWriter();
         try {
@@ -180,10 +185,6 @@ public final class StringUtil {
             throw new RuntimeException(e);
         }
         return sw.toString();
-    }
-
-    private static int textWidth(String str) {
-        return (int) (str.length() - str.replaceAll("[^iIl1\\.,']", "").length() / 2);
     }
 
     public static String ellipsis(String txt, int maxlen, String elString) {
@@ -201,7 +202,7 @@ public final class StringUtil {
             if (newEnd == -1) {
                 newEnd = txt.length();
             }
-        } while (textWidth(txt.substring(0, newEnd) + elString) < maxlen);
+        } while (txt.substring(0, newEnd).length() + elString.length() < maxlen);
         return txt.substring(0, end) + elString;
     }
 

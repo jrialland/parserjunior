@@ -34,8 +34,14 @@ public class TableModel<DataType> {
 
     public void removeStyleHint(int x1, int y1, int x2, int y2, String rule) {
         StyleRule sr = makeRule(x1, y1, x2, y2, rule);
-        sr.remove = true;
-        styleRules.add(sr);
+
+        Optional<StyleRule> existing = styleRules.stream().filter(r -> r.remove == false && r.cssKey.equals(sr.cssKey)).findAny();
+        if(existing.isPresent()) {
+            styleRules.remove(existing.get());
+        } else {
+            sr.remove = true;
+            styleRules.add(sr);
+        }
     }
 
     public String getStyle(int x, int y) {

@@ -42,7 +42,7 @@ public class StringUtilTest {
     @Test
     public void testEllipsis() {
         Assert.assertEquals("AVeryLong...", StringUtil.ellipsis("AVeryLongWord", 12, "..."));
-        Assert.assertEquals("a complete...", StringUtil.ellipsis("a complete sentence with separate words", 12, "..."));
+        Assert.assertEquals("a complete …", StringUtil.ellipsis("a complete sentence with separate words", 12, " \u2026"));
     }
 
 }

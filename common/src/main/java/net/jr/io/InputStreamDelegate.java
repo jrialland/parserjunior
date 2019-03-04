@@ -17,6 +17,10 @@ public class InputStreamDelegate extends InputStream {
         return wrapped;
     }
 
+    public void setWrapped(InputStream wrapped) {
+        this.wrapped = wrapped;
+    }
+
     @Override
     public final int read() throws IOException {
         int r = this.read(buf, 0, 1);
@@ -34,36 +38,36 @@ public class InputStreamDelegate extends InputStream {
 
     @Override
     public int read(byte[] bytes, int i, int i1) throws IOException {
-        return wrapped.read(bytes, i, i1);
+        return getWrapped().read(bytes, i, i1);
     }
 
     @Override
     public long skip(long l) throws IOException {
-        return wrapped.skip(l);
+        return getWrapped().skip(l);
     }
 
     @Override
     public int available() throws IOException {
-        return wrapped.available();
+        return getWrapped().available();
     }
 
     @Override
     public void close() throws IOException {
-        wrapped.close();
+        getWrapped().close();
     }
 
     @Override
     public void mark(int i) {
-        wrapped.mark(i);
+        getWrapped().mark(i);
     }
 
     @Override
     public void reset() throws IOException {
-        wrapped.reset();
+        getWrapped().reset();
     }
 
     @Override
     public boolean markSupported() {
-        return wrapped.markSupported();
+        return getWrapped().markSupported();
     }
 }

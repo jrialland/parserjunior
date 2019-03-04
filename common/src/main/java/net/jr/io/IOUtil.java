@@ -2,6 +2,9 @@ package net.jr.io;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicReference;
 
 public final class IOUtil {
 
@@ -105,5 +108,112 @@ public final class IOUtil {
 
     public static Reader emptyReader() {
         return new StringReader("");
+    }
+
+    public static InputStream join(InputStream ... streams) {
+
+        if(streams.length == 0) {
+            return new ByteArrayInputStream(new byte[]{});
+        }
+
+        Iterator<InputStream> iterator = Arrays.asList(streams).iterator();
+
+        return new InputStreamDelegate(iterator.next()) {
+
+            private boolean atEnd = false;
+
+            @Override
+            public boolean markSupported() {
+                return false;
+            }
+
+
+            @Override
+            public int read(byte[] bytes, int offset, int len) throws IOException {
+
+                if(atEnd) {
+                    return -1;
+                }
+
+                int remaining = len;
+
+                do {
+
+                    int r = getWrapped().read(bytes, offset, remaining);
+
+                    //stream closed
+                    if (r == -1) {
+
+                        //this was not the last one
+                        if(iterator.hasNext()) {
+                            //shift stream and continue reading
+                            setWrapped(iterator.next());
+                            offset += r;
+                            remaining -= r;
+                            continue;
+                        } else {
+                            atEnd = true;
+                            return len - remaining;
+                        }
+
+                    }
+                    remaining -=r;
+
+                    if(remaining > 0) {
+                        if (iterator.hasNext()) {
+                            setWrapped(iterator.next());
+                            offset += r;
+                        }
+                    }
+
+                } while(remaining > 0);
+                return len;
+            }
+
+            @Override
+            public long skip(long l) throws IOException {
+                long remaining = l;
+                do {
+                    long skipped = getWrapped().skip(remaining);
+                    remaining -= skipped;
+                    if(remaining > 0) {
+                        if(iterator.hasNext()) {
+                            setWrapped(iterator.next());
+                        } else {
+                            return l - remaining;
+                        }
+                    }
+                } while(remaining > 0);
+                return l;
+            }
+
+            @Override
+            public void mark(int i) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void close() throws IOException {
+                getWrapped().close();
+                AtomicReference<IOException> excpt = new AtomicReference<>(null);
+                try {
+                    iterator.forEachRemaining( is -> {
+                        try {
+                            is.close();
+                        } catch(IOException e) {
+                            excpt.set(e);
+                            throw new RuntimeException();
+                        }
+                    });
+                } catch(Exception e) {
+                    if(excpt.get() != null) {
+                        throw excpt.get();
+                    } else {
+                        throw new IOException(e);
+                    }
+                }
+            }
+        };
+
     }
 }

@@ -76,4 +76,18 @@ public class IOUtilTest {
         String data = new String(IOUtil.readFully(IOUtil.readResource(IOUtil.class, "utilresource.txt")));
         Assert.assertEquals("Resource file in a package", data);
     }
+
+    @Test
+    public void testJoin() {
+
+        InputStream is1 = new ByteArrayInputStream("Hello".getBytes());
+        InputStream is2 = new ByteArrayInputStream(" ".getBytes());
+        InputStream is3 = new ByteArrayInputStream("World".getBytes());
+
+        InputStream j = IOUtil.join(is1, is2, is3);
+
+        String result = new String(IOUtil.readFully(j));
+
+        Assert.assertEquals("Hello World", result);
+    }
 }
