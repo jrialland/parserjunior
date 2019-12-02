@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+		"moduleResolution": "node",
+		"baseUrl": ".",
+		"target": "es6",
+		"traceResolution" : true,
+		"declaration": true,
+        "noImplicitAny": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+		"noEmitOnError" : true,
+        "sourceMap": true,
+		"outDir": "./dist",
+		"paths" : {
+			"*" : [
+				"node_modules/*"
+			]
+		}
+    },
+    "filesGlob": [
+        "./src/*.ts",
+        "!./node_modules/**/*.ts"
+    ],
+    "files": [
+		"./src/parser.ts"
+    ]
+}

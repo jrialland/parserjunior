@@ -1,31 +1,9 @@
-# Compiled class file
-*.class
 
-# Log file
+node_modules/
+package-lock.json
+
+dist/
+*.tmp
 *.log
-
-# BlueJ files
-*.ctxt
-
-# Intellij IDEA files
-parserjunior-parent.iml
-*/*.iml
-.idea/
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
-*.jar
-*.war
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-
-# maven
-target/
-*/target/
+*.bak
+*.swp

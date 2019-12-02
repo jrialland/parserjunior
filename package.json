@@ -1,0 +1,28 @@
+{
+  "name": "parser",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": " gulp test",
+	"build" : "gulp build"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.7.4",
+    "@babel/preset-env": "^7.7.4",
+    "@babel/register": "^7.7.4",
+    "@types/jest": "^24.0.23",
+    "@types/node": "^12.12.14",
+    "core-js": "^3.4.5",
+    "gulp": "^4.0.2",
+    "gulp-jest": "^4.0.3",
+    "gulp-typescript": "^6.0.0-alpha.1",
+    "jest": "^24.9.0",
+    "jest-cli": "^24.9.0",
+    "regenerator-runtime": "^0.13.3",
+    "ts-jest": "^24.2.0",
+    "typescript": "^3.7.2"
+  }
+}
