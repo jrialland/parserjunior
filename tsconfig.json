@@ -16,15 +16,16 @@
 		"outDir": "./dist",
 		"paths" : {
 			"*" : [
+				"src/",
 				"node_modules/*"
 			]
 		}
     },
-    "filesGlob": [
-        "./src/*.ts",
-        "!./node_modules/**/*.ts"
+    "include": [
+        "src/**/*"
     ],
-    "files": [
-		"./src/parser.ts"
+    "exclude": [
+        "node_modules",
+        "**/*.spec.ts"
     ]
 }
