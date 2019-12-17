@@ -4,6 +4,7 @@ import { Terminal } from '../common/Terminal';
 import { Eof, Empty } from '../common/SpecialTerminal';
 import { Rule } from './Rule';
 import { Grammar } from './Grammar';
+import { stringLiteral } from '@babel/types';
 
 /**
  * type of parser action
@@ -392,6 +393,7 @@ export class ActionTable {
     constructor(grammar:Grammar) {
         this.grammar = grammar;
         this.symbols = new Map();
+        this.table = new Map();
         for(let s of grammar.getSymbols()) {
             this.symbols.set(s.getUid(), s);
         }
@@ -408,11 +410,13 @@ export class ActionTable {
 
     setAction(state:number, sym:ParseSymbol, action:Action, allowReplace:boolean) {
 		let symUid = sym.getUid();
-		let row:Map<string, Action>= null;
+		let row:Map<string, Action>;
 		if(!this.table.has(state)) {
 			row = new Map();
 			this.table.set(state, row);
-		}
+		} else {
+            row = this.table.get(state);
+        }
 		if(!allowReplace && row.has(symUid) && row.get(symUid) != action) {
 			let oldActionType = row.get(symUid).type;
 			let err = "Unresolved " + oldActionType + "/" + action.type + " conflict\n";
@@ -609,6 +613,13 @@ class SymbolSet {
      * @param map a system of 'LazySets'
      */
     static resolveAll(map:Map<string, SymbolSet>) {
+
+        for(let entry of map) {
+            let key = entry[0];
+            let value:SymbolSet = entry[1];
+            console.log(key, JSON.stringify(value));
+        }
+
         // the number of sets that have to be simplified
         const total = map.size;
 
@@ -616,7 +627,7 @@ class SymbolSet {
         let resolved = SymbolSet.simplify(map.values());
         let lastResolved = 0;
 
-        while(resolved < total && lastResolved != resolved) {
+        while(resolved < total && (resolved == 0 || lastResolved != resolved)) {
             lastResolved = resolved;
             for(const f of map.values()) {
                 f.composition.delete(f);

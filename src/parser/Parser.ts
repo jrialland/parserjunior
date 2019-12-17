@@ -1,12 +1,12 @@
 import { AstNode } from "./AstNode"
 import { LexerStream } from "../lexer/LexerStream";
-import { Readable } from "stream";
 import { Token } from "../common/Token";
 import { ActionTable, Action, ActionType } from "./ActionTable";
 import { Empty, Eof } from "../common/SpecialTerminal";
 import { Rule } from "./Rule";
 import { Terminal } from "../common/Terminal";
 import { ParseSymbol } from "../common/ParseSymbol";
+import { Reader } from "../common/Reader";
 
 
 export class ParseError extends Error {
@@ -116,21 +116,26 @@ class Context {
 
 export class Parser {
 
-    actionTable:ActionTable;
+    private actionTable:ActionTable;
+    
+    lexerStream:LexerStream;
 
     parserListener:ParserListener;
     
-    lexerStream:LexerStream;
+    constructor(actionTable:ActionTable) {
+        this.actionTable = actionTable;
+    }
 
     setLexerStream(lexerStream:LexerStream) {
         this.lexerStream = lexerStream;
     }
 
-    private makeLexerStream(readable:Readable):LexerStream {
+    private makeLexerStream(reader:Reader):LexerStream {
         if(this.lexerStream != null) {
             return this.lexerStream;
         } else {
             let terminals = this.actionTable.grammar.getTerminals();
+            return new LexerStream(reader, terminals as Terminal[], []);
         }
     }
 
@@ -180,9 +185,9 @@ export class Parser {
         stack.push(new Context(node, newState));
     }
 
-    parse(readable:Readable):AstNode {
+    parse(reader:Reader):AstNode {
         
-        let lexerStream:LexerStream = this.makeLexerStream(readable);
+        let lexerStream:LexerStream = this.makeLexerStream(reader);
         let targetRule:Rule = this.actionTable.grammar.targetRule;
         let stack:Array<Context> = [new Context(new NonLeafNode(targetRule, []), 0)];
 

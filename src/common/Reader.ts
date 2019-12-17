@@ -9,12 +9,14 @@ export class Reader {
         if(this._position == this._str.length) {
             return null;
         } else {
-            return this._str[this._position++];
+            let c = this._str[this._position];
+            this._position += 1;
+            return c;
         }
     }
 
     unshift():void {
-        this._position =- 1;
+        this._position = this._position - 1;
     }
 
     static fromString(s:string):Reader {

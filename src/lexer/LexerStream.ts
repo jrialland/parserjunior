@@ -110,7 +110,6 @@ export class LexerStream implements Iterator<Token> {
     }
 
     private emitToken(token:Token):void {
-        console.log('emitToken', token);
         for(let i of this.ignored) {
             if(i == token.tokenType) {
                 return;

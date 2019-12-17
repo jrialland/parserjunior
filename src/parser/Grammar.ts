@@ -74,9 +74,12 @@ export class Grammar {
         this.targetRule.id = 0;
         let newRules:Array<Rule> = [];
         newRules.push(this.targetRule);
-        for(let i=0; i < this.rules.length; i++) {
-            this.rules[i].id = i+1;
-            newRules.push(this.rules[i]);
+        let i = 1;
+        for(let rule of this.rules) {
+            if(rule != this.targetRule) {
+                rule.id = i++;
+                newRules.push(rule);
+            }
         }
         this.rules = newRules;
     }
