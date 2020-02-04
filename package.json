@@ -24,5 +24,8 @@
     "regenerator-runtime": "^0.13.3",
     "ts-jest": "^24.2.0",
     "typescript": "^3.7.2"
+  },
+  "dependencies": {
+    "@types/jsesc": "^2.5.0"
   }
 }
