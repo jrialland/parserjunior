@@ -19,10 +19,10 @@ export class SingleChar extends Terminal {
     }
     
     get automaton():Automaton {
-        let initial:State = new State;
-        let final:State = new State;
-        final.terminal = this;
-        initial.addTransition(CharConstraint.eq(this.character)).target = final;
-        return new Automaton(initial);
+        let builder = AutomatonBuilder.forTokenType(this);
+        let initial = builder.initialState();
+        let final = builder.newFinalState();
+        builder.addTransition(initial, CharConstraint.eq(this.character), final);
+        return builder.build();
     }
 };

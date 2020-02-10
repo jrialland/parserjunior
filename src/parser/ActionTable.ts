@@ -4,7 +4,6 @@ import { Terminal } from '../common/Terminal';
 import { Eof, Empty } from '../common/SpecialTerminal';
 import { Rule } from './Rule';
 import { Grammar } from './Grammar';
-import { stringLiteral } from '@babel/types';
 
 /**
  * type of parser action
@@ -126,11 +125,17 @@ class Item {
         s += " → ";
         let i = 0;
         for(let symbol of this.rule.definition) {
-            if(i == this.pointer) {
-                s += "•";
+            if(i>0) {
+                s += ' ';
             }
-            s += (" " + symbol.toString());
+            if(i == this.pointer) {
+                s += "• ";
+            }
+            s += symbol.toString();
             i++;
+        }
+        if(this.pointer ==  this.rule.definition.length) {
+            s += " •";
         }
         return s;
     }
@@ -243,6 +248,17 @@ class ItemSet {
         }
     }
 
+    toString():string {
+        let s = '';
+        for(const item of this.kernel) {
+            s += item.toString()+'\n';
+        }
+        for(const item of this.members) {
+            s += ' + ' + item.toString()+'\n';
+        }
+        return s.replace(/\n$/, '');
+    }
+
 };
 
 //------------------------------------------------------------------------------
@@ -283,7 +299,7 @@ function extendItemSetKernel(grammar:Grammar, kernel:Set<Item>) {
 
 //------------------------------------------------------------------------------
 /** Create the first itemSet 'i0' */
-function getFirstItemSet(grammar:Grammar, targetRule:Rule):ItemSet {
+export function getFirstItemSet(grammar:Grammar, targetRule:Rule):ItemSet {
     const firstItem = new Item(targetRule, 0);
     const kernel = new Set([firstItem]);
     return  new ItemSet(0, kernel, extendItemSetKernel(grammar, kernel));
@@ -345,10 +361,26 @@ export class Action {
         this.type = type;
         this.target = target;
     }
+    get typeStr() {
+        switch(this.type) {
+            case ActionType.Accept:
+                    return 'Accept';
+            case ActionType.Fail:
+                    return 'Fail';
+            case ActionType.Goto:
+                    return 'Goto';
+            case ActionType.Reduce:
+                    return 'Reduce';
+            case ActionType.Shift:
+                return 'Shift';
+            default:
+                throw new Error('unknown ActionType ' + this.type);
+        }
+    }
 };
 
 //------------------------------------------------------------------------------
-function getTranslationTable(grammar:Grammar,  allItemSets:Set<ItemSet>):Map<number, Map<string, number>> {
+export function getTranslationTable(grammar:Grammar,  allItemSets:Set<ItemSet>):Map<number, Map<string, number>> {
     let table:Map<number, Map<string, number>> = new Map();
     for(let itemSet of allItemSets) {
         let currentState = itemSet.id;
@@ -365,18 +397,18 @@ function getTranslationTable(grammar:Grammar,  allItemSets:Set<ItemSet>):Map<num
 }
 
 //------------------------------------------------------------------------------
-function initializeShiftsAndGotos(actionTable:ActionTable, translationTable:Map<number, Map<string, number>>) {
-    translationTable.forEach( (value, state, map) => {
-         value.forEach( (target, symUid, map_) => {
-             let sym = actionTable.getSymbolForUid(symUid);
-             if(sym.isTerminal()) {
-                 actionTable.setAction(state, sym, new Action(ActionType.Shift, target), false);
-             } else {
-                 actionTable.setAction(state, sym, new Action(ActionType.Goto, target), false);
-             }
-         });
-    });
- }
+export function initializeShiftsAndGotos(actionTable:ActionTable, translationTable:Map<number, Map<string, number>>) {
+    for(let [state, line] of translationTable.entries()){
+        for(let [symUid, targetState] of line) {
+            let sym = actionTable.getSymbolForUid(symUid);
+            if(sym.isTerminal()) {
+                actionTable.setAction(state, sym, new Action(ActionType.Shift, targetState), false);
+            } else {
+                actionTable.setAction(state, sym, new Action(ActionType.Goto, targetState), false);
+            }
+        }
+    }
+}
  
 //------------------------------------------------------------------------------
 /**
@@ -390,18 +422,21 @@ export class ActionTable {
 
 	table:Map<number, Map<string, Action>>;
 
-    constructor(grammar:Grammar) {
+    constructor(grammar:Grammar, compute?:boolean) {
+        compute = typeof(compute) === 'undefined' ? true : compute;
         this.grammar = grammar;
         this.symbols = new Map();
         this.table = new Map();
         for(let s of grammar.getSymbols()) {
             this.symbols.set(s.getUid(), s);
         }
-        let allItemSets:Set<ItemSet> = getAllItemSets(grammar, grammar.getTargetRule());
-        let translationTable = getTranslationTable(grammar, allItemSets);
-        initializeShiftsAndGotos(this, translationTable);
-        initializeReductions(grammar, this, allItemSets);
-        initializeAccept(grammar, this, allItemSets);
+        if(compute) {
+            let allItemSets:Set<ItemSet> = getAllItemSets(grammar, grammar.getTargetRule());
+            let translationTable = getTranslationTable(grammar, allItemSets);
+            initializeShiftsAndGotos(this, translationTable);
+            initializeReductions(grammar, this, allItemSets);
+            initializeAccept(grammar, this, allItemSets);
+        }
     }
 
     getSymbolForUid(uid:string):ParseSymbol {
@@ -457,56 +492,54 @@ export class ActionTable {
 
 //------------------------------------------------------------------------------
 /** builds an 'extended' grammar from the item sets */
-function makeExtendedGrammar(targetRule:Rule, allItemSets:Set<ItemSet>) {
-
-    const extendedSymbols:Map<string, ExtendedSymbol> = new Map();
-    const eGrammar = new Grammar();
-    
-    
+export function makeExtendedGrammar(targetRule:Rule, allItemSets:Set<ItemSet>):Grammar {
+    let extendedSymbols:Map<string, ExtendedSymbol> = new Map;
+    let eGrammar = new Grammar;
+    let eTargetRule:ExtendedRule = null;
     for(let itemSet of allItemSets) {
-
-        const initialState = itemSet.id;
-        itemSet.forAllItems( (item) => {
-
+        let initialState = itemSet.id;
+        itemSet.forAllItems((item:Item) => {
             if(item.pointer == 0) {
-                
-                const rule = item.rule;
+                let rule:Rule = item.rule;
                 let currentItem = itemSet;
-                const eClause:Array<ExtendedSymbol> = new Array();
-
+                let eClause:Array<ExtendedSymbol> = [];
                 for(let s of rule.definition) {
-                    const start = currentItem.id;
+                    let start = currentItem.id;
                     currentItem = currentItem.getTransitionFor(s);
-                    const end = currentItem.id;
-                    const extSym = new ExtendedSymbol(start, s, end);
-                    const extSymUid = extSym.getUid();
-                    if( ! extendedSymbols.has(extSymUid)) {
-                        extendedSymbols.set(extSymUid, extSym);
+                    let end = currentItem.id;
+                    let extSym = new ExtendedSymbol(start, s, end);
+                    let key = extSym.getUid();
+                    if(extendedSymbols.has(key)) {
+                        extSym = extendedSymbols.get(key);
+                    } else {
+                        extendedSymbols.set(key, extSym);
                     }
                     eClause.push(extSym);
                 }
-                const transition = itemSet.getTransitionFor(rule.target);
-                const finalState = transition == null ? -1 : transition.id;
-                const eTarget = new ExtendedSymbol(initialState, rule.target, finalState);
-                const eTargetUid = eTarget.getUid();
-                if( ! extendedSymbols.has(eTargetUid)) {
-                    extendedSymbols.set(eTargetUid, eTarget);
+                let finalState=-1;
+                let transition:ItemSet = itemSet.getTransitionFor(rule.target);
+                if(transition) {
+                    finalState = transition.id;
                 }
-                eGrammar.addRule(new ExtendedRule(rule, eTarget, eClause));
-                return true;
+                let eTarget:ExtendedSymbol = new ExtendedSymbol(initialState, rule.target, finalState);
+                let key = eTarget.getUid();
+                if(extendedSymbols.has(key)) {
+                    eTarget = extendedSymbols.get(key);
+                } else {
+                    extendedSymbols.set(key, eTarget);
+                }
+                let eRule:ExtendedRule = new ExtendedRule(rule, eTarget, eClause);
+                if(rule == targetRule) {
+                    eTargetRule = eRule;
+                }
+                eGrammar.addRule(eRule);
+
             }
+            return true;
         });
     }
-
-    for(const r of eGrammar.getRules().map((r) => r as ExtendedRule)) {
-        const eTarget = r.target as ExtendedSymbol;
-        if(eTarget.sym.getUid() === targetRule.target.getUid()) {
-            eGrammar.setTargetRule(r);
-            return eGrammar;
-        }
-    }
-    
-    throw Error("Definition of extended grammar failed")
+    eGrammar.setTargetRule(eTargetRule);
+    return eGrammar;
 }
 
 //------------------------------------------------------------------------------
@@ -613,21 +646,21 @@ class SymbolSet {
      * @param map a system of 'LazySets'
      */
     static resolveAll(map:Map<string, SymbolSet>) {
-
-        for(let entry of map) {
-            let key = entry[0];
-            let value:SymbolSet = entry[1];
-            console.log(key, JSON.stringify(value));
-        }
-
-        // the number of sets that have to be simplified
+        // The number of sets that have to be simplified
         const total = map.size;
-
-        // the amount that are already simplified
+        // The amount that are already simplified
         let resolved = SymbolSet.simplify(map.values());
+        
+        // The number of entries that has been resolved during the last iteration
         let lastResolved = 0;
 
+        let counter = 0;
         while(resolved < total && (resolved == 0 || lastResolved != resolved)) {
+            console.log(resolved, lastResolved, total);
+            counter++;
+            if(counter == 100) {
+                throw new Error('max iterations');
+            }
             lastResolved = resolved;
             for(const f of map.values()) {
                 f.composition.delete(f);
@@ -643,9 +676,8 @@ class SymbolSet {
             }
             resolved = SymbolSet.simplify(map.values());
         }
-
         if(resolved < total) {
-            //TODO : dumping the unresolved sets would give an idea on why it cannot be solved
+            //TODO : dumping the unresolved sets would give an idea on why it couldn't be solved
             throw new Error("Could not compute grammar");
         }
     }
@@ -739,7 +771,7 @@ function defineFollowSet(followSets:Map<string, FollowSet>, grammar:Grammar, D:P
 }
 
 //------------------------------------------------------------------------------
-function getFollowSets(grammar:Grammar):Map<string, FollowSet> {
+export function getFollowSets(grammar:Grammar):Map<string, FollowSet> {
     let map:Map<string, FollowSet> = new Map();
 
     for(let sym of grammar.getSymbols()) {
@@ -823,7 +855,7 @@ function resolveConflict(grammar:Grammar, rule:Rule, sym:ParseSymbol, existing:A
 }
 
 //------------------------------------------------------------------------------
-function initializeReductions(grammar:Grammar, actionTable:ActionTable, allItemSets:Set<ItemSet>) {
+export function initializeReductions(grammar:Grammar, actionTable:ActionTable, allItemSets:Set<ItemSet>) {
 
     let extendedGrammar:Grammar = makeExtendedGrammar(grammar.getTargetRule(), allItemSets);
 
@@ -877,7 +909,7 @@ function initializeReductions(grammar:Grammar, actionTable:ActionTable, allItemS
     }
 }
 
-function initializeAccept(grammar:Grammar, actionTable:ActionTable, itemSets:Set<ItemSet>) {
+export function initializeAccept(grammar:Grammar, actionTable:ActionTable, itemSets:Set<ItemSet>) {
     let targetRule = grammar.getTargetRule();
     let accept = new Action(ActionType.Accept, 0);
     let allParsed = new Item(targetRule, targetRule.definition.length);

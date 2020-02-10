@@ -9,4 +9,8 @@ test('SingleChar automaton', () => {
     expect(a.initialState.outgoing[0].constraint.matches('a')).toBe(true);
     expect(a.initialState.outgoing[0].constraint.matches('b')).toBe(false);
     expect(a.initialState.outgoing[0].target.terminal).toBe(s);
+
+    console.log(s.automaton.toGraphviz());
+
+
 });

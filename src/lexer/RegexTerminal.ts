@@ -1,9 +1,54 @@
-import { State, Transition } from "./automaton/Automaton";
-import { Visitor } from "../parser/Visitor";
-import { Terminal } from "../common/Terminal";
-import { AstNode } from "../parser/AstNode";
-import { CharConstraint } from "./CharConstraint";
-import { RegexGrammar } from "./RegexGrammar";
+import {Grammar} from '../parser/Grammar';
+import {NonTerminal} from '../common/NonTerminal';
+import {SingleChar} from './SingleChar';
+import {CCharacter} from './CCharacter';
+import {Literal} from './Literal';
+import {QuotedString} from './QuotedString';
+import { State, Transition, AutomatonBuilder, Automaton } from './automaton/Automaton';
+import { Terminal } from '../common/Terminal';
+import { AstNode } from '../parser/AstNode';
+import { CharConstraint } from './CharConstraint';
+import { Visitor } from '../parser/Visitor';
+import { Parser } from '../parser/Parser';
+import { ActionTable } from '../parser/ActionTable';
+import { Reader } from '../common/Reader';
+
+class RegexGrammar extends Grammar {
+
+	static OneOrMoreExpr:NonTerminal = new NonTerminal('OneOrMoreExpr');
+	static Regex = new NonTerminal("Regex");
+	static Expr = new NonTerminal("Expr");
+	static Sequence = new NonTerminal("Sequence");
+	static CharacterRange = new NonTerminal("CharacterRange");
+
+	static LeftBrace = new SingleChar('(');
+	static RightBrace = new SingleChar(')');
+	static Dot = new SingleChar('.');
+	static Plus = new SingleChar('+');
+	static Pipe = new SingleChar('|');
+	static QuestionMark = new SingleChar('?');
+	static Star = new SingleChar('*');
+	static ThreePoints = new Literal("..");
+	static Char = CCharacter;
+	static SingleQuotedString = new QuotedString('\'', '\'', '\\', "\n\r");
+
+	constructor() {
+		super();
+		this.defineRule(RegexGrammar.OneOrMoreExpr, [this.oneOrMore(RegexGrammar.Expr)]);
+		this.setTargetRule(this.defineRule(RegexGrammar.Regex, [RegexGrammar.OneOrMoreExpr]));
+		this.defineRule(RegexGrammar.Expr, [RegexGrammar.LeftBrace, RegexGrammar.OneOrMoreExpr, RegexGrammar.RightBrace]).withName("Group");
+		this.defineRule(RegexGrammar.Expr, [RegexGrammar.Sequence]).withName("CharSequence");
+		this.defineRule(RegexGrammar.Expr, [RegexGrammar.CharacterRange]).withName("Range");
+		this.defineRule(RegexGrammar.Expr, [RegexGrammar.Char]).withName("Char");
+		this.defineRule(RegexGrammar.Expr, [RegexGrammar.Dot]).withName("AnyChar");
+		this.defineRule(RegexGrammar.Expr, [RegexGrammar.Expr, RegexGrammar.QuestionMark]).withName("Optional");
+        this.defineRule(RegexGrammar.Expr, [RegexGrammar.Expr, RegexGrammar.Star]).withName("ZeroOrMore");
+        this.defineRule(RegexGrammar.Expr, [RegexGrammar.Expr, RegexGrammar.Plus]).withName("OneOrMore");
+        this.defineRule(RegexGrammar.Expr, [RegexGrammar.Expr, RegexGrammar.Pipe, RegexGrammar.Expr]).withName("Or");
+		this.defineRule(RegexGrammar.CharacterRange, [RegexGrammar.Char, RegexGrammar.ThreePoints, RegexGrammar.Char]);
+		this.defineRule(RegexGrammar.Sequence, [RegexGrammar.SingleQuotedString]);
+	}
+};
 
 class Context {
 	start:State;
@@ -38,9 +83,11 @@ class RegexVisitor extends Visitor {
 		this.addListener('after', 'Or', this.afterOr.bind(this));
 	}
 	
-	getAutomaton() {
+	getAutomaton():Automaton {
 		let context = this.stack.pop();
-		context.end.terminal = this.lexeme;
+        context.end.terminal = this.lexeme;
+        let builder = AutomatonBuilder.forTokenType(this.lexeme);
+        return builder.build();
 	}
 
 	beforeRegex(node:AstNode) {
@@ -185,5 +232,28 @@ class RegexVisitor extends Visitor {
         left.end.disconnect();
         lastNode.terminal = this.lexeme;
         this.stack.push(new Context(firstNode, lastNode));
+    }
+};
+
+let _regexParser = new Parser(new ActionTable(new RegexGrammar));
+
+export class RegexTerminal extends Terminal {
+
+    private _expression:string;
+
+    private _automaton:Automaton;
+
+    constructor(name:string, expression:string) {
+        super(name);
+        this._expression = expression;
+
+        let ast = _regexParser.parse(Reader.fromString(this._expression));
+        let visitor = new RegexVisitor(this);
+        visitor.visit(ast);
+        this._automaton = visitor.getAutomaton();
+    }
+
+    get automaton() {
+        return this._automaton;
     }
 };

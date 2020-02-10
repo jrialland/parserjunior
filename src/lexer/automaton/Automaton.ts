@@ -1,6 +1,9 @@
 
 import {Terminal} from '../../common/Terminal';
 import { CharConstraint } from '../CharConstraint';
+import jsesc = require('jsesc');
+import StackUtils = require('stack-utils');
+
 
 export class State {
     
@@ -62,6 +65,62 @@ export class Automaton {
     get initialState():State {
         return this._initial;
     }
+
+    *allTransitions() {
+        let stack = [this._initial];
+        let done:Array<State> = [];
+        while(stack.length > 0) {
+            let currentState = stack.pop();
+            if(currentState.fallbackTransition && !done.includes(currentState.fallbackTransition.target)) {
+                stack.push(currentState.fallbackTransition.target);
+            }
+            if(!done.includes(currentState)) {
+                yield currentState;
+                done.push(currentState);
+                for(let t of currentState.outgoing) {
+                    if(t.target && !stack.includes(t.target) && !done.includes(t.target)) {
+                        stack.push(t.target)
+                    }
+                }
+            }
+        } 
+    }
+
+    toGraphviz():string {
+        let s:string = `digraph ${this.constructor.name} {\n`; 
+        for(let state of this.allTransitions()) {
+            s += `    "${state.id}" `;
+            if(state.id == 0) {
+                s += "[shape=circle,penwidth=4]";
+            } else if(state.finalState) {
+                s += "[shape=doublecircle]";
+            } else {
+                s += "[shape=circle]";
+            }
+            s+=";\n";
+        }
+        let stack = [this.initialState];
+        let done:Array<State> = [];
+        while(stack.length) {
+            let state = stack.pop();
+            done.push(state);
+            for(let transition of state.outgoing) {
+                let label = jsesc(transition.constraint.toString(),{quotes:'double'});
+                s += `    "${state.id}" -> "${transition.target.id}" [label="${label}"];\n`;
+                if(!done.includes(transition.target)) {
+                    stack.push(transition.target);
+                }
+            }
+            if(state.fallbackTransition) {
+                s += `    "${state.id}" -> "${state.fallbackTransition.target.id}" [style=dashed];\n`;
+                if(!done.includes(state.fallbackTransition.target)) {
+                    stack.push(state.fallbackTransition.target);
+                }
+            }
+        }
+        s+="}"
+        return s;
+    }
 }
 
 export class AutomatonBuilder {
@@ -94,7 +153,9 @@ export class AutomatonBuilder {
     }
 
     addTransition(source:State, constraint:CharConstraint, target:State):Transition {
-        return source.addTransition(constraint);
+        let t = source.addTransition(constraint);
+        t.target = target;
+        return t;
     }
 
     failedState():State {
@@ -102,6 +163,11 @@ export class AutomatonBuilder {
     }
 
     build():Automaton {
-        return new Automaton(this._initial);
+        let a = new Automaton(this._initial);
+        let counter = 0;
+        for(let state of a.allTransitions()) {
+            state.id = counter++;
+        }
+        return a;
     }
 }

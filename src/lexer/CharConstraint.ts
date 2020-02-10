@@ -1,5 +1,6 @@
 
 import jsesc = require('jsesc');
+import { removeProperties } from '@babel/types';
 
 export class CharConstraint {
 
@@ -9,6 +10,10 @@ export class CharConstraint {
 
 	matches(c:string) {
 		return this._matcher(c);
+	}
+
+	toString() {
+		return this._repr;
 	}
 
 	static inRange(low:string, up:string):CharConstraint {
