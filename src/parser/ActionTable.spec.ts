@@ -1,9 +1,10 @@
 import {Grammar} from './Grammar';
 import { NonTerminal } from '../common/NonTerminal';
 import {SingleChar} from '../lexer/SingleChar';
-import {getFirstItemSet, getAllItemSets, getTranslationTable, initializeShiftsAndGotos, initializeReductions, initializeAccept, makeExtendedGrammar, getFollowSets, ActionTable} from './ActionTable';
+import {getFirstItemSet, getAllItemSets, getTranslationTable, initializeShiftsAndGotos, initializeReductions, initializeAccept, makeExtendedGrammar, getFIRST, ActionTable} from './ActionTable';
 import { ParseSymbol } from '../common/ParseSymbol';
 import { Eof } from '../common/SpecialTerminal';
+import { FORMERR } from 'dns';
 
 let symbols:Map<string, ParseSymbol> = new Map;
 symbols.set('S', new NonTerminal('S'));
@@ -218,11 +219,15 @@ test('Make extended grammar', ()=> {
     expect(eGrammar.getRules().length).toBe(12);
 });
 */
-test('Build the FOLLOW sets', ()=> {
+test('Build the FIRST set', ()=> {
     let itemSets = getAllItemSets(testGrammar, testGrammar.getTargetRule());
     let eGrammar:Grammar = makeExtendedGrammar(testGrammar.getTargetRule(), itemSets);
-    let followSets = getFollowSets(eGrammar);
-    console.log(followSets);
+
+    for(let sym of eGrammar.getSymbols()) {
+        let f = getFIRST(eGrammar, sym);
+        console.log(f);
+    }
+
 });
 
 /*
