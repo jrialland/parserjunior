@@ -53,7 +53,7 @@ export class Grammar {
         this.rules.push(r);
 
         // set the rule's uid
-        r.setId(this.rules.length);
+        r.setId(this.rules.length-1);
 
         //consider as target rule if it was not defined yet
         if(this.targetRule == null) {

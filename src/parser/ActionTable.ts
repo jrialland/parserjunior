@@ -4,10 +4,9 @@ import { Terminal } from '../common/Terminal';
 import { Eof, Empty } from '../common/SpecialTerminal';
 import { Rule } from './Rule';
 import { Grammar } from './Grammar';
-import { Z_FULL_FLUSH } from 'zlib';
-import { isFlowPredicate } from '@babel/types';
-import { resolvePlugin } from '@babel/core';
-
+import { computeFOLLOWSets } from './SymbolSet';
+import {table} from 'table';
+import { maxHeaderSize } from 'http';
 /**
  * type of parser action
  */
@@ -421,6 +420,64 @@ export class ActionTable {
 
 	table:Map<number, Map<string, Action>>;
 
+
+    asAsciiTable():string {
+        
+        let sorted = Array.from(this.table.keys()).sort();
+        let maxState = sorted[sorted.length-1];
+
+        let terminals = this.grammar.getTerminals();
+        terminals.push(Eof);
+        let nonTerminals = this.grammar.getNonTerminals();
+
+        let data:Array<Array<String>> = [];
+
+        //header
+        let header:Array<String> = [];
+        header.push(' ');
+        for(let t of terminals) {
+            header.push(t.toString());
+        }
+        for(let nt of nonTerminals) {
+            header.push(nt.toString());
+        }
+        data.push(header);
+
+        //line for each state
+        for(let i=0; i<=maxState; i++) {
+            let line:Array<String> = [];
+            line.push(''+i);
+
+            for(let t of terminals) {
+                let action = this.getAction(i, t);
+                if(action) {
+                    switch(action.type) {
+                        case ActionType.Accept:
+                            line.push('accept');
+                            break;
+                        case ActionType.Shift:
+                            line.push('s'+action.target);
+                            break;
+                        case ActionType.Reduce:
+                            line.push('r(' + this.grammar.getRuleById(action.target).toString() + ')');
+                            break;
+                    }
+                } else(line.push(' '));
+            }
+
+            for(let nt of nonTerminals) {
+                let action = this.getAction(i, nt);
+                if(action) {
+                    line.push(''+action.target);
+                } else {
+                    line.push(' ');
+                }
+            }
+            data.push(line);
+        }
+        return table(data);
+    }
+
     constructor(grammar:Grammar, compute?:boolean) {
         compute = typeof(compute) === 'undefined' ? true : compute;
         this.grammar = grammar;
@@ -462,6 +519,14 @@ export class ActionTable {
 		} else {
 			row.set(symUid, action);
 		}
+    }
+
+    getActionNoCheck(state:number, sym:ParseSymbol) {
+        let row = this.table.get(state);
+        if(row) {
+            return row.get(sym.getUid());
+        }
+        return null;
     }
 
     getAction(state:number, sym:ParseSymbol):Action {
@@ -573,146 +638,60 @@ function resolveConflict(grammar:Grammar, rule:Rule, sym:ParseSymbol, existing:A
         }
     }
 }
-
-//------------------------------------------------------------------------------
-abstract class SymbolSet {
-    subject:ParseSymbol;
-    resolution:Set<ParseSymbol> = new Set;
-    definition:Set<SymbolSet> = new Set;
-    constructor(sym:ParseSymbol) {
-        this.subject = sym;
-    }
-    abstract get typeName():string;
-
-        
-    toString() {
-        return this.asString();
-    }
-
-    asString(simple?:boolean):string {
-        let s = this.typeName + '(' + this.subject.toString() + ')';
-        if(simple) {
-            return s;
-        }
-        s += '    definition = { ' + Array.from(this.definition).map(f=>f.asString(true)).join(', ') + '}';
-        return s;
-    }
-};
-//------------------------------------------------------------------------------
-class FirstSet extends SymbolSet {
-    constructor(sym:ParseSymbol, resolution:Set<ParseSymbol>) {
-        super(sym);
-    }
-    get typeName() {
-        return 'FIRST';
-    }
-};
-
-//------------------------------------------------------------------------------
-class FollowSet extends SymbolSet {
-
-    constructor(sym:ParseSymbol) {
-        super(sym);
-    }
-
-    addToDefinition(symbolSet:SymbolSet) {
-        this.definition.add(symbolSet);
-    }
-
-    get typeName() {
-        return 'FOLLOW';
-    }
-};
-
-//------------------------------------------------------------------------------
-export function getFIRST(grammar:Grammar, sym:ParseSymbol):Set<ParseSymbol> {
-    // 1. FIRST(terminal) = [terminal]
-    if(sym.isTerminal()) {
-        return new Set([sym.asSimpleSymbol()]);
-    }
-    let set = new Set<ParseSymbol>([]);
-    for(let r of grammar.getRules().filter(r=>r.target==sym)) {
-        if(r.definition[0].isTerminal()) {
-            //2. if the definition starts with a terminal, the set is this terminal
-            set.add(r.definition[0].asSimpleSymbol());
-            continue;
-        }
-        let brk=false;
-        for(let s2 of r.definition) {
-            if(sym != s2) {
-                let a = getFIRST(grammar, s2);
-                let containedEmpty = a.delete(Empty);
-                for(let item of a) {
-                    set.add(item);
-                }
-                // 3a. if First(x) did not contain ε, we do not need to contine scanning
-                if(!containedEmpty) {
-                    brk = true;
-                    break;
-                }
-            }
-        }
-        // 3b. every First(x) contained ε, so we have to add it to the set
-        if(!brk) {
-            set.add(Empty);
-        }
-    }
-    return set;
-}
-
-export function defineFOLLOW(allSets:Map<string, FollowSet>, grammar:Grammar, D:ParseSymbol) {
-    let followSet = allSets.get(D.getUid());
-    // Construct for the rule have the form R → a* D b.
-    for(let rule of grammar.getRules()) {
-        let R = rule.target;
-        let followSetOfR = allSets.get(R.getUid());
-        //for each occurence of D in the clause
-        for(let i=0, max=rule.definition.length-1; i < max; i++) { //minus 1 because if D is the last item of the definition we dont care (i.e 'b' must exist)
-            if(rule.definition[i] == D) {
-                let b = rule.definition[i+1];
-                //Everything in First(b) (except for ε) is added to Follow(D)
-                let f = getFIRST(grammar, b);
-                let containedEmpty = f.delete(Empty);
-                let firstSet = new FirstSet(b, f);
-                followSet.addToDefinition(firstSet);
-                if(containedEmpty) {
-                    followSet.addToDefinition(followSetOfR);
-                }
-            }
-        }
-        //Finally, if we have a rule R → a* D, then everything in Follow(R) is placed in Follow(D).
-        if(rule.definition.length>0 && D == rule.definition[rule.definition.length-1]) {
-            followSet.addToDefinition(followSetOfR);
-        }
-    }
-}
-
-export function computeFOLLOWSets(grammar:Grammar):Map<string, FollowSet> {
-
-    let map:Map<string, FollowSet> = new Map;
-
-    //Create a FollowSet for each symbol (terminal/nonterminal)
-    for(let sym of grammar.getSymbols()) {
-        map.set(sym.getUid(), new FollowSet(sym));
-    }
-
-    //Place an End of Input token ($) into the starting rule's follow set.
-    let targetUid = grammar.getTargetRule().target.getUid();
-    map.get(targetUid).resolution.add(Eof);
-
-    //Define FOLLOW(X) for all non-terminals
-    for(let sym of grammar.getNonTerminals()) {
-        defineFOLLOW(map, grammar, sym);
-    }
-
-    return map;
-}
-
 //------------------------------------------------------------------------------
 export function initializeReductions(grammar:Grammar, actionTable:ActionTable, allItemSets:Set<ItemSet>) {
     let extendedGrammar:Grammar = makeExtendedGrammar(grammar.getTargetRule(), allItemSets);
+    let followSets = computeFOLLOWSets(extendedGrammar);
 
-    
+    // Merge rules that descend from the same original rule and have the same endpoint
+    class MergedReduction {
+        symbols:Set<ParseSymbol> = new Set;
+        ruleId:number;
+        finalSet:number;
+        constructor(finalSet:number, ruleId:number) {
+            this.finalSet = finalSet;
+            this.ruleId = ruleId;
+        }
+        addSymbols(syms:Set<ParseSymbol>) {
+            for(let sym of syms) {
+                this.symbols.add(sym);
+            }
+        }
+    };
+
+    let reductions:Map<string, MergedReduction> = new Map;
+
+    for(let r of extendedGrammar.rules) {
+        let eRule = r as ExtendedRule;
+        let last = eRule.definition[eRule.definition.length-1] as ExtendedSymbol;
+        let endpoint = last.to;
+        let mrUid = eRule.baseRule.id + '/' + endpoint;
+        let mr:MergedReduction;
+        if(reductions.has(mrUid)) {
+            mr = reductions.get(mrUid);
+        } else {
+            mr = new MergedReduction(endpoint, eRule.baseRule.id);
+            reductions.set(mrUid, mr)
+        }
+        let followSet = followSets.get(eRule.target.getUid());
+        mr.addSymbols(followSet.resolution);
+    }
+
+    for(let mr of reductions.values()) {
+        for(let symbol of mr.symbols) {
+            //insert a reduce action
+            let actionToInsert = new Action(ActionType.Reduce, mr.ruleId);
+            let existingAction = actionTable.getActionNoCheck(mr.finalSet, symbol);
+
+            if(existingAction != null) {
+                let rule = grammar.getRuleById(mr.ruleId);
+                let resolved = resolveConflict(grammar, rule, symbol, existingAction, actionToInsert);
+                actionTable.setAction(mr.finalSet, symbol, resolved, true);
+            } else {
+                actionTable.setAction(mr.finalSet, symbol, actionToInsert, false);
+            }
+        }
+    }
 }
 
 //------------------------------------------------------------------------------

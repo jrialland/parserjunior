@@ -1,57 +1,8 @@
 import {Grammar} from './Grammar';
-import { NonTerminal } from '../common/NonTerminal';
-import {SingleChar} from '../lexer/SingleChar';
-import {getFirstItemSet, getAllItemSets, getTranslationTable, initializeShiftsAndGotos, initializeReductions, initializeAccept, makeExtendedGrammar, getFIRST, computeFOLLOWSets, ActionTable} from './ActionTable';
-import { ParseSymbol } from '../common/ParseSymbol';
-import { Eof } from '../common/SpecialTerminal';
-import { FORMERR } from 'dns';
-
-let symbols:Map<string, ParseSymbol> = new Map;
-symbols.set('S', new NonTerminal('S'));
-symbols.set('N', new NonTerminal('N'));
-symbols.set('V', new NonTerminal('V'));
-symbols.set('E', new NonTerminal('E'));
-symbols.set('x', new SingleChar('x'));
-symbols.set('=', new SingleChar('='));
-symbols.set('*', new SingleChar('*'));
-symbols.set('eof', Eof);
-
-function makeGrammar() {
-
-    let S = symbols.get('S');
-    let N = symbols.get('N');
-    let V = symbols.get('V');
-    let E = symbols.get('E');
-
-    let x = symbols.get('x');
-    let eq = symbols.get('=');
-    let star = symbols.get('*');
-    
-    let g = new Grammar();
-    
-    // S → N
-    g.defineRule(S, [N]);
-    
-    // N → V = E
-    g.defineRule(N, [V, eq, E]);
-    
-    // N → E
-    g.defineRule(N, [E]);
-    
-    // E → V
-    g.defineRule(E, [V]);
-    
-    // V → x
-    g.defineRule(V, [x]);
-    
-    // V → * E
-    g.defineRule(V, [star, E]);
-
-    return g;
-}
-
-let testGrammar = makeGrammar();
+import {testGrammarSymbols, testGrammar} from './sampleGrammar';
+import {getFirstItemSet, getAllItemSets, getTranslationTable, initializeShiftsAndGotos, initializeReductions, initializeAccept, makeExtendedGrammar, ActionTable} from './ActionTable';
 /*
+
 test('First ItemSet', () => {
     let i0 = getFirstItemSet(testGrammar, testGrammar.getTargetRule());
     expect(i0.kernel.size).toBe(1);
@@ -172,7 +123,7 @@ test('Translation Table', () => {
 });
 
 function checkAction(a:ActionTable, state:number, s:string, expectedAction:string, expectedTarget:number) {
-    let action = a.getAction(state, symbols.get(s));
+    let action = a.getAction(state, testGrammarSymbols.get(s));
     expect(action.typeStr.toUpperCase()).toBe(expectedAction);
     expect(action.target).toBe(expectedTarget);
 };
@@ -204,51 +155,20 @@ test('Initialize Accept', ()=> {
     initializeAccept(testGrammar, a, itemSets);
     checkAction(a, 1, 'eof', 'ACCEPT', 0);
 });
-*/
-/*
-test('Initialize Reductions', () => {
-    let a = new ActionTable(testGrammar, false);
-    let itemSets = getAllItemSets(testGrammar, testGrammar.getTargetRule());
-    initializeReductions(testGrammar, a, itemSets);
-});
-*/
-/*
+
 test('Make extended grammar', ()=> {
     let itemSets = getAllItemSets(testGrammar, testGrammar.getTargetRule());
     let eGrammar:Grammar = makeExtendedGrammar(testGrammar.getTargetRule(), itemSets);
     expect(eGrammar.getRules().length).toBe(12);
 });
 */
-test('Build the FIRST set', ()=> {
+test('Initialize Reductions', () => {
+    let a = new ActionTable(testGrammar, false);
     let itemSets = getAllItemSets(testGrammar, testGrammar.getTargetRule());
-    let eGrammar:Grammar = makeExtendedGrammar(testGrammar.getTargetRule(), itemSets);
-
-    let s = '';
-    for(let sym of eGrammar.getSymbols()) {
-        let set = getFIRST(eGrammar, sym);
-        if(sym.isTerminal()) {
-            expect(set.size).toBe(1);
-            expect(Array.from(set)[0]).toBe(sym.asSimpleSymbol());
-        } else {
-            expect(set.size).toBe(2);
-            let array = Array.from(set).map(x=>x.toString()).sort();
-            let strArray = '[' + array.join(', ') + ']';
-            expect(strArray).toBe("['*', 'x']");
-        }
-    }
+    initializeReductions(testGrammar, a, itemSets);
 });
 
-test('Compute FOLLOW sets', () => {
-    let itemSets = getAllItemSets(testGrammar, testGrammar.getTargetRule());
-    let eGrammar:Grammar = makeExtendedGrammar(testGrammar.getTargetRule(), itemSets);
-
-    let map = computeFOLLOWSets(eGrammar);
-
-    let s = '';
-    map.forEach((followSet, key) => {
-        s += followSet.toString() + '\n';
-    });
-
-    console.log(s);
-
+test('Print ActionTable', ()=>{
+    let a = new ActionTable(testGrammar);
+    console.log(a.asAsciiTable());
 });

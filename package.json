@@ -26,6 +26,8 @@
     "typescript": "^3.7.2"
   },
   "dependencies": {
-    "@types/jsesc": "^2.5.0"
+    "@types/jsesc": "^2.5.0",
+    "@types/table": "^4.0.7",
+    "table": "^5.4.6"
   }
 }
