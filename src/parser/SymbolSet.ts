@@ -67,7 +67,7 @@ function getFIRST(grammar:Grammar, sym:ParseSymbol):Set<ParseSymbol> {
         let brk=false;
         for(let s2 of r.definition) {
             if(sym != s2) {
-                let a = this.getFIRST(grammar, s2);
+                let a = getFIRST(grammar, s2);
                 let containedEmpty = a.delete(Empty);
                 for(let item of a) {
                     set.add(item);

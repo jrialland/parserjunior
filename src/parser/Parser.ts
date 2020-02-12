@@ -22,19 +22,26 @@ export interface ParserListener {
 
 class LeafNode extends AstNode {
 
+    private _rule:Rule;
+
     getChildren(): AstNode[] {
         return [];
     }
 
     setChildren(children: AstNode[]): void {
-        throw new Error("Method no implemented.");
+        throw new Error("Method not implemented.");
     }
 
     private _token:Token;
 
-    constructor(token:Token) {
+    constructor(token:Token, rule:Rule) {
         super();
+        this._rule = rule;
         this._token = token;
+    }
+
+    get rule() {
+        return this._rule;
     }
 
     asToken():Token {
@@ -98,6 +105,10 @@ class NonLeafNode extends AstNode {
 
     getChildrenOfType(type:ParseSymbol):Array<AstNode> {
         return this._children.filter(node => node.asToken().tokenType == type);
+    }
+
+    get rule() {
+        return this._rule;
     }
 
 };
@@ -175,7 +186,8 @@ export class Parser {
     }
 
     private shift(stack:Array<Context>,token:Token, nextState:number) {
-        stack.push(new Context(new LeafNode(token), nextState));
+        let rule = this.actionTable.grammar.getRuleById(nextState);
+        stack.push(new Context(new LeafNode(token, rule), nextState));
     }
 
     private reduce(stack:Array<Context>, lexerStream:LexerStream, ruleIndex:number) {

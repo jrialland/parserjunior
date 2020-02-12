@@ -18,7 +18,7 @@ export class Grammar {
 
     symbols:Map<string, ParseSymbol>;
 
-    precedenceLevels:Map<string, number>;
+    precedenceLevels:Map<string, number> = new Map;
 
     nameCounter:number;
 

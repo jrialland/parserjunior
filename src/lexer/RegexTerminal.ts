@@ -13,7 +13,7 @@ import { Parser } from '../parser/Parser';
 import { ActionTable } from '../parser/ActionTable';
 import { Reader } from '../common/Reader';
 
-class RegexGrammar extends Grammar {
+export class RegexGrammar extends Grammar {
 
 	static OneOrMoreExpr:NonTerminal = new NonTerminal('OneOrMoreExpr');
 	static Regex = new NonTerminal("Regex");
@@ -235,8 +235,6 @@ class RegexVisitor extends Visitor {
     }
 };
 
-let _regexParser = new Parser(new ActionTable(new RegexGrammar));
-
 export class RegexTerminal extends Terminal {
 
     private _expression:string;
@@ -245,12 +243,12 @@ export class RegexTerminal extends Terminal {
 
     constructor(name:string, expression:string) {
         super(name);
-        this._expression = expression;
-
+/*        this._expression = expression;
         let ast = _regexParser.parse(Reader.fromString(this._expression));
         let visitor = new RegexVisitor(this);
         visitor.visit(ast);
-        this._automaton = visitor.getAutomaton();
+		this._automaton = visitor.getAutomaton();
+*/
     }
 
     get automaton() {

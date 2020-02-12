@@ -1,7 +1,10 @@
 import { Token } from '../common/Token';
 import { ParseSymbol } from '../common/ParseSymbol';
+import { Rule } from './Rule';
 
 export abstract class AstNode {
+
+    abstract get rule():Rule;
 
     abstract asToken():Token;
 

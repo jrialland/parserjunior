@@ -280,7 +280,7 @@ function extendItemSetKernel(grammar:Grammar, kernel:Set<Item>) {
                 .forEach(r => {
                         const i = new Item(r, 0);
                         const uid = i.getUid();
-                        if(!(uid in map.keys)) {
+                        if(!map.has(uid)) {
                             map.set(uid, i);
                             stack.push(i);
                         }
@@ -459,7 +459,8 @@ export class ActionTable {
                             line.push('s'+action.target);
                             break;
                         case ActionType.Reduce:
-                            line.push('r(' + this.grammar.getRuleById(action.target).toString() + ')');
+                            //line.push('r(' + this.grammar.getRuleById(action.target).toString() + ')');
+                            line.push('r'+action.target);
                             break;
                     }
                 } else(line.push(' '));
@@ -475,7 +476,13 @@ export class ActionTable {
             }
             data.push(line);
         }
-        return table(data);
+
+        let r = '\n';
+        for(let rule of this.grammar.rules) {
+            r += rule.id + '. ' + rule.toString()+'\n';
+        }
+
+        return table(data) + r;
     }
 
     constructor(grammar:Grammar, compute?:boolean) {
