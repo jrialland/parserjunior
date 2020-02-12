@@ -1,7 +1,7 @@
 import {Grammar} from './Grammar';
 import { NonTerminal } from '../common/NonTerminal';
 import {SingleChar} from '../lexer/SingleChar';
-import {getFirstItemSet, getAllItemSets, getTranslationTable, initializeShiftsAndGotos, initializeReductions, initializeAccept, makeExtendedGrammar, getFIRST, ActionTable} from './ActionTable';
+import {getFirstItemSet, getAllItemSets, getTranslationTable, initializeShiftsAndGotos, initializeReductions, initializeAccept, makeExtendedGrammar, getFIRST, computeFOLLOWSets, ActionTable} from './ActionTable';
 import { ParseSymbol } from '../common/ParseSymbol';
 import { Eof } from '../common/SpecialTerminal';
 import { FORMERR } from 'dns';
@@ -223,19 +223,32 @@ test('Build the FIRST set', ()=> {
     let itemSets = getAllItemSets(testGrammar, testGrammar.getTargetRule());
     let eGrammar:Grammar = makeExtendedGrammar(testGrammar.getTargetRule(), itemSets);
 
+    let s = '';
     for(let sym of eGrammar.getSymbols()) {
-        let f = getFIRST(eGrammar, sym);
-        console.log(f);
+        let set = getFIRST(eGrammar, sym);
+        if(sym.isTerminal()) {
+            expect(set.size).toBe(1);
+            expect(Array.from(set)[0]).toBe(sym.asSimpleSymbol());
+        } else {
+            expect(set.size).toBe(2);
+            let array = Array.from(set).map(x=>x.toString()).sort();
+            let strArray = '[' + array.join(', ') + ']';
+            expect(strArray).toBe("['*', 'x']");
+        }
     }
-
 });
 
-/*
-test('Complete ActionTable', () => {
+test('Compute FOLLOW sets', () => {
+    let itemSets = getAllItemSets(testGrammar, testGrammar.getTargetRule());
+    let eGrammar:Grammar = makeExtendedGrammar(testGrammar.getTargetRule(), itemSets);
 
-    let a:ActionTable = new ActionTable(testGrammar);
+    let map = computeFOLLOWSets(eGrammar);
 
+    let s = '';
+    map.forEach((followSet, key) => {
+        s += followSet.toString() + '\n';
+    });
 
+    console.log(s);
 
 });
-*/
