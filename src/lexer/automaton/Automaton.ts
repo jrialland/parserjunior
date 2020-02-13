@@ -2,8 +2,6 @@
 import {Terminal} from '../../common/Terminal';
 import { CharConstraint } from '../CharConstraint';
 import jsesc = require('jsesc');
-import StackUtils = require('stack-utils');
-
 
 export class State {
     

@@ -1,14 +1,17 @@
-import { AstNode } from "./AstNode"
-import { LexerStream } from "../lexer/LexerStream";
 import { Token } from "../common/Token";
-import { ActionTable, Action, ActionType } from "./ActionTable";
 import { Empty, Eof } from "../common/SpecialTerminal";
-import { Rule } from "./Rule";
 import { Terminal } from "../common/Terminal";
 import { Reader } from "../common/Reader";
-import { SingleChar } from "../lexer/SingleChar";
-import { logger } from '../util/logging';
 
+import { SingleChar } from "../lexer/SingleChar";
+import { LexerStream } from "../lexer/LexerStream";
+
+import { Rule } from "./Rule";
+import { AstNode } from "./AstNode"
+import { ActionTable, Action, ActionType } from "./ActionTable";
+
+import { logger } from '../util/logging';
+import jsesc = require('jsesc');
 // -----------------------------------------------------------------------------
 export class ParseError extends Error {
     expected:Array<Terminal>;
@@ -88,23 +91,49 @@ export class Parser {
         this.actionTable = actionTable;
     }
 
+    parseString(s:string, ignore?:Array<Terminal>):AstNode {
+        return this.parseReader(Reader.fromString(s), ignore);
+    }
+
+    parseReader(reader:Reader, ignore?:Array<Terminal>):AstNode {
+        let terminals:Array<Terminal> = this.actionTable.grammar.getTerminals() as Array<Terminal>;
+        if(!ignore) {
+            ignore = [
+                new SingleChar(' '),
+                new SingleChar('\t'),
+                new SingleChar('\r'),
+                new SingleChar('\n'),
+            ];
+        }
+        let lexerStream = new LexerStream(reader, terminals, ignore);
+        return this.parse(lexerStream);
+    }
+    
     parse(stream:LexerStream) {
         
         let stack = [new ParserState(0, null)];
+
         while(true) {
+
+            // Top of the stack
             let currentState = stack[stack.length-1];
-            let nextItem= stream.next();
-            if(nextItem.done) {
+
+            let next = stream.next();
+
+            if(next.done) {
                 // We should never reach the end of the lexer stream, an 'Accept' action should arise on the last token, making this method return
+                // -> Getting past the last token is an error (i.e the last character is missing etc... )
                 let lastNode = stack[stack.length-1].node;
                 let expected = this.actionTable.getExpectedTerminals(stack[stack.length-1].stateId);
                 throw new ParseError(lastNode.asToken(), expected);
+
             } else {
 
-                let token = nextItem.value as Token;
+                // Incoming token
+                let token = next.value as Token;
 
                 let logmsg = `-> Current state : ${currentState.stateId}\n`;
-                logmsg += `    Input token : ${token.tokenType.name} (matched text : ${token.text})`;
+                logmsg += `    Input token : ${token.tokenType.name} (matched text : '${jsesc(token.text)}')`;
                 logger.log('debug', logmsg);
 
                 // Find the action to be taken
@@ -177,23 +206,5 @@ export class Parser {
         } else {
             throw parseError;
         }
-    }
-    
-    parseString(s:string, ignore?:Array<Terminal>):AstNode {
-        return this.parseReader(Reader.fromString(s), ignore);
-    }
-
-    parseReader(reader:Reader, ignore?:Array<Terminal>):AstNode {
-        let terminals:Array<Terminal> = this.actionTable.grammar.getTerminals() as Array<Terminal>;
-        if(!ignore) {
-            ignore = [
-                new SingleChar(' '),
-                new SingleChar('\t'),
-                new SingleChar('\r'),
-                new SingleChar('\n'),
-            ];
-        }
-        let lexerStream = new LexerStream(reader, terminals, ignore);
-        return this.parse(lexerStream);
     }
 };
