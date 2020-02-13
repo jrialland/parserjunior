@@ -1,7 +1,6 @@
 import {Grammar} from './Grammar';
 import {testGrammarSymbols, testGrammar} from './sampleGrammar';
 import {getFirstItemSet, getAllItemSets, getTranslationTable, initializeShiftsAndGotos, initializeReductions, initializeAccept, makeExtendedGrammar, ActionTable} from './ActionTable';
-/*
 
 test('First ItemSet', () => {
     let i0 = getFirstItemSet(testGrammar, testGrammar.getTargetRule());
@@ -161,7 +160,7 @@ test('Make extended grammar', ()=> {
     let eGrammar:Grammar = makeExtendedGrammar(testGrammar.getTargetRule(), itemSets);
     expect(eGrammar.getRules().length).toBe(12);
 });
-*/
+
 test('Initialize Reductions', () => {
     let a = new ActionTable(testGrammar, false);
     let itemSets = getAllItemSets(testGrammar, testGrammar.getTargetRule());
@@ -170,5 +169,5 @@ test('Initialize Reductions', () => {
 
 test('Print ActionTable', ()=>{
     let a = new ActionTable(testGrammar);
-    console.log(a.asAsciiTable());
+    a.asAsciiTable();
 });

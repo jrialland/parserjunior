@@ -375,6 +375,10 @@ export class Action {
                 throw new Error('unknown ActionType ' + this.type);
         }
     }
+
+    toString():string {
+        return this.typeStr + '('+ this.target + ')';
+    }
 };
 
 //------------------------------------------------------------------------------

@@ -200,9 +200,10 @@ export class Grammar {
         this.defineRule(tmp, [typeOfItems]);
 
         this.defineRule(tmp, [tmp, separator, typeOfItems]).setReduceAction((parser, lexerStream, node) => {
-            let list = node.getFirstChild().getChildren();
-            list.push(node.getLastChild());
-            node.setChildren(list);
+            let list = node.children[0].children;
+            let lastChild = node.children[node.children.length-1];
+            list.push(lastChild);
+            node.children = list;
         });
 
         // a list may be empty
