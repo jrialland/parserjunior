@@ -29,6 +29,10 @@ export class Grammar {
         this.nameCounter = 0;
     }
 
+    toString() {
+        return this.rules.map(rule=>`${rule.id}. ${rule.toString()}`).join('\n');
+    }
+
     /**
      * Adds a new rule to the grammar.
      * @param targetSymbol The left part of the new rule

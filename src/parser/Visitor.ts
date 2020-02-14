@@ -1,4 +1,6 @@
 import { AstNode } from "./AstNode";
+import { logger } from "../util/logging";
+import { Rule } from "./Rule";
 
 
 class ListenerData {
@@ -8,13 +10,13 @@ class ListenerData {
 
 export class Visitor {
 
-	private listeners:Map<String, ListenerData>;
+	private listeners:Map<Rule, ListenerData> = new Map;
 	
-	addListener(beforeOrAfter:string, ruleName:string, listener:(_:AstNode)=>void) {
-		if(!this.listeners.has(ruleName)) {
-			this.listeners.set(ruleName, new ListenerData);
+	addListener(beforeOrAfter:string, rule:Rule, listener:(_:AstNode)=>void) {
+		if(!this.listeners.has(rule)) {
+			this.listeners.set(rule, new ListenerData);
 		}
-		let data = this.listeners.get(ruleName);
+		let data = this.listeners.get(rule);
 		if(beforeOrAfter === 'before') {
 			data.before.push(listener);
 		} else if(beforeOrAfter === 'after') {
@@ -24,26 +26,28 @@ export class Visitor {
 		}
 	}
 
-	private notify(beforeOrAfter:string, ruleName:string, node:AstNode) {
-		let data = this.listeners.get(ruleName);
-		if(data) {
-			if(beforeOrAfter === 'before') {
-				for(let l of data.before) {
-					l(node);
-				}
-			} else if(beforeOrAfter === 'after') {
-				for(let l of data.after) {
-					l(node);
+	private notify(beforeOrAfter:string, node:AstNode) {
+		if(node.rule) {
+			let data = this.listeners.get(node.rule);
+			if(data) {
+				if(beforeOrAfter === 'before') {
+					logger.log('debug', `before  ${node.rule.name}`);
+					for(let listener of data.before) {	
+						listener(node);
+					}
+				} else if(beforeOrAfter === 'after') {
+					logger.log('debug', `after  ${node.rule.name}`);
+					for(let listener of data.after) {
+						listener(node);
+					}
 				}
 			}
 		}
 	}
 
 	visit(node:AstNode) {
-		this.notify('before', node.rule.name, node);
-		for(let child of node.getChildren()) {
-			this.visit(child);
-		}
-		this.notify('after', node.rule.name, node);
+		this.notify('before', node);
+		node.children.forEach(c=>this.visit(c));
+		this.notify('after', node);
 	}
 };

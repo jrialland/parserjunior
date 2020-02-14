@@ -1,7 +1,6 @@
 import { ParseSymbol } from "../common/ParseSymbol";
 import { Grammar } from "./Grammar";
 import { Empty, Eof } from "../common/SpecialTerminal";
-import { isBuffer } from "util";
 
 //------------------------------------------------------------------------------
 abstract class SymbolSet {

@@ -10,7 +10,6 @@ import { Rule } from "./Rule";
 import { AstNode } from "./AstNode"
 import { ActionTable, Action, ActionType } from "./ActionTable";
 
-import { logger } from '../util/logging';
 import jsesc = require('jsesc');
 // -----------------------------------------------------------------------------
 export class ParseError extends Error {
@@ -132,10 +131,6 @@ export class Parser {
                 // Incoming token
                 let token = next.value as Token;
 
-                let logmsg = `-> Current state : ${currentState.stateId}\n`;
-                logmsg += `    Input token : ${token.tokenType.name} (matched text : '${jsesc(token.text)}')`;
-                logger.log('debug', logmsg);
-
                 // Find the action to be taken
                 let action = this.actionTable.getAction(currentState.stateId, token.tokenType);
                 if(action == null) {
@@ -151,8 +146,6 @@ export class Parser {
                 if(action == null) {
                     throw new ParseError(token, this.actionTable.getExpectedTerminals(currentState.stateId));
                 }
-
-                logger.log('debug', `    Decision : ${action.typeStr} ${action.target}`);
 
                 switch(action.type) {
                     case ActionType.Shift:
@@ -193,7 +186,7 @@ export class Parser {
         let rule = this.actionTable.grammar.getRuleById(action.target);
         let node = this.makeNode(stack, stream, rule);
         let stateId = stack[stack.length-1].stateId;
-        // a new state is searched in the GOTO table and becomes the current state
+        // A new state is searched in the GOTO table and becomes the current state
         let nextStateId = this.actionTable.getNextState(stateId, rule.target);
         stack.push(new ParserState(nextStateId, node));
         stream.pushback(token);

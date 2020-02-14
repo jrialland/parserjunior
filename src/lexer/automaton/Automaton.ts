@@ -31,10 +31,14 @@ export class State {
     }
     
 	disconnect() {
+        // for each outgoing transition
 		for(let removed of this.outgoing) {
+            // remove the transition on the other side
             removed.target.incoming = removed.target.incoming.filter(t=>t!=removed);
         }
+        // for each incoming transition
         for(let removed of this.incoming) {
+            // remove the transition on the incoming side
             removed.source.outgoing = removed.source.outgoing.filter(t=>t!=removed);
         }
     }
