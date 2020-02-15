@@ -57,7 +57,8 @@ test("Simple lexer 2", () => {
     n = lex.next();
     expect(n.done).toBe(false);
     expect(n.value.tokenType.name).toBe('');
-
+*/
+/*
     n = lex.next();
     expect(n.done).toBe(true);
 */

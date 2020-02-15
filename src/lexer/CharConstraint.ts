@@ -1,6 +1,5 @@
 
 import jsesc = require('jsesc');
-import { removeProperties } from '@babel/types';
 
 export class CharConstraint {
 
