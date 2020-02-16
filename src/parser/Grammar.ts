@@ -171,9 +171,9 @@ export class Grammar {
     }
 
     zeroOrMore(...syms:ParseSymbol[]):ParseSymbol {
-        let name = "zeroOrMore_" + this.nameCounter++;
+        let name = "_0orMore_" + this.nameCounter++;
         let tmp = new NonTerminal(name);
-        this.defineRule(tmp, syms); // zeroOrMore(a) -> x y z
+        this.defineRule(tmp, syms).withName(name); // zeroOrMore(a) -> x y z
         let list = new Array<ParseSymbol>();
         list.push(tmp);
         for(let s of syms) {
@@ -185,25 +185,31 @@ export class Grammar {
     }
 
     oneOrMore(...syms:ParseSymbol[]):ParseSymbol {
-        let name = "oneOrMore_" + this.nameCounter++;
+        let name = "_1orMore_" + this.nameCounter++;
         let tmp = new NonTerminal(name);
-        this.defineRule(tmp, syms); // oneOrMore(a) -> x y z
+        this.defineRule(tmp, syms).withName(name); // oneOrMore(a) -> x y z
         let list = new Array<ParseSymbol>();
         list.push(tmp);
         for(let s of syms) {
             list.push(s);
         }
-        this.defineRule(tmp, list); //oneOrMore(a) -> oneOrMore(a) x y z
+        this.defineRule(tmp, list).withName(name); //oneOrMore(a) -> oneOrMore(a) x y z
         return tmp;
     }
 
-    listOf(typeOfItems:ParseSymbol, separator:ParseSymbol, allowEmptyLists:boolean):ParseSymbol {
-        let tmp = new NonTerminal("listOf(" + typeOfItems.toString() + ")");
+    listOf(typeOfItems:ParseSymbol, separator:ParseSymbol, allowEmptyLists?:boolean):ParseSymbol {
+        
+        // true by default
+        allowEmptyLists = typeof(allowEmptyLists) === 'undefined' ? true : allowEmptyLists;
+
+        let tmp = new NonTerminal("list(" + typeOfItems.toString() + ")");
 
         // a list may contain only one item
         this.defineRule(tmp, [typeOfItems]);
 
-        this.defineRule(tmp, [tmp, separator, typeOfItems]).setReduceAction((parser, lexerStream, node) => {
+        this.defineRule(tmp, [tmp, separator, typeOfItems])
+        .withName('_list_'+this.nameCounter++)
+        .setReduceAction((node) => {
             let list = node.children[0].children;
             let lastChild = node.children[node.children.length-1];
             list.push(lastChild);

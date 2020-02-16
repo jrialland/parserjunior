@@ -1,65 +1,90 @@
 import {LexerStream} from './LexerStream';
 import {SingleChar} from './SingleChar';
 import {Literal} from './Literal';
+import {CCharacter} from './CCharacter';
 import { Reader } from '../common/Reader';
+import {QuotedString} from './QuotedString';
 import { Eof } from '../common/SpecialTerminal';
-import { QuotedString } from './QuotedString';
+import { Terminal } from '../common/Terminal';
 
-let terms = [
-    new SingleChar('A'),
-    new SingleChar('B'),
-];
-
-let ignored = [
-    new SingleChar(' ')
-];
-
-
-test('Simple lexer', () => {
-    let lex:LexerStream = new LexerStream(Reader.fromString('BA AB'), terms , ignored);
-
+function expectToken(lex:LexerStream, tokenType:Terminal, matchedText:string) {
     let n = lex.next();
     expect(n.done).toBe(false);
-    expect(n.value.tokenType.name).toBe('B');
+    expect(n.value.tokenType).toBe(tokenType);
+    expect(n.value.text).toBe(matchedText);
+}
 
-    n = lex.next();
-    expect(n.done).toBe(false);
-    expect(n.value.tokenType.name).toBe('A');
-
-    n = lex.next();
-    expect(n.done).toBe(false);
-    expect(n.value.tokenType.name).toBe('A');
-
-    n = lex.next();
-    expect(n.done).toBe(false);
-    expect(n.value.tokenType.name).toBe('B');
-
-    n = lex.next();
+function expectEndsWithEof(lex:LexerStream) {
+    let n = lex.next();
     expect(n.done).toBe(false);
     expect(n.value.tokenType).toBe(Eof);
-
     n = lex.next();
     expect(n.done).toBe(true);
-    expect(n.value).toBeNull();
+}
+
+test('Simple lexer', () => {
+    let a = new SingleChar('A');
+    let b = new SingleChar('B');
+    let lex:LexerStream = new LexerStream(Reader.fromString('BA AB'), [a,b] , [
+        new SingleChar(' ')
+    ]);
+    expectToken(lex, b, 'B');
+    expectToken(lex, a, 'A');
+    expectToken(lex, a, 'A');
+    expectToken(lex, b, 'B');
+    expectEndsWithEof(lex);
 
 });
 
-test("Simple lexer 2", () => {
-    let lex:LexerStream = new LexerStream(Reader.fromString('Hello "World"'),[
-       new Literal('Hello'),
-       new QuotedString("\"", "\"", "\\", "")
-    ], [new SingleChar(' ')]);
 
-    let n = lex.next();
-    expect(n.done).toBe(false);
-    expect(n.value.tokenType.name).toBe('Literal(\'Hello\')');
-/*
-    n = lex.next();
-    expect(n.done).toBe(false);
-    expect(n.value.tokenType.name).toBe('');
-*/
-/*
-    n = lex.next();
-    expect(n.done).toBe(true);
-*/
+test("Lexer - Literals", () => {
+    let hello = new Literal('Hello');
+    let world = new Literal('World');
+    let lex:LexerStream = new LexerStream(Reader.fromString('Hello World'),[
+        hello,
+        world
+    ], [
+        new SingleChar(' ')
+    ]);
+
+    expectToken(lex, hello, 'Hello');
+    expectToken(lex, world, 'World');
+    expectEndsWithEof(lex);
+});
+
+test("Lexer - CCharacter", () => {
+    let lex:LexerStream = new LexerStream(Reader.fromString("'X'"),[
+        CCharacter,
+     ], [
+         new SingleChar(' ')
+     ]);
+     expectToken(lex, CCharacter, "'X'");
+     expectEndsWithEof(lex);
+})
+
+test("Lexer - QuotedString", () => {
+    let comma = new SingleChar(',');
+    let str = new QuotedString('"', '"', '\'', "\n\r")
+    let lex:LexerStream = new LexerStream(Reader.fromString('"Hello"'),[
+        str
+    ], [
+         new SingleChar(' '),
+         comma
+     ]);
+
+     expectToken(lex, str, '"Hello"');
+     expectEndsWithEof(lex);
+});
+
+test("Lexer - precedence", () => {
+    let str = new QuotedString("'", "'", '\'', "\n\r")
+    let lex:LexerStream = new LexerStream(Reader.fromString("'a','Hello'"),[
+        CCharacter,
+        str
+    ], [
+        new SingleChar(',')
+     ]);
+     expectToken(lex, CCharacter, "'a'");
+     expectToken(lex, str, "'Hello'");
+     expectEndsWithEof(lex);
 });

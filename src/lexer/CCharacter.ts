@@ -32,7 +32,7 @@ let makeAutomaton = (tokenType:Terminal) => {
 	builder.addTransition(
 			gotFirstQuote,
 			CharConstraint.and(
-					CharConstraint.inRange(' ', String.fromCharCode(128)), // 'displayable ascii chars, ie between 0x20 and 0xEF
+					CharConstraint.inRange(' ', '~'), // 'displayable ascii chars, 0x20 -> 0x7E
 					CharConstraint.not(CharConstraint.eq('\\'))
 			),
 			gotChar);
@@ -65,7 +65,7 @@ class _CCharacter extends Terminal {
 
 	constructor() {
 		super("CCharacter");
-		this._automaton = makeAutomaton(this);		
+		this._automaton = makeAutomaton(this);
 	}
 
 	get automaton() {

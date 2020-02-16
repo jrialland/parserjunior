@@ -8,9 +8,7 @@ export class State {
     incoming:Array<Transition> = [];
 
 	outgoing:Array<Transition> = [];
-    
-    fallbackTransition:Transition = null;
-    
+        
     terminal:Terminal = null;
     
     id:number = 0;
@@ -22,27 +20,7 @@ export class State {
         this.outgoing.push(t);
         return t;
     }
-    
-	addFallback():Transition {
-        this.fallbackTransition = new Transition();
-        this.fallbackTransition.source = this;
-        this.fallbackTransition.constraint = CharConstraint.any();
-        return this.fallbackTransition;
-    }
-    
-	disconnect() {
-        // for each outgoing transition
-		for(let removed of this.outgoing) {
-            // remove the transition on the other side
-            removed.target.incoming = removed.target.incoming.filter(t=>t!=removed);
-        }
-        // for each incoming transition
-        for(let removed of this.incoming) {
-            // remove the transition on the incoming side
-            removed.source.outgoing = removed.source.outgoing.filter(t=>t!=removed);
-        }
-    }
-    
+        
     get finalState():boolean {
         return this.terminal != null;
     }
@@ -62,6 +40,10 @@ export class Automaton {
 
     constructor(initialState:State) {
         this._initial = initialState;
+        let counter = 0;
+        for(let state of this.allTransitions()) {
+            state.id = counter++;
+        }
     }
 
     get initialState():State {
@@ -73,9 +55,6 @@ export class Automaton {
         let done:Array<State> = [];
         while(stack.length > 0) {
             let currentState = stack.pop();
-            if(currentState.fallbackTransition && !done.includes(currentState.fallbackTransition.target)) {
-                stack.push(currentState.fallbackTransition.target);
-            }
             if(!done.includes(currentState)) {
                 yield currentState;
                 done.push(currentState);
@@ -113,12 +92,6 @@ export class Automaton {
                     stack.push(transition.target);
                 }
             }
-            if(state.fallbackTransition) {
-                s += `    "${state.id}" -> "${state.fallbackTransition.target.id}" [style=dashed];\n`;
-                if(!done.includes(state.fallbackTransition.target)) {
-                    stack.push(state.fallbackTransition.target);
-                }
-            }
         }
         s+="}"
         return s;
@@ -154,9 +127,15 @@ export class AutomatonBuilder {
         return s;
     }
 
+    makeFinal(state:State):State {
+        state.terminal = this._terminal;
+        return state;
+    }
+
     addTransition(source:State, constraint:CharConstraint, target:State):Transition {
         let t = source.addTransition(constraint);
         t.target = target;
+        target.incoming.push(t);
         return t;
     }
 

@@ -5,11 +5,43 @@ import {CCharacter} from './CCharacter';
 import {Literal} from './Literal';
 import {QuotedString} from './QuotedString';
 import { Rule } from '../parser/Rule';
-import { State, Automaton, AutomatonBuilder } from './automaton/Automaton';
+import { State, Automaton, AutomatonBuilder, Transition } from './automaton/Automaton';
 import { Visitor } from '../parser/Visitor';
 import { Terminal } from '../common/Terminal';
 import { AstNode } from '../parser/AstNode';
 import { CharConstraint } from './CharConstraint';
+import { ActionTable } from '../parser/ActionTable';
+import { Parser } from '../parser/Parser';
+import { isContext } from 'vm';
+import { timingSafeEqual } from 'crypto';
+
+function addTransition(s1:State, constraint:CharConstraint, s2:State) {
+	let t = new Transition();
+	t.source = s1;
+	t.constraint = constraint;
+	t.target = s2;
+	s1.outgoing.push(t);
+	s2.incoming.push(t);
+}
+
+function rerouteTransitions(fromState:State, toState:State) {
+	for(let outgoing of fromState.outgoing) {
+		outgoing.source = toState;
+		toState.outgoing.push(outgoing);
+		if(outgoing.target == fromState) {
+			outgoing.target = toState;
+		}
+	}
+	for(let incoming of fromState.incoming) {
+		incoming.target = toState;
+		toState.incoming.push(incoming);
+		if(incoming.source == fromState) {
+			incoming.source = toState;
+		}
+	}
+	fromState.incoming = [];
+	fromState.outgoing = [];
+}
 
 class RegexGrammar extends Grammar {
 
@@ -21,8 +53,8 @@ class RegexGrammar extends Grammar {
 	Pipe = new SingleChar('|');
 	QuestionMark = new SingleChar('?');
 	Star = new SingleChar('*');
-	ThreePoints = new Literal("..");
-	SingleQuotedString = new QuotedString('\'', '\'', '\\', "\n\r");
+	RangeSymbol = new Literal("~");
+	SingleQuotedString = new QuotedString('"', '"', '\\', "\n\r");
 
 	// Rules
 	Regex:Rule;
@@ -59,7 +91,7 @@ class RegexGrammar extends Grammar {
 		this.CharSequence = this.defineRule(expr, [this.SingleQuotedString]).withName("CharSequence");
 
 		// Expr → CCharacter '...' CCharacter
-		this.Range = this.defineRule(expr, [CCharacter, this.ThreePoints, CCharacter]).withName("Range");
+		this.Range = this.defineRule(expr, [CCharacter, this.RangeSymbol, CCharacter]).withName("Range");
 
 		// Expr → CCharacter
 		this.Char = this.defineRule(expr, [CCharacter]).withName("Char");
@@ -95,18 +127,17 @@ class RegexVisitorContext {
 
 export class RegexVisitor extends Visitor {
 
-	stack:Array<RegexVisitorContext> = [];
+	private stack:Array<RegexVisitorContext> = [];
 
-	stackSize:Array<number> = [];
-	
-	builder:AutomatonBuilder;
+	private stackSize:Array<number> = [];
+
+	private pendingOpt:RegexVisitorContext = null;
 
 	target:Terminal;
 
 	constructor(lexeme:Terminal) {
 		super();
 		this.target = lexeme;
-		this.builder = AutomatonBuilder.forTokenType(lexeme);
 		this.addListener('before', regexGrammar.Regex, this.beforeRegex.bind(this));
 		this.addListener('after', regexGrammar.Regex, this.afterRegex.bind(this));
 		this.addListener('before', regexGrammar.Group, this.beforeGroup.bind(this));
@@ -117,180 +148,123 @@ export class RegexVisitor extends Visitor {
 		this.addListener('after', regexGrammar.AnyChar, this.afterAnyChar.bind(this));
 		this.addListener('after', regexGrammar.Optional, this.afterOptional.bind(this));
 		this.addListener('after', regexGrammar.OneOrMore, this.afterOneOrMore.bind(this));
+		this.addListener('after', regexGrammar.ZeroOrMore, this.afterZeroOrMore.bind(this));
 		this.addListener('after', regexGrammar.Or, this.afterOr.bind(this));
 	}
 	
 	getAutomaton():Automaton {
 		let context = this.stack.pop();
 		context.end.terminal = this.target;
-		return this.builder.build();
+		return new Automaton(context.start);
 	}
 
-	beforeRegex(node:AstNode) {
+	private beforeRegex(node:AstNode) {
 		this.beforeGroup(node);
 	}
 	
-	afterRegex(node:AstNode) {
+	private afterRegex(node:AstNode) {
 		this.afterGroup(node);
 	}
 
-	beforeGroup(node:AstNode) {
+	private beforeGroup(node:AstNode) {
 		this.stackSize.push(this.stack.length);
 	}
 
-	afterGroup(node:AstNode) {
+	private afterGroup(node:AstNode) {
 		let items = this.stack.length - this.stackSize.pop();
-		while(items > 1) {
-			let right:RegexVisitorContext = this.stack.pop();
-			let left:RegexVisitorContext = this.stack.pop();
-			let mergeNode = new State();
-
-			mergeNode.fallbackTransition = right.start.fallbackTransition;
-			mergeNode.terminal = right.start.terminal;
-
-			// connections that used to go to first.end now go to mergeNode
-			left.end.incoming.forEach( transition => {
-				transition.target = mergeNode;
-			});
-		
-			// connections that used to originate from first.end now originate from mergeNode
-			left.end.outgoing.forEach(transition => {
-				transition.source = mergeNode;
-			});
-
-			// connections that used to go ot next.start now go to mergeNode
-			right.start.incoming.forEach(transition => {
-				transition.target = mergeNode;
-			});
-
-			// connections that used originate from next.start now originate from mergeNode
-			right.start.outgoing.forEach(transition => {
-				transition.source = mergeNode;
-			});
-
-			let grouped:RegexVisitorContext = new RegexVisitorContext(left.start, left.end);
-			this.stack.push(grouped);
-
-			items -=1;
+		while(items>1) {
+			let last = this.stack.pop();
+			let nis = this.stack.pop();
+			rerouteTransitions(nis.end, last.start);
+			this.stack.push(new RegexVisitorContext(nis.start, last.end));
+			items -= 1;
 		}
 	}
 
-	afterCharSequence(node:AstNode) {
-		/*
-		let sequence = node.asToken().text;
+    private afterChar(node:AstNode) {
+		let c = node.asToken().text[1]; // FIXME handle more complex char specs (escaped etc);
+		let start = new State();
+		let end = new State();
+		addTransition(start, CharConstraint.eq(c), end);
+		this.pushContext(start, end);
+	}
+	
+	private afterCharSequence(node:AstNode) {
+		let sequence = node.asToken().text; // FIXME handle more complex string specs (unescape the string)
+		if(sequence.length == 0) {
+			return;
+		}
+		sequence = sequence.substring(1, sequence.length-1);
 		let start:State = new State();
 		let current:State = start;
 		for(let c of sequence) {
 			let n:State = new State();
-			current.addTransition(CharConstraint.eq(c)).target = n;
+			addTransition(current, CharConstraint.eq(c), n);
 			current = n;
 		}
-		current.terminal = this.lexeme;
-		this.stack.push(new Context(start, current));
-		*/
+		this.pushContext(start, current);
 	}
-		
-	afterRange(node:AstNode) {
-		/*
-        node = node.children[0];
-        let children:Array<AstNode> = node.children.filter(n=>n.asToken().tokenType===RegexGrammar.Char);
-        let low:string = children[0].asToken().text;
-        let up:string = children[1].asToken().text;
+
+	private afterRange(node:AstNode) {
+		let low = node.children[0].asToken().text[1]; //FIXME parse CCharacter properly
+		let up = node.children[node.children.length-1].asToken().text[1]; //FIXME parse CCharacter properly
+		let start = new State();
+		let end = new State();
+		addTransition(start, CharConstraint.inRange(low, up), end);
+		this.pushContext(start, end);
+    }
+
+    private afterAnyChar(node:AstNode) {
         let start = new State();
-        let end = new State();
-        start.addTransition(CharConstraint.inRange(low, up)).target = end;
-        end.terminal = this.lexeme;
-		this.stack.push(new Context(start, end));
-		*/
+		let end = new State();
+		addTransition(start, CharConstraint.any(), end);
+		this.pushContext(start, end);
     }
 
-    afterChar(node:AstNode) {
-		let c = node.asToken().text[1]; // FIXME : Handle more complex char definitions (escapes, etc)
-        let start = this.builder.initialState();
-        let end = this.builder.newFinalState();
-        start.addTransition(CharConstraint.eq(c)).target = end;
-		this.stack.push(new RegexVisitorContext(start, end));
-    }
-
-    afterAnyChar(node:AstNode) {
-        /*let start = this.builder.initialState();
-        let end = this.builder.newFinalState();
-        start.addTransition(CharConstraint.any()).target = end;
-		this.stack.push(new RegexVisitorContext(start, end));
-		*/
-    }
-
-    afterOptional(node:AstNode) {
-		/*
+    private afterOptional(node:AstNode) {
 		let context = this.stack[this.stack.length-1];
-		let skip = context.start.addFallback();
-		skip.target = context.end;
-		*/
+		this.pendingOpt = context;
     }
 
-    afterZeroOrMore(node:AstNode) {
-        let context = this.stack[this.stack.length-1];
-		context.start.terminal = this.target; // having nothing is ok
-		for(let t of context.end.incoming) {
-			t.target = context.start;
-		}
-		context.end = context.start;
+    private afterZeroOrMore(node:AstNode) {
+		this.afterOneOrMore(node);
+		this.afterOptional(node);
     }
 
-	afterOneOrMore(node:AstNode) {
-		/*
-        let context = this.stack[this.stack.length-1];
-		let n2 = new State();
-		for(let t of context.start.outgoing) {
-			n2.addTransition(t.constraint).target = t.target;
+	private afterOneOrMore(node:AstNode) {
+		let context = this.stack[this.stack.length-1];
+		for(let transition of context.start.outgoing) {
+				addTransition(context.end, transition.constraint, transition.target);
 		}
-		for(let t of context.end.incoming) {
-			t.target = n2;
-		}
-		context.end = n2;
-		*/
     }
 
-    afterOr(node:AstNode) {
-		
+    private afterOr(node:AstNode) {
         let right = this.stack.pop();
 		let left = this.stack.pop();
-		
-		// create 2 new automaton states
-		let firstNode = this.builder.newNonFinalState();
-		let lastNode = this.builder.newFinalState();
-		
-		//for each transition from the left expression
-        for (let t of left.start.outgoing) {
-			// add a transition for the new graph
-            firstNode.addTransition(t.constraint).target = t.target;
-		}
-		// do the same with the expression on the right
-        for (let t of right.start.outgoing) {
-            firstNode.addTransition(t.constraint).target = t.target;
-		}
-		
-		// we disconnect the former starting nodes
-		left.start.disconnect();
-		right.start.disconnect();
-		
-		// we also de reroute the end transitions
-		for(let t of left.end.incoming) {
-			t.target = lastNode;
-		}
-		for(let t of right.end.incoming) {
-			t.target = lastNode;
-		}
+		//will share the same initial state
+		let newInitial = new State();
 
-		// we disconnect the former ending nodes
-        right.end.disconnect();
-		left.end.disconnect();
-		
-		this.stack.push(new RegexVisitorContext(firstNode, lastNode));
-    }
+		rerouteTransitions(left.start, newInitial);
+		rerouteTransitions(right.start, newInitial);
+		//will share the same final state
+		let newFinal = new State();
+		rerouteTransitions(left.end, newFinal);
+		rerouteTransitions(right.end, newFinal);
+		this.pushContext(newInitial, newFinal);
+	}
+	
+	private pushContext(start:State, end:State) {
+		if(this.pendingOpt) {
+			for(let transition of start.outgoing) {
+				addTransition(this.pendingOpt.start, transition.constraint, transition.target);
+			}
+			this.pendingOpt = null;
+		}
+		this.stack.push(new RegexVisitorContext(start, end));
+	}
 };
-/*
-let regexParser = new Parser(new ActionTable(new RegexGrammar));
+
+export let regexParser = new Parser(new ActionTable(new RegexGrammar));
 
 export class RegexTerminal extends Terminal {
 
@@ -311,4 +285,3 @@ export class RegexTerminal extends Terminal {
         return this._automaton;
     }
 };
-*/

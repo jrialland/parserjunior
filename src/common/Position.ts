@@ -1,9 +1,9 @@
 
 export class Position {
 
-    _line:number;
+    private _line:number;
 
-    _col:number;
+    private _col:number;
 
     static start():Position {
         let p:Position = new Position;

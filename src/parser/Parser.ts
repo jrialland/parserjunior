@@ -183,12 +183,23 @@ export class Parser {
     }
 
     private reduce(stack:Array<ParserState>, token:Token, action:Action, stream:LexerStream) {
+        
+        // Find the rule that is reduced
         let rule = this.actionTable.grammar.getRuleById(action.target);
+        
+        // Make the ast node
         let node = this.makeNode(stack, stream, rule);
-        let stateId = stack[stack.length-1].stateId;
+        
+        // If there is callback associated with the rule, execute it
+        if(rule.reduceAction) {
+            rule.reduceAction(node);
+        }
+
         // A new state is searched in the GOTO table and becomes the current state
+        let stateId = stack[stack.length-1].stateId;
         let nextStateId = this.actionTable.getNextState(stateId, rule.target);
         stack.push(new ParserState(nextStateId, node));
+        
         stream.pushback(token);
     }
 

@@ -1,8 +1,6 @@
 
 import {ParseSymbol} from '../common/ParseSymbol';
-import {ActionType} from './ActionTable';
-import { Parser } from './Parser';
-import { LexerStream } from '../lexer/LexerStream';
+import {ActionType} from './ActionTable'
 import { AstNode } from './AstNode';
 
 
@@ -31,7 +29,7 @@ export class Rule {
 
     name:string;
 
-    reduceAction:(parser:Parser, lexerStream:LexerStream, node:AstNode)=>void;
+    reduceAction:(node:AstNode)=>void;
 
     constructor(target:ParseSymbol, definition:Array<ParseSymbol>) {
         this.target = target;
@@ -67,11 +65,11 @@ export class Rule {
         this.conflictArbitration = conflictArbitration;
     }
 
-    setReduceAction(callback:(parser:Parser, lexerStream:LexerStream, node:AstNode)=>void) {
+    setReduceAction(callback:(node:AstNode)=>void) {
         this.reduceAction = callback;
     }
 
-    getReduceAction():(parser:Parser, lexerStream:LexerStream, node:AstNode)=>void {
+    getReduceAction():(node:AstNode)=>void {
         return this.reduceAction;
     }
 

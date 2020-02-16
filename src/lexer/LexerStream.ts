@@ -8,71 +8,66 @@ import { Reader } from "../common/Reader";
 
 export class LexerStream implements Iterator<Token> {
 
-    initial:State;
+    /** initial state of the internal automaton */
+    private initial:State;
 
-    activeStates:Set<State>;
+    /* states that are currently active */
+    private activeStates:Set<State>;
 
-    candidate:Token;
+    /* the token type that is valid */
+    private candidate:Token;
 
-    position:Position;
+    /* current position in reader */
+    private position:Position;
 
-    startPosition:Position;
+    /* initial position where the current token started matching */
+    private startPosition:Position;
 
-    matched:string;
+    /* shall we go on ? */
+    private go:boolean;
 
+    /* the data that is beeing read */
+    private reader:Reader;
+
+    /** the token types that we recognize but dont emit */
+    private ignored:Terminal[];
+
+    /** The text that is being matched */
+    private matched:string;
+
+    private buffer:Array<Token> = [];
+
+    private terminals:Array<Terminal>;
+    /** function that can be used to override token types on the fly (i.e useful for the C parser typedef 'hack') */
     tokenModifier:(t:Token)=>Token;
-
-    buffer:Array<Token>;
-
-    go:boolean;
-
-    reader:Reader;
-
-    ignored:Terminal[];
 
     constructor(reader:Reader, terminals:Terminal[], ignored:Terminal[]) {
         this.reader = reader;
+        this.terminals = [].concat(terminals).concat(ignored);
         this.ignored = ignored;
         this.initial = new State;
         this.candidate = null;
         this.matched = ''; 
         this.tokenModifier = (t) => t;
-        this.buffer = [];
         this.go = true;
+
+        // make a big automaton for all recognized tokens
         let automatons = terminals.map(t => t.automaton);
         for(let t of ignored) {
             automatons.push(t.automaton);
         }
-
         for(let a of automatons) {
             let s = a.initialState;
             if(s != null) {
-                this.initial.fallbackTransition = s.fallbackTransition;
                 s.outgoing.forEach(t => this.initial.outgoing.push(t));
                 if(s.finalState) {
                     this.initial.terminal = s.terminal;
                 }
             }
         }
-        this.activeStates = new Set([this.initial]);
-        this.reassignIds();
-        this.startPosition = this.position = Position.start();
-    }
 
-    private reassignIds():void {
-        let toVisit = [this.initial];
-        let viewed:State[] = [this.initial];
-        let counter = 0;
-        while(toVisit.length > 0) {
-            let current = toVisit.pop();
-            for(let t of current.outgoing) {
-                if(!viewed.includes(t.target)) {
-                    toVisit.push(t.target);
-                    viewed.push(t.target);
-                } 
-            }
-            current.id = counter++;
-        }
+        this.activeStates = new Set([this.initial]);
+        this.startPosition = this.position = Position.start();
     }
 
     pushback(token:Token):void {
@@ -84,30 +79,25 @@ export class LexerStream implements Iterator<Token> {
     }
     
     public next(): IteratorResult<Token> {
+        
+        // If we are done
         if(!this.go && this.buffer.length == 0) {
             return  {
                 done:true,
                 value:null
             };
         }
+        // While the internal buffer is empty, scan the input
         while(this.buffer.length == 0) {
             this.go = this.step();
         }
+
         return {
             done:false,
             value:this.buffer.shift()
         };
     }
 
-    private emit(c:string):void {
-        this.emitToken(this.candidate);
-        this.candidate = null;
-        this.matched = '';
-        this.activeStates.clear();
-        this.activeStates.add(this.initial);
-        this.reader.unshift();
-        this.startPosition = this.position;
-    }
 
     private emitToken(token:Token):void {
         for(let i of this.ignored) {
@@ -115,92 +105,79 @@ export class LexerStream implements Iterator<Token> {
                 return;
             }
         }
-        token = this.tokenModifier(token);
-        this.buffer.push(token);
+        this.buffer.push(this.tokenModifier(token));
     }
 
+    private emit() {
+        let token = this.emitToken(this.candidate);
+        this.activeStates.clear();
+        this.activeStates.add(this.initial);
+        this.candidate = null;
+        this.matched = '';
+        this.startPosition = this.position;
+        this.reader.unshift();
+    }
+
+    /**
+     * consume next char
+     * @return false if there are more characters to read
+     */
     private step():boolean {
+        
         let c = this.reader.read();
-        let shouldpushback = false;
-
+        
         if(c == null) {
+            // eof has been reached
 
-            if(this.candidate == null) {
-                if(this.activeStates.size == 1) {
-                    let active = this.activeStates.values().next().value;
-                    if(active.fallbackTransition != null && active.fallbackTransition.target.finalState) {
-                        let s = active.fallbackTransition.target;
-                        this.candidate = new Token(s.terminal, this.startPosition, this.matched);
+            if( ! this.candidate) {
+                //no candidate ? verify that there is note
+                if(this.activeStates.size > 0) {
+                    //having one active state is ok if it is the initial state, having more that one active state is not ok
+                    if(this.activeStates.size > 1 || this.activeStates.entries().next().value != this.initial) {
+                        throw new LexicalError("Unterminated token", this.position);
                     }
-                }
-            }
-            
-            if(this.candidate == null) {
-                let active = this.activeStates.values().next().value;
-                if(active != this.initial) {
-                    throw new LexicalError(c, this.position);
-                }
-            } else if(this.candidate.text.length > 0) {
-                this.emit(c);
+                } 
+            } else if(this.candidate.text.length) {
+                this.emitToken(this.candidate);
             }
 
+            //emit eof token
             this.emitToken(new Token(Eof, this.position, ''));
+
+            // no more steps
             return false;
-        }
 
-        // check valid transitions, find the new states
-        let newStates:Set<State> = new Set();
-        
-        for(let state of this.activeStates) {
-            for(let tr of state.outgoing) {
-                if(tr.constraint.matches(c)) {
-                    newStates.add(tr.target);
-                }
-            }
-        }
-        
-        // nothing matched -> see if there are any fallback transition
-        if(newStates.size == 0) {
-            for(let s of this.activeStates) {
-                if(s.fallbackTransition != null) {
-                    newStates.add(s.fallbackTransition.target);
-                    shouldpushback = true;
-                }
-            }
-        }
-
-        //update matched test
-        if(shouldpushback) {
-            this.reader.unshift();
         } else {
+
+            // activate all transitions, updating current states
+            let newStates:Set<State> = new Set;
+            this.activeStates.forEach(s=> {
+                for(let matching of s.outgoing.filter(t=>t.constraint.matches(c)).map(t=>t.target)) {
+                    newStates.add(matching);
+                }
+            });
+            this.activeStates = newStates;
+            
+            // Update position & matched text
             this.matched += c;
-        }
+            
+            //Find a new candidate
+            let candidateTerminals = Array.from(newStates)
+                .filter(s=>s.terminal!=null)
+                .map(s=>s.terminal)
+                .sort((a,b)=>this.terminals.indexOf(a) - this.terminals.indexOf(b));
 
-        // there are no active transition
-        if(newStates.size == 0) {
-            if(this.candidate == null) {
-                throw new LexicalError(c, this.position);
-            } else {
-                this.emit(c);
-                return true;
+            if(this.candidate) {
+                if(candidateTerminals.indexOf(this.candidate.tokenType) == -1) {
+                    this.emit();
+                    return true;
+                }
             }
-        }
-
-        //find the potential candidate
-        let candStates:Array<State>=[];
-        for(let s of newStates) {
-            if(s.finalState) {
-                candStates.push(s);
+            if(candidateTerminals.length) {
+                this.candidate = new Token(candidateTerminals[0], this.startPosition, this.matched);
             }
+            this.position = this.position.updated(c);
+            return true;
         }
-        if(candStates.length > 0) {
-            candStates.sort((a,b) => b.terminal.priority - a.terminal.priority);
-            this.candidate = new Token(candStates[0].terminal, this.startPosition, this.matched);
-        }
-
-        //update position
-        this.position = this.position.updated(c);
-        this.activeStates = newStates;
-        return true;
     }
 };

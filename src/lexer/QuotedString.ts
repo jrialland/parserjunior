@@ -2,6 +2,7 @@ import { Terminal } from "../common/Terminal";
 import { Automaton, AutomatonBuilder } from "./automaton/Automaton";
 import {CharConstraint} from "./CharConstraint";
 import { checkServerIdentity } from "tls";
+import { CCharacter } from "./CCharacter";
 
 export class QuotedString extends Terminal {
 
@@ -20,20 +21,32 @@ export class QuotedString extends Terminal {
 		this._startChar = startChar;
 		this._endChar = endChar;
 		this._escapeChar = escapeChar;
-		this._forbiddenChars = forbiddenChars + this._endChar;
+		this._forbiddenChars = forbiddenChars;
+
+
 		let builder = AutomatonBuilder.forTokenType(this);
+		let start = builder.initialState();
 
-		let initial = builder.initialState();
+		//must begin with the 'start' char
 		let inString = builder.newNonFinalState();
-		let endOfString = builder.newFinalState();
-		
-		builder.addTransition(initial, CharConstraint.eq(this._startChar), inString);
-		builder.addTransition(inString, CharConstraint.eq(this._endChar), endOfString);
+		builder.addTransition(start, CharConstraint.eq(startChar), inString);
 
+		let end = builder.newFinalState();
+
+		//get out if we encounter the 'end' char
+		builder.addTransition(inString, CharConstraint.not(CharConstraint.inList(forbiddenChars + endChar + escapeChar)), inString);
+		builder.addTransition(inString, CharConstraint.eq(endChar), end);
+
+		//escaping
 		let escaping = builder.newNonFinalState();
-		builder.addTransition(inString, CharConstraint.eq(this._escapeChar), escaping);
-		builder.addTransition(escaping, CharConstraint.inList(this._forbiddenChars), inString);
-		inString.addFallback().target = inString;
+
+		let constraint = forbiddenChars.length ?  CharConstraint.not(CharConstraint.inList(forbiddenChars)) : CharConstraint.any();
+		builder.addTransition(inString, CharConstraint.eq(escapeChar), escaping);
+		builder.addTransition(escaping, constraint, inString);
+
+		// otherwise continue reading the string
+		//inString.addFallback().target = inString;
+
 		this._automaton = builder.build();
 	}
 	

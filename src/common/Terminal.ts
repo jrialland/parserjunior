@@ -3,8 +3,6 @@ import { Automaton } from '../lexer/automaton/Automaton';
 
 export abstract class Terminal extends ParseSymbol {
 
-    priority:number;
-
     constructor(name:string) {
         super(name);
     }
