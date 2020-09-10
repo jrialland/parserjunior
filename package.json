@@ -4,15 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": " gulp test",
-    "build": "gulp build"
+    "test": " npx jest test",
+    "build": "npx gulp build"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@babel/core": "^7.7.4",
-    "@babel/preset-env": "^7.7.4",
-    "@babel/register": "^7.7.4",
+    "@babel/core": "^7.11.6",
+    "@babel/preset-env": "^7.11.5",
+    "@babel/register": "^7.11.5",
     "@types/jest": "^24.0.23",
     "@types/node": "^12.12.14",
     "core-js": "^3.4.5",

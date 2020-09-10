@@ -1,4 +1,4 @@
-import { RegexTerminal, regexParser, RegexVisitor, regexGrammar } from './RegexTerminal';
+import { regexParser, RegexVisitor } from './RegexTerminal';
 import { SingleChar } from './SingleChar';
 import { AstHelper} from '../parser/AstHelper';
 

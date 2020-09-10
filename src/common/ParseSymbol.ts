@@ -4,26 +4,26 @@
 export abstract class ParseSymbol {
 
     /** Should be unique for a given grammar */
-    name:string;
+    name: string;
 
-    constructor(name:string) {
+    constructor(name: string) {
         this.name = name;
     }
 
     /* whether the symbol is terminal (i.e a lexer token) or not */
-    abstract isTerminal() :boolean;
+    abstract isTerminal(): boolean;
 
     /**
      * @returns the name
      */
-    toString():string {
+    toString(): string {
         return this.name;
     }
 
     /**
      * The unique id of a symbol, should be unique for a given grammar.
      */
-    getUid():string {
+    getUid(): string {
         return this.name;
     }
 
@@ -31,7 +31,7 @@ export abstract class ParseSymbol {
      * Due the notion of 'Extended symbol', this method returns the 'normal' symbol
      * associated with the current symbol. the ExtendedSymbol class overrides this method.
      */
-    asSimpleSymbol():ParseSymbol {
+    asSimpleSymbol(): ParseSymbol {
         return this;
     }
 };

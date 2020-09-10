@@ -1,9 +1,9 @@
 
-import {ParseSymbol} from '../common/ParseSymbol';
-import {NonTerminal} from '../common/NonTerminal';
-import {Empty, Eof} from '../common/SpecialTerminal';
-import {Rule} from './Rule';
-import {ActionType} from './ActionTable';
+import { ParseSymbol } from '../common/ParseSymbol';
+import { NonTerminal } from '../common/NonTerminal';
+import { Empty, Eof } from '../common/SpecialTerminal';
+import { Rule } from './Rule';
+import { ActionType } from './ActionTable';
 
 /**
  * A grammar is a set of rules, for which a parser can be generated.
@@ -11,16 +11,16 @@ import {ActionType} from './ActionTable';
 export class Grammar {
 
     /* The main rule of the grammar */
-    targetRule:Rule;
-    
+    targetRule: Rule;
+
     /** rules */
-    rules:Array<Rule>;
+    rules: Array<Rule>;
 
-    symbols:Map<string, ParseSymbol>;
+    symbols: Map<string, ParseSymbol>;
 
-    precedenceLevels:Map<string, number> = new Map;
+    precedenceLevels: Map<string, number> = new Map;
 
-    nameCounter:number;
+    nameCounter: number;
 
     constructor() {
         this.targetRule = null;
@@ -30,7 +30,7 @@ export class Grammar {
     }
 
     toString() {
-        return this.rules.map(rule=>`${rule.id}. ${rule.toString()}`).join('\n');
+        return this.rules.map(rule => `${rule.id}. ${rule.toString()}`).join('\n');
     }
 
     /**
@@ -38,18 +38,18 @@ export class Grammar {
      * @param targetSymbol The left part of the new rule
      * @param definition The right part of the new rule
      */
-    defineRule(targetSymbol:NonTerminal, definition:Array<ParseSymbol>):Rule {
+    defineRule(targetSymbol: NonTerminal, definition: Array<ParseSymbol>): Rule {
         return this.addRule(new Rule(targetSymbol, definition));
     }
 
     /**
      * Adds a new rule
      */
-    addRule(r:Rule) {
-        
+    addRule(r: Rule) {
+
         //update symbols
         this.symbols.set(r.target.getUid(), r.target);
-        for(let s of r.definition) {
+        for (let s of r.definition) {
             this.symbols.set(s.getUid(), s);
         }
 
@@ -57,10 +57,10 @@ export class Grammar {
         this.rules.push(r);
 
         // set the rule's uid
-        r.setId(this.rules.length-1);
+        r.setId(this.rules.length - 1);
 
         //consider as target rule if it was not defined yet
-        if(this.targetRule == null) {
+        if (this.targetRule == null) {
             this.setTargetRule(r);
         }
 
@@ -68,19 +68,18 @@ export class Grammar {
     }
 
     /**
-     * 
      * @param rule the rule to consider as target rule.
      * Note : this rule should already be part of the known rules of this grammar, therefore addRule() or defineRule() must have been called first.
      */
-    setTargetRule(rule:Rule) {
+    setTargetRule(rule: Rule) {
         this.targetRule = rule
         // update the list of rules so the target rule is always id=0
         this.targetRule.id = 0;
-        let newRules:Array<Rule> = [];
+        let newRules: Array<Rule> = [];
         newRules.push(this.targetRule);
         let i = 1;
-        for(let rule of this.rules) {
-            if(rule != this.targetRule) {
+        for (let rule of this.rules) {
+            if (rule != this.targetRule) {
                 rule.id = i++;
                 newRules.push(rule);
             }
@@ -91,92 +90,92 @@ export class Grammar {
     /**
      * @return the main rule of this grammar
      */
-    getTargetRule():Rule {
-        if(this.targetRule == null) {
-            if(this.rules.length > 0) {
+    getTargetRule(): Rule {
+        if (this.targetRule == null) {
+            if (this.rules.length > 0) {
                 this.targetRule = this.rules[0];
             }
         }
         return this.targetRule;
     }
 
-    getRules():Array<Rule> {
+    getRules(): Array<Rule> {
         return this.rules;
     }
 
-    getRuleById(ruleIndex:number):Rule {
+    getRuleById(ruleIndex: number): Rule {
         return this.rules[ruleIndex];
     }
 
-    getSymbols():IterableIterator<ParseSymbol> {
+    getSymbols(): IterableIterator<ParseSymbol> {
         return this.symbols.values();
     }
 
-    getTerminals():ParseSymbol[] {    
-        let a :Array<ParseSymbol>= [];
-        for(const s of this.getSymbols()) {
-            if(s.isTerminal()) {
+    getTerminals(): ParseSymbol[] {
+        let a: Array<ParseSymbol> = [];
+        for (const s of this.getSymbols()) {
+            if (s.isTerminal()) {
                 a.push(s);
             }
         }
         return a;
     }
 
-    getNonTerminals():ParseSymbol[] {
-        let a :Array<ParseSymbol>= [];
-        for(const s of this.getSymbols()) {
-            if( ! s.isTerminal()) {
+    getNonTerminals(): ParseSymbol[] {
+        let a: Array<ParseSymbol> = [];
+        for (const s of this.getSymbols()) {
+            if (!s.isTerminal()) {
                 a.push(s);
             }
         }
         return a;
     }
 
-    getSymbolPrecedence(sym:ParseSymbol):number {
+    getSymbolPrecedence(sym: ParseSymbol): number {
         let val = this.precedenceLevels.get(sym.getUid());
         return val == null ? 0 : val;
     }
 
-    getConflictResolutionHint(rule:Rule, sym:ParseSymbol) {
-        let decision:ActionType = null;
+    getConflictResolutionHint(rule: Rule, sym: ParseSymbol) {
+        let decision: ActionType = null;
         let rulePrecedence = rule.getPrecedenceLevel();
         let tokenPrecedence = this.getSymbolPrecedence(sym);
-        if(tokenPrecedence > rulePrecedence) {
+        if (tokenPrecedence > rulePrecedence) {
             return ActionType.Shift;
-        } else if( rulePrecedence > tokenPrecedence) {
+        } else if (rulePrecedence > tokenPrecedence) {
             return ActionType.Reduce;
         } else {
             return rule.getConflictArbitration();
         }
     }
 
-    oneOf(...syms:ParseSymbol[]):ParseSymbol {
-        if(syms.length < 2) {
-			throw Error("The list must contain at list 2 symbols");
-		}
-        let name = "oneOf(" + (syms.map(s=>s.name).join(', ')) + ")";
+    oneOf(...syms: ParseSymbol[]): ParseSymbol {
+        if (syms.length < 2) {
+            throw Error("The list must contain at list 2 symbols");
+        }
+        let name = "oneOf(" + (syms.map(s => s.name).join(', ')) + ")";
         let tmp = new NonTerminal(name);
-        for(let s of syms) {
+        for (let s of syms) {
             this.defineRule(tmp, [s]);
         }
         return tmp;
     }
 
-    optional(...syms:ParseSymbol[]):ParseSymbol {
-        let name = "optional(" + (syms.map(s=>s.name).join(', ')) + ")";
+    optional(...syms: ParseSymbol[]): ParseSymbol {
+        let name = "optional(" + (syms.map(s => s.name).join(', ')) + ")";
         let opt = new NonTerminal(name);
         this.defineRule(opt, syms);
         this.defineRule(opt, [Empty]);
         return opt;
     }
 
-    zeroOrMore(...syms:ParseSymbol[]):ParseSymbol {
+    zeroOrMore(...syms: ParseSymbol[]): ParseSymbol {
         let name = "_0orMore_" + this.nameCounter++;
         let tmp = new NonTerminal(name);
         this.defineRule(tmp, syms).withName(name); // zeroOrMore(a) -> x y z
         let list = new Array<ParseSymbol>();
         list.push(tmp);
-        for(let s of syms) {
+        for (let s of syms) {
             list.push(s);
         }
         this.defineRule(tmp, list); // zeroOrMore(a) -> zeroOrMore(a) x y z
@@ -184,23 +183,23 @@ export class Grammar {
         return tmp;
     }
 
-    oneOrMore(...syms:ParseSymbol[]):ParseSymbol {
+    oneOrMore(...syms: ParseSymbol[]): ParseSymbol {
         let name = "_1orMore_" + this.nameCounter++;
         let tmp = new NonTerminal(name);
         this.defineRule(tmp, syms).withName(name); // oneOrMore(a) -> x y z
         let list = new Array<ParseSymbol>();
         list.push(tmp);
-        for(let s of syms) {
+        for (let s of syms) {
             list.push(s);
         }
         this.defineRule(tmp, list).withName(name); //oneOrMore(a) -> oneOrMore(a) x y z
         return tmp;
     }
 
-    listOf(typeOfItems:ParseSymbol, separator:ParseSymbol, allowEmptyLists?:boolean):ParseSymbol {
-        
+    listOf(typeOfItems: ParseSymbol, separator: ParseSymbol, allowEmptyLists?: boolean): ParseSymbol {
+
         // true by default
-        allowEmptyLists = typeof(allowEmptyLists) === 'undefined' ? true : allowEmptyLists;
+        allowEmptyLists = typeof (allowEmptyLists) === 'undefined' ? true : allowEmptyLists;
 
         let tmp = new NonTerminal("list(" + typeOfItems.toString() + ")");
 
@@ -208,16 +207,16 @@ export class Grammar {
         this.defineRule(tmp, [typeOfItems]);
 
         this.defineRule(tmp, [tmp, separator, typeOfItems])
-        .withName('_list_'+this.nameCounter++)
-        .setReduceAction((node) => {
-            let list = node.children[0].children;
-            let lastChild = node.children[node.children.length-1];
-            list.push(lastChild);
-            node.children = list;
-        });
+            .withName('_list_' + this.nameCounter++)
+            .setReduceAction((node) => {
+                let list = node.children[0].children;
+                let lastChild = node.children[node.children.length - 1];
+                list.push(lastChild);
+                node.children = list;
+            });
 
         // a list may be empty
-        if(allowEmptyLists) {
+        if (allowEmptyLists) {
             this.defineRule(tmp, [Empty]);
         }
 

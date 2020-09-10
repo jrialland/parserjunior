@@ -10,11 +10,10 @@ import { Rule } from "./Rule";
 import { AstNode } from "./AstNode"
 import { ActionTable, Action, ActionType } from "./ActionTable";
 
-import jsesc = require('jsesc');
 // -----------------------------------------------------------------------------
 export class ParseError extends Error {
-    expected:Array<Terminal>;
-    constructor(token:Token, expected:Array<Terminal>) {
+    expected: Array<Terminal>;
+    constructor(token: Token, expected: Array<Terminal>) {
         super("Parse error");
         this.expected = expected;
     }
@@ -22,15 +21,15 @@ export class ParseError extends Error {
 
 // -----------------------------------------------------------------------------
 export interface ParserListener {
-    onParseError(error:ParseError, parser:Parser, lexerStream:LexerStream, node:AstNode):void;
-    onReduce(parser:Parser, lexerStream:LexerStream, node:AstNode):void;
+    onParseError(error: ParseError, parser: Parser, lexerStream: LexerStream, node: AstNode): void;
+    onReduce(parser: Parser, lexerStream: LexerStream, node: AstNode): void;
 };
 
 // -----------------------------------------------------------------------------
 class ParserState {
-    stateId:number;
-    node:AstNode;
-    constructor(stateId:number, node:AstNode) {
+    stateId: number;
+    node: AstNode;
+    constructor(stateId: number, node: AstNode) {
         this.stateId = stateId;
         this.node = node;
     }
@@ -39,13 +38,13 @@ class ParserState {
 // -----------------------------------------------------------------------------
 class LeafNode implements AstNode {
 
-    token:Token;
-    
-    constructor(token:Token) {
+    token: Token;
+
+    constructor(token: Token) {
         this.token = token;
     }
 
-    get rule():Rule {
+    get rule(): Rule {
         return null;
     }
 
@@ -53,25 +52,25 @@ class LeafNode implements AstNode {
         return this.token;
     }
 
-    set children(a:Array<AstNode>) {
+    set children(a: Array<AstNode>) {
     }
 
-    get children():Array<AstNode> {
+    get children(): Array<AstNode> {
         return [];
     }
 };
 
 // -----------------------------------------------------------------------------
 class NonLeafNode implements AstNode {
-    rule:Rule;
-    children:Array<AstNode>;
-    constructor(rule:Rule, children:Array<AstNode>) {
+    rule: Rule;
+    children: Array<AstNode>;
+    constructor(rule: Rule, children: Array<AstNode>) {
         this.rule = rule;
         this.children = children;
     }
 
-    asToken():Token {
-        if(this.children.length > 0) {
+    asToken(): Token {
+        if (this.children.length > 0) {
             return this.children[0].asToken();
         } else {
             return null;
@@ -82,21 +81,21 @@ class NonLeafNode implements AstNode {
 // -----------------------------------------------------------------------------
 export class Parser {
 
-    private actionTable:ActionTable;
-    
-    parserListener:ParserListener;
-    
-    constructor(actionTable:ActionTable) {
+    private actionTable: ActionTable;
+
+    parserListener: ParserListener;
+
+    constructor(actionTable: ActionTable) {
         this.actionTable = actionTable;
     }
 
-    parseString(s:string, ignore?:Array<Terminal>):AstNode {
+    parseString(s: string, ignore?: Array<Terminal>): AstNode {
         return this.parseReader(Reader.fromString(s), ignore);
     }
 
-    parseReader(reader:Reader, ignore?:Array<Terminal>):AstNode {
-        let terminals:Array<Terminal> = this.actionTable.grammar.getTerminals() as Array<Terminal>;
-        if(!ignore) {
+    parseReader(reader: Reader, ignore?: Array<Terminal>): AstNode {
+        let terminals: Array<Terminal> = this.actionTable.grammar.getTerminals() as Array<Terminal>;
+        if (!ignore) {
             ignore = [
                 new SingleChar(' '),
                 new SingleChar('\t'),
@@ -107,23 +106,23 @@ export class Parser {
         let lexerStream = new LexerStream(reader, terminals, ignore);
         return this.parse(lexerStream);
     }
-    
-    parse(stream:LexerStream) {
-        
+
+    parse(stream: LexerStream) {
+
         let stack = [new ParserState(0, null)];
 
-        while(true) {
+        while (true) {
 
             // Top of the stack
-            let currentState = stack[stack.length-1];
+            let currentState = stack[stack.length - 1];
 
             let next = stream.next();
 
-            if(next.done) {
+            if (next.done) {
                 // We should never reach the end of the lexer stream, an 'Accept' action should arise on the last token, making this method return
                 // -> Getting past the last token is an error (i.e the last character is missing etc... )
-                let lastNode = stack[stack.length-1].node;
-                let expected = this.actionTable.getExpectedTerminals(stack[stack.length-1].stateId);
+                let lastNode = stack[stack.length - 1].node;
+                let expected = this.actionTable.getExpectedTerminals(stack[stack.length - 1].stateId);
                 throw new ParseError(lastNode.asToken(), expected);
 
             } else {
@@ -133,21 +132,21 @@ export class Parser {
 
                 // Find the action to be taken
                 let action = this.actionTable.getAction(currentState.stateId, token.tokenType);
-                if(action == null) {
+                if (action == null) {
                     //special case when 'empty' is acceptable
                     action = this.actionTable.getAction(currentState.stateId, Empty);
-                    if(action != null) {
+                    if (action != null) {
                         // The token is not consumed in this case
                         stream.pushback(token);
                     }
                 }
 
-                // The input is not illegal for this State 
-                if(action == null) {
+                // The input is illegal for this State
+                if (action == null) {
                     throw new ParseError(token, this.actionTable.getExpectedTerminals(currentState.stateId));
                 }
 
-                switch(action.type) {
+                switch (action.type) {
                     case ActionType.Shift:
                         this.shift(stack, token, action);
                         break;
@@ -155,8 +154,8 @@ export class Parser {
                         this.reduce(stack, token, action, stream);
                         break;
                     case ActionType.Accept:
-                            let targetRule = this.actionTable.grammar.getTargetRule();
-                            return this.makeNode(stack, stream, targetRule);
+                        let targetRule = this.actionTable.grammar.getTargetRule();
+                        return this.makeNode(stack, stream, targetRule);
                     case ActionType.Fail:
                         this.fail(token, stream, currentState);
                         break;
@@ -165,47 +164,46 @@ export class Parser {
         }
     }
 
-    private makeNode(stack:Array<ParserState>, stream:LexerStream, rule:Rule):AstNode {
-        let children:Array<AstNode> = [];
-        for(let sym of rule.definition) {
+    private makeNode(stack: Array<ParserState>, stream: LexerStream, rule: Rule): AstNode {
+        let children: Array<AstNode> = [];
+        for (let sym of rule.definition) {
             let popped = stack.pop().node;
             let poppedToken = popped.asToken();
             let isEof = poppedToken != null && poppedToken.tokenType === Eof;
-            if( ! isEof) {
+            if (!isEof) {
                 children.push(popped);
             }
         }
         return new NonLeafNode(rule, children.reverse());
     }
 
-    private shift(stack:Array<ParserState>, token:Token, action:Action) {
+    private shift(stack: Array<ParserState>, token: Token, action: Action) {
         stack.push(new ParserState(action.target, new LeafNode(token)));
     }
 
-    private reduce(stack:Array<ParserState>, token:Token, action:Action, stream:LexerStream) {
-        
+    private reduce(stack: Array<ParserState>, token: Token, action: Action, stream: LexerStream) {
+
         // Find the rule that is reduced
         let rule = this.actionTable.grammar.getRuleById(action.target);
-        
-        // Make the ast node
+
+        // Create a new ast node
         let node = this.makeNode(stack, stream, rule);
-        
-        // If there is callback associated with the rule, execute it
-        if(rule.reduceAction) {
+
+        // If there is a callback associated with the rule, execute it
+        if (rule.reduceAction) {
             rule.reduceAction(node);
         }
 
         // A new state is searched in the GOTO table and becomes the current state
-        let stateId = stack[stack.length-1].stateId;
+        let stateId = stack[stack.length - 1].stateId;
         let nextStateId = this.actionTable.getNextState(stateId, rule.target);
         stack.push(new ParserState(nextStateId, node));
-        
         stream.pushback(token);
     }
 
-    private fail(token:Token, stream:LexerStream, state:ParserState) {
+    private fail(token: Token, stream: LexerStream, state: ParserState) {
         let parseError = new ParseError(token, this.actionTable.getExpectedTerminals(state.stateId));
-        if(this.parserListener) {
+        if (this.parserListener) {
             this.parserListener.onParseError(parseError, this, stream, state.node);
         } else {
             throw parseError;

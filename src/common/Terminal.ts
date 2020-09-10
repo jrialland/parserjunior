@@ -1,9 +1,9 @@
-import {ParseSymbol} from './ParseSymbol';
+import { ParseSymbol } from './ParseSymbol';
 import { Automaton } from '../lexer/automaton/Automaton';
 
 export abstract class Terminal extends ParseSymbol {
 
-    constructor(name:string) {
+    constructor(name: string) {
         super(name);
     }
 
@@ -11,5 +11,5 @@ export abstract class Terminal extends ParseSymbol {
         return true;
     }
 
-    abstract get automaton():Automaton;
+    abstract get automaton(): Automaton;
 };

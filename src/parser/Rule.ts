@@ -1,6 +1,6 @@
 
-import {ParseSymbol} from '../common/ParseSymbol';
-import {ActionType} from './ActionTable'
+import { ParseSymbol } from '../common/ParseSymbol';
+import { ActionType } from './ActionTable'
 import { AstNode } from './AstNode';
 
 
@@ -11,74 +11,74 @@ import { AstNode } from './AstNode';
 export class Rule {
 
     /** The unique id of the rule */
-    id:number;
+    id: number;
 
     /**
      * The start symbol for this rule
      */
-    target:ParseSymbol;
-    
+    target: ParseSymbol;
+
     /**
      * The list of symbols (right part of the rule)
      */
-    definition:Array<ParseSymbol>;
-    
-    precedenceLevel:number;
+    definition: Array<ParseSymbol>;
 
-    conflictArbitration:ActionType;
+    precedenceLevel: number;
 
-    name:string;
+    conflictArbitration: ActionType;
 
-    reduceAction:(node:AstNode)=>void;
+    name: string;
 
-    constructor(target:ParseSymbol, definition:Array<ParseSymbol>) {
+    reduceAction: (node: AstNode) => void;
+
+    constructor(target: ParseSymbol, definition: Array<ParseSymbol>) {
         this.target = target;
         this.definition = definition;
     }
-    
+
     toString() {
-        let s:string = this.target.toString() + " →";
-        for(const item of this.definition) {
+        let s: string = this.target.toString() + " →";
+        for (const item of this.definition) {
             s += " " + item.toString();
         }
         return s;
     }
 
     /** sets rule's uid, which should be unique for a given grammar */
-    setId(id:number) {
+    setId(id: number) {
         this.id = id;
     }
 
-    getPrecedenceLevel():Number {
+    getPrecedenceLevel(): Number {
         return this.precedenceLevel;
     }
 
-    setPrecedenceLevel(level:number) {
+    setPrecedenceLevel(level: number) {
         this.precedenceLevel = level;
     }
 
-    getConflictArbitration():ActionType {
+    getConflictArbitration(): ActionType {
         return this.conflictArbitration;
     }
 
-    setConflictArbitration(conflictArbitration:ActionType) {
+    setConflictArbitration(conflictArbitration: ActionType) {
         this.conflictArbitration = conflictArbitration;
     }
 
-    setReduceAction(callback:(node:AstNode)=>void) {
+    setReduceAction(callback: (node: AstNode) => void) {
         this.reduceAction = callback;
     }
 
-    getReduceAction():(node:AstNode)=>void {
+    getReduceAction(): (node: AstNode) => void {
         return this.reduceAction;
     }
 
-    withName(name:string) {
+    withName(name: string) {
         this.setName(name);
         return this;
     }
 
-    setName(name:string) {
+    setName(name: string) {
         this.name = name;
     }
 

@@ -1,22 +1,20 @@
 import { Terminal } from "../common/Terminal";
 import { Automaton, AutomatonBuilder } from "./automaton/Automaton";
-import {CharConstraint} from "./CharConstraint";
-import { checkServerIdentity } from "tls";
-import { CCharacter } from "./CCharacter";
+import { CharConstraint } from "./CharConstraint";
 
 export class QuotedString extends Terminal {
 
-	private _startChar:string;
+	private _startChar: string;
 
-	private _endChar:string;
+	private _endChar: string;
 
-	private _escapeChar:string;
+	private _escapeChar: string;
 
-	private _forbiddenChars:string;
+	private _forbiddenChars: string;
 
-	private _automaton:Automaton;
+	private _automaton: Automaton;
 
-	constructor(startChar:string, endChar:string, escapeChar:string, forbiddenChars:string) {
+	constructor(startChar: string, endChar: string, escapeChar: string, forbiddenChars: string) {
 		super("QuotedString");
 		this._startChar = startChar;
 		this._endChar = endChar;
@@ -40,7 +38,7 @@ export class QuotedString extends Terminal {
 		//escaping
 		let escaping = builder.newNonFinalState();
 
-		let constraint = forbiddenChars.length ?  CharConstraint.not(CharConstraint.inList(forbiddenChars)) : CharConstraint.any();
+		let constraint = forbiddenChars.length ? CharConstraint.not(CharConstraint.inList(forbiddenChars)) : CharConstraint.any();
 		builder.addTransition(inString, CharConstraint.eq(escapeChar), escaping);
 		builder.addTransition(escaping, constraint, inString);
 
@@ -49,8 +47,8 @@ export class QuotedString extends Terminal {
 
 		this._automaton = builder.build();
 	}
-	
-	get automaton():Automaton {
+
+	get automaton(): Automaton {
 		return this._automaton;
 	}
 };

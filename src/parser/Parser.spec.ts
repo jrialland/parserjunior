@@ -26,7 +26,7 @@ test('Can parse', () => {
     // etc...
 });
 
-test('oneOrMore', ()=>{
+test('oneOrMore', () => {
     let g = new Grammar;
     let target = new NonTerminal("target");
     g.setTargetRule(

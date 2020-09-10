@@ -11,7 +11,7 @@ class SpecialTerminal extends Terminal {
         super(name);
     }
 
-    get automaton():Automaton {
+    get automaton(): Automaton {
         throw new Error("Not implemented");
     }
 };

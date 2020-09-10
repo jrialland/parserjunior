@@ -1,5 +1,4 @@
 import { Literal } from "./Literal";
-import { State, Automaton } from "./automaton/Automaton";
 
 
 test('Literal automaton', () => {

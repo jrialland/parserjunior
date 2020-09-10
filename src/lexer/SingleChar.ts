@@ -1,13 +1,13 @@
 import { Terminal } from '../common/Terminal';
-import {Automaton, AutomatonBuilder, State} from './automaton/Automaton';
+import { Automaton, AutomatonBuilder, State } from './automaton/Automaton';
 import { CharConstraint } from './CharConstraint';
 
 /**
  * Simple token that represents a single character
  */
 export class SingleChar extends Terminal {
-    
-    character:string;
+
+    character: string;
 
     constructor(c: string) {
         super(c);
@@ -17,8 +17,8 @@ export class SingleChar extends Terminal {
     toString(): string {
         return "'" + this.name + "'";
     }
-    
-    get automaton():Automaton {
+
+    get automaton(): Automaton {
         let builder = AutomatonBuilder.forTokenType(this);
         let initial = builder.initialState();
         let final = builder.newFinalState();
