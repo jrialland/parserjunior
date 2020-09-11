@@ -32,6 +32,10 @@ export class Transition {
     source: State;
     constraint: CharConstraint;
     target: State;
+
+    toString() {
+        return this.source.id + '-[' + this.constraint.toString()+']->' + this.target.id;
+    }
 }
 
 export class Automaton {
@@ -41,7 +45,7 @@ export class Automaton {
     constructor(initialState: State) {
         this._initial = initialState;
         let counter = 0;
-        for (let state of this.allTransitions()) {
+        for (let state of this.allStates()) {
             state.id = counter++;
         }
     }
@@ -50,7 +54,14 @@ export class Automaton {
         return this._initial;
     }
 
-    *allTransitions() {
+    reassignIds() {
+        let counter = 0;
+        for (let state of this.allStates()) {
+            state.id = counter++;
+        }
+    }
+
+    *allStates() {
         let stack = [this._initial];
         let done: Array<State> = [];
         while (stack.length > 0) {
@@ -69,7 +80,7 @@ export class Automaton {
 
     toGraphviz(): string {
         let s: string = `digraph ${this.constructor.name} {\n`;
-        for (let state of this.allTransitions()) {
+        for (let state of this.allStates()) {
             s += `    "${state.id}" `;
             if (state.id == 0) {
                 s += "[shape=circle,penwidth=4]";
@@ -78,19 +89,13 @@ export class Automaton {
             } else {
                 s += "[shape=circle]";
             }
+            s += "/* "+ state.outgoing.length +" outgoing transitions */";
             s += ";\n";
         }
-        let stack = [this.initialState];
-        let done: Array<State> = [];
-        while (stack.length) {
-            let state = stack.pop();
-            done.push(state);
-            for (let transition of state.outgoing) {
+        for(let state of this.allStates()) {
+            for(let transition of state.outgoing) {
                 let label = jsesc(transition.constraint.toString(), { quotes: 'double' });
                 s += `    "${state.id}" -> "${transition.target.id}" [label="${label}"];\n`;
-                if (!done.includes(transition.target)) {
-                    stack.push(transition.target);
-                }
             }
         }
         s += "}"
@@ -133,22 +138,29 @@ export class AutomatonBuilder {
     }
 
     addTransition(source: State, constraint: CharConstraint, target: State): Transition {
-        let t = source.addTransition(constraint);
-        t.target = target;
-        target.incoming.push(t);
-        return t;
+        // check if there is already a similar transition. if so, we do nothing
+        let existing = source.outgoing.filter(t => t.constraint.toString() === constraint.toString() && t.target == target);
+        if(existing.length == 0) {
+            let t = source.addTransition(constraint);
+            t.target = target;
+            target.incoming.push(t);
+            return t;
+        } else {
+            return existing[0];
+        }
     }
 
     failedState(): State {
         return FailedState;
     }
 
+    reassignIds() {
+        
+    }
+
     build(): Automaton {
         let a = new Automaton(this._initial);
-        let counter = 0;
-        for (let state of a.allTransitions()) {
-            state.id = counter++;
-        }
+        a.reassignIds();
         return a;
     }
 }
