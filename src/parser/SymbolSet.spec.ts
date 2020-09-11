@@ -10,5 +10,4 @@ test('Compute FOLLOW sets', () => {
     map.forEach((followSet, key) => {
         s += followSet.toString() + '\n';
     });
-    //console.log(s);
 });

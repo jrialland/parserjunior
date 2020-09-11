@@ -242,7 +242,9 @@ export class RegexVisitor extends Visitor {
 		this.afterOneOrMore(node);
 		this.afterOptional(node);
 		if(this.stackSize.length == 1) {
-			throw new RegexError("Expressions that could match an empty string are forbidden");
+			console.log(this.stackSize[0]);
+			console.log(this.stack);
+			//throw new RegexError("Expressions that could match an empty string are forbidden");
 		}
 	}
 

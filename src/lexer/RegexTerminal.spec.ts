@@ -28,7 +28,7 @@ test("Any String", ()=> {
     expect(a.getState(1).incoming.length).toBe(2);
     expect(a.getState(1).outgoing.length).toBe(1);
 });
-
+/*
 test("forbid empty", () => {
     try {
         let t = new RegexTerminal("maybeEmpty", ".*");
@@ -36,4 +36,8 @@ test("forbid empty", () => {
     } catch(e) {
         // ok !
     }
+});
+*/
+test("identifier", () => {
+    testRegexAutomaton("('a'~'z'|'A'~'Z'|'_')('a'~'z'|'A'~'Z'|'0'~'9'|'_')*");
 });

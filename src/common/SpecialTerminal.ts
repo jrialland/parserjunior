@@ -5,7 +5,7 @@ import { Automaton } from '../lexer/automaton/Automaton';
  * This specialization of the NonTerminal class to make the distinction between 'real' tokens
  * and some interal tokens that have a special meaning
  */
-class SpecialTerminal extends Terminal {
+export class SpecialTerminal extends Terminal {
 
     constructor(name: string) {
         super(name);

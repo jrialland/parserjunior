@@ -209,7 +209,7 @@ function resolutionPass(map: Map<string, FollowSet>): number {
     return count;
 }
 
-function solve(map: Map<string, FollowSet>) {
+function solve(map: Map<string, FollowSet>) :void {
     let lastPass = -1;
     while (true) {
         let thisPass = resolutionPass(map);
