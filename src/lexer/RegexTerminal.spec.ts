@@ -1,11 +1,11 @@
 import { regexParser, RegexVisitor, RegexTerminal } from './RegexTerminal';
 import {Automaton} from '../lexer/automaton/Automaton';
 import { SingleChar } from './SingleChar';
-import { AstHelper} from '../parser/AstHelper';
+import { nodeToGraphviz } from '../parser/AstNode';
 
 function testRegexAutomaton(expr:string) : Automaton {
     let n = regexParser.parseString(expr); 
-    console.log(AstHelper.toGraphviz(n));
+    console.log(nodeToGraphviz(n));
     let v = new RegexVisitor(new SingleChar('x'));
     v.visit(n);
     let a = v.getAutomaton();

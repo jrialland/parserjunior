@@ -60,6 +60,10 @@ class LeafNode implements AstNode {
     get children(): Array<AstNode> {
         return [];
     }
+
+    isLeaf() {
+        return true;
+    }
 };
 
 // -----------------------------------------------------------------------------
@@ -77,6 +81,10 @@ class NonLeafNode implements AstNode {
         } else {
             return null;
         }
+    }
+
+    isLeaf() {
+        return false;
     }
 };
 
