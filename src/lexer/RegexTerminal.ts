@@ -14,16 +14,26 @@ import { ActionTable } from '../parser/ActionTable';
 import { Parser } from '../parser/Parser';
 
 
+export class RegexError extends Error {
+	constructor(message:string) {
+		super(message);
+	}
+};
+
 function addTransition(s1: State, constraint: CharConstraint, s2: State) {
-	let t = new Transition();
-	t.source = s1;
-	t.constraint = constraint;
-	t.target = s2;
-	s1.outgoing.push(t);
-	s2.incoming.push(t);
+	let existing = s1.outgoing.filter( t => t.constraint.toString() === constraint.toString() && t.target === s2);
+	if(existing.length == 0) {
+		let t = new Transition();
+		t.source = s1;
+		t.constraint = constraint;
+		t.target = s2;
+		s1.outgoing.push(t);
+		s2.incoming.push(t);
+	}
 }
 
 function rerouteTransitions(fromState: State, toState: State) {
+	console.log('reroute', fromState.id, toState.id);
 	for (let outgoing of fromState.outgoing) {
 		outgoing.source = toState;
 		toState.outgoing.push(outgoing);
@@ -163,6 +173,9 @@ export class RegexVisitor extends Visitor {
 
 	private afterRegex(node: AstNode) {
 		this.afterGroup(node);
+		if(this.pendingOpt) {
+			this.pendingOpt.start.terminal = this.target;
+		}
 	}
 
 	private beforeGroup(node: AstNode) {
@@ -228,6 +241,9 @@ export class RegexVisitor extends Visitor {
 	private afterZeroOrMore(node: AstNode) {
 		this.afterOneOrMore(node);
 		this.afterOptional(node);
+		if(this.stackSize.length == 1) {
+			throw new RegexError("Expressions that could match an empty string are forbidden");
+		}
 	}
 
 	private afterOneOrMore(node: AstNode) {

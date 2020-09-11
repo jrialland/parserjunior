@@ -3,6 +3,7 @@ import { Terminal } from '../../common/Terminal';
 import { CharConstraint } from '../CharConstraint';
 import jsesc = require('jsesc');
 
+let count=0;
 export class State {
 
     incoming: Array<Transition> = [];
@@ -12,6 +13,10 @@ export class State {
     terminal: Terminal = null;
 
     id: number = 0;
+
+    constructor() {
+        this.id = count++;
+    }
 
     addTransition(constraint: CharConstraint): Transition {
         let t = new Transition();
@@ -42,16 +47,23 @@ export class Automaton {
 
     private _initial: State;
 
+    private _states = new Array<State>();
+
     constructor(initialState: State) {
         this._initial = initialState;
         let counter = 0;
         for (let state of this.allStates()) {
             state.id = counter++;
+            this._states.push(state);
         }
     }
 
     get initialState(): State {
         return this._initial;
+    }
+
+    getState(i:number):State {
+        return this._states[i];
     }
 
     reassignIds() {
@@ -89,7 +101,7 @@ export class Automaton {
             } else {
                 s += "[shape=circle]";
             }
-            s += "/* "+ state.outgoing.length +" outgoing transitions */";
+            s += `/* ${state.incoming.length} incoming, ${state.outgoing.length} outgoing*/`;
             s += ";\n";
         }
         for(let state of this.allStates()) {
@@ -152,10 +164,6 @@ export class AutomatonBuilder {
 
     failedState(): State {
         return FailedState;
-    }
-
-    reassignIds() {
-        
     }
 
     build(): Automaton {

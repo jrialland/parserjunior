@@ -14,7 +14,9 @@ import { ActionTable, Action, ActionType } from "./ActionTable";
 export class ParseError extends Error {
     expected: Array<Terminal>;
     constructor(token: Token, expected: Array<Terminal>) {
-        super("Parse error");
+        let message = `Parse error : at (${token.position.line}:${token.position.column}) :`;
+        message += ` expected one of [${expected.filter(e => e.name).join(', ')}]`;
+        super(message);
         this.expected = expected;
     }
 };
